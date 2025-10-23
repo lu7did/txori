@@ -12,13 +12,19 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Txori: espectrograma en tiempo casi-real")
     parser.add_argument("--audio", action="store_true", help="Usar entrada de audio real")
     parser.add_argument("--seconds", type=float, default=2.0, help="Duración de la ejecución")
-    parser.add_argument("--out", type=str, default="spectrogram.png", help="Archivo de salida PNG")
+    parser.add_argument("--out", type=str, default=None, help="Archivo de salida PNG (opcional)")
     args = parser.parse_args()
 
     cfg = SystemConfig(use_audio=bool(args.audio))
     pipe = Pipeline(cfg)
-    pipe.run(seconds=float(args.seconds))
-    pipe.renderer.save(args.out)
+    if args.out:
+        pipe.run(seconds=float(args.seconds))
+        pipe.renderer.save(args.out)
+    else:
+        from .live import LiveViewer  # import perezoso
+
+        viewer = LiveViewer()
+        pipe.run(seconds=float(args.seconds), on_frame=viewer.update)
 
 
 if __name__ == "__main__":  # pragma: no cover

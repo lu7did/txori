@@ -22,6 +22,7 @@ class SpectrogramRenderer:
     _accum: deque[np.ndarray] = field(default_factory=deque, init=False)
     _image: np.ndarray = field(init=False)
     _norm_eps: float = 1e-12
+    _dirty: bool = field(default=False, init=False)
 
     def __post_init__(self) -> None:
         if self.height <= 0 or self.width <= 0:
@@ -64,9 +65,16 @@ class SpectrogramRenderer:
             for y in range(self.height):
                 column[y] = self._energy_to_color(float(avg[y]), emax)
             self._image[:, 0, :] = column
+            self._dirty = True
 
     def to_pil(self) -> Image.Image:
         return Image.fromarray(self._image, mode="RGB")
 
     def save(self, path: str) -> None:
         self.to_pil().save(path)
+
+    def consume_frame(self) -> np.ndarray | None:
+        if self._dirty:
+            self._dirty = False
+            return self._image
+        return None

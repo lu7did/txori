@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
+from typing import Callable, Optional
+import numpy as np
 
 from .capture import AudioInputCapture, CaptureController, SyntheticSineCapture
 from .config import SystemConfig
@@ -40,14 +42,16 @@ class Pipeline:
         spectrum = self.fft.analyze(processed)
         self.renderer.push_spectrum(spectrum)
 
-    def run(self, seconds: float | None = None) -> None:
-        """Ejecuta indefinidamente o durante `seconds` segundos (si se indica)."""
+    def run(self, seconds: float | None = None, on_frame: Optional[Callable[[np.ndarray], None]] = None) -> None:
+        """Ejecuta indefinidamente o durante `seconds` y llama on_frame cuando hay nueva columna."""
         start = time.perf_counter()
         period = 1.0 / float(self.cfg.sample_rate)
         while True:
             self.step()
+            if on_frame is not None:
+                img = self.renderer.consume_frame()
+                if img is not None:
+                    on_frame(img)
             if seconds is not None and (time.perf_counter() - start) >= seconds:
                 break
-            # Bucle ligero: no dormimos exactamente period para no frenar tests
-            # En uso real, capturaría por bloques; aquí se simula muestra a muestra.
-            # time.sleep(period)  # opcional
+            # time.sleep(period)  # opcional para uso real
