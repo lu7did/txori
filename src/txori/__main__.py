@@ -15,7 +15,6 @@ def main() -> None:
     parser.add_argument("--forever", action="store_true", help="Ejecutar indefinidamente hasta interrupción (Ctrl+C)")
     parser.add_argument("--out", type=str, default=None, help="Archivo de salida PNG (opcional)")
     parser.add_argument("--titulo", type=str, default=None, help="Texto a mostrar como título externo")
-    parser.add_argument("--titulo", type=str, default=None, help="Texto a mostrar como título externo")
     args = parser.parse_args()
 
     cfg = SystemConfig(use_audio=bool(args.audio))

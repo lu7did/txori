@@ -58,19 +58,19 @@ class LiveViewer:
                 self._ax.set_yticklabels([f"{int(f)}" for f in y_freqs])
             except Exception:
                 pass
-            # Escala de tiempo real: 0s a la derecha, máximo a la izquierda
-            try:
-                import numpy as _np
-                w = image.shape[1]
-                max_span = w * float(self.seconds_per_col)
-                xt_pos = _np.linspace(w - 1, 0, num=6)
-                xt_lbl = [f"{t:.1f}" for t in _np.linspace(0.0, max_span, num=6)]
-                self._ax.set_xticks(xt_pos)
-                self._ax.set_xticklabels(xt_lbl)
-            except Exception:
-                pass
             self._fig.tight_layout()  # type: ignore[union-attr]
         else:
             self._im.set_data(image)
+        # Escala de tiempo real: 0s a la derecha, máximo a la izquierda (recalcular por si cambia tamaño)
+        try:
+            import numpy as _np
+            w = image.shape[1]
+            max_span = w * float(self.seconds_per_col)
+            xt_pos = _np.linspace(w - 1, 0, num=6)
+            xt_lbl = [f"{t:.1f}" for t in _np.linspace(0.0, max_span, num=6)]
+            self._ax.set_xticks(xt_pos)
+            self._ax.set_xticklabels(xt_lbl)
+        except Exception:
+            pass
         self._fig.canvas.draw_idle()  # type: ignore[union-attr]
         plt.pause(0.001)

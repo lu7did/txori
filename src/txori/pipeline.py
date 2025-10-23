@@ -25,6 +25,8 @@ class Pipeline:
     proc: IdentityProcessor = field(init=False)
     fft: FFTAnalyzer = field(init=False)
     renderer: SpectrogramRenderer = field(init=False)
+    source_label: str = field(init=False)
+    source_label: str = field(init=False)
 
     def __post_init__(self) -> None:
         cap = AudioInputCapture(self.cfg) if self.cfg.use_audio else SyntheticSineCapture(cfg=self.cfg)

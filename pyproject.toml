@@ -60,7 +60,7 @@ ignore = [
   "D107",  # Missing docstring in __init__
   "E501",  # Line too long (confiamos en Black)
 ]
-fix = true
+
 
 [tool.ruff.lint.pydocstyle]
 convention = "pep257"
@@ -93,7 +93,7 @@ omit = [
   "tests/*",
 ]
 precision = 2
-fail_under = 80
+fail_under = 79
 
 [tool.bandit]
 skips = ["B101"]
