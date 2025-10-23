@@ -23,7 +23,7 @@ def main() -> None:
     else:
         from .live import LiveViewer  # import perezoso
 
-        viewer = LiveViewer()
+        viewer = LiveViewer(max_freq_hz=float(cfg.cutoff_hz), bin_hz=float(cfg.fft_bin_hz))
         pipe.run(seconds=float(args.seconds), on_frame=viewer.update)
 
 

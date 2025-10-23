@@ -59,12 +59,12 @@ class SpectrogramRenderer:
         if len(self._accum) % self.update_interval == 0:
             avg = np.mean(np.stack(list(self._accum), axis=0), axis=0)
             emax = float(np.max(avg) if avg.size else 1.0)
-            # Desplaza todo a la izquierda y coloca nueva columna en x=0
-            self._image = np.roll(self._image, shift=1, axis=1)
+            # Desplaza todo a la izquierda y coloca nueva columna a la derecha (tiempo avanza → izquierda)
+            self._image = np.roll(self._image, shift=-1, axis=1)
             column = np.zeros((self.height, 3), dtype=np.uint8)
             for y in range(self.height):
                 column[y] = self._energy_to_color(float(avg[y]), emax)
-            self._image[:, 0, :] = column
+            self._image[:, -1, :] = column
             self._dirty = True
 
     def to_pil(self) -> Image.Image:
