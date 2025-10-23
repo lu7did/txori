@@ -33,7 +33,7 @@ def test_renderer_input_validation() -> None:
     except Exception as e:  # noqa: BLE001
         assert "1-D" in str(e)
     else:
-        assert False, "Se esperaba excepción por espectro no 1-D"
+        raise AssertionError("Se esperaba excepción por espectro no 1-D")
 
     wrong_size = np.ones(7)
     try:
@@ -41,4 +41,4 @@ def test_renderer_input_validation() -> None:
     except Exception as e:  # noqa: BLE001
         assert "altura" in str(e).lower()
     else:
-        assert False, "Se esperaba excepción por altura incompatible"
+        raise AssertionError("Se esperaba excepción por altura incompatible")

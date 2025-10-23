@@ -7,3 +7,17 @@
 - CLI mínima (`python -m txori`) con guardado de imagen.
 - CI con GitHub Actions: lint, tipado, pruebas, seguridad y docs pdoc.
 - Documentación básica inicial y CHANGELOG.
+
+### Changed
+- Visualización en vivo: se agrega traza superior de intensidad con fondo negro y píxeles color lime, sincronizada con el espectrograma.
+- La traza superior usa el nivel instantáneo de la señal filtrada por pasabajos (sin promediado), con normalización dinámica.
+- Espectrograma ajustado para ocupar todo el ancho configurable (`--width`, por defecto 1200 px); el eje de tiempo se escala usando `seconds_per_col`.
+- Cadena de temporización: entrada 48 kHz → pasabajos `--cutoff` (default 3000 Hz) → diezmado 1:8 (6 kHz) → una columna cada `--avg-samples` (default 15) muestras diezmadas (0.0025 s/col en defecto).
+- FFT y número de bins acordes al ancho de banda (0..cutoff) y `--bin` (default 3 Hz); el eje Y en Hz a la derecha.
+- Textos de interfaz/título reposicionados para quedar más alejados del espectrograma.
+- CLI: `--seconds` ahora corre indefinidamente cuando no se indica; `--forever` sigue disponible.
+- Ayuda de ejecución actualizada para reflejar nuevos parámetros: `--width`, `--cutoff`, `--bin`, `--avg-samples`.
+
+### Fixed
+- Correcciones Ruff: docstrings ausentes, hints `X | None`, orden de imports, eliminación de `assert False` en tests.
+- Ajustes menores de robustez y dependencias opcionales (import perezoso de matplotlib en vivo).
