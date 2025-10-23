@@ -1,3 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
-exec python -m txori "$@"
+# Script de prueba/ejecución de Txori
+# Uso:
+#  - En vivo (ventana): ./scripts/txori.sh --seconds 5
+#  - Guardar PNG:       ./scripts/txori.sh --seconds 5 --out spectrogram.png
+if [ $# -eq 0 ]; then
+  exec python -m txori --seconds 5
+else
+  exec python -m txori "$@"
+fi

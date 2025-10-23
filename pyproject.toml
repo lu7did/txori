@@ -27,6 +27,7 @@ dependencies = [
 
 [project.optional-dependencies]
 audio = ["sounddevice>=0.4.6"]
+viz = ["matplotlib>=3.8"]
 
 dynamic = ["urls"]
 

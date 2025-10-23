@@ -17,13 +17,18 @@ Procesamiento de señales en tiempo casi-real con Python 3.12.
 
 ## Requisitos
 - Python 3.12
-- Dependencias: ver `requirements.txt`.
+- Dependencias: ver `requirements.txt`. Para visualización en vivo instalar `matplotlib` (extra `viz`).
 
 ## Uso rápido
 ```
-python -m txori --seconds 2 --out spectrogram.png  # señal sintética
-python -m txori --audio --seconds 5 --out spec.png # requiere hardware de audio
+# Modo en vivo (requiere matplotlib):
+python -m txori --seconds 2
+python -m txori --audio --seconds 5  # requiere hardware de audio
+
+# Guardar a archivo (sin ventana):
+python -m txori --seconds 2 --out spectrogram.png
 ```
+
 
 ## Desarrollo
 - Formato y lint: Ruff + Black.
