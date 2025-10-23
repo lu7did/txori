@@ -14,6 +14,8 @@ def main() -> None:
     parser.add_argument("--seconds", type=float, default=2.0, help="Duración de la ejecución")
     parser.add_argument("--forever", action="store_true", help="Ejecutar indefinidamente hasta interrupción (Ctrl+C)")
     parser.add_argument("--out", type=str, default=None, help="Archivo de salida PNG (opcional)")
+    parser.add_argument("--titulo", type=str, default=None, help="Texto a mostrar como título externo")
+    parser.add_argument("--titulo", type=str, default=None, help="Texto a mostrar como título externo")
     args = parser.parse_args()
 
     cfg = SystemConfig(use_audio=bool(args.audio))
@@ -27,7 +29,13 @@ def main() -> None:
     else:
         from .live import LiveViewer  # import perezoso
 
-        viewer = LiveViewer(max_freq_hz=float(cfg.cutoff_hz), bin_hz=float(cfg.fft_bin_hz))
+        viewer = LiveViewer(
+            max_freq_hz=float(cfg.cutoff_hz),
+            bin_hz=float(cfg.fft_bin_hz),
+            seconds_per_col=float(cfg.update_interval) / float(cfg.sample_rate),
+            title_text=args.titulo,
+            device_text=getattr(pipe, "source_label", None),
+        )
         try:
             pipe.run(seconds=seconds, on_frame=viewer.update)
         except KeyboardInterrupt:

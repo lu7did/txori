@@ -11,6 +11,9 @@ class LiveViewer:
     title: str = "Txori - Espectrograma"
     max_freq_hz: float = 3000.0
     bin_hz: float = 3.0
+    seconds_per_col: float = 0.001
+    title_text: Optional[str] = None
+    device_text: Optional[str] = None
     _fig: Optional[object] = None
     _ax: Optional[object] = None
     _im: Optional[object] = None
@@ -28,6 +31,11 @@ class LiveViewer:
             plt.ion()
             self._fig, self._ax = plt.subplots()
             self._fig.canvas.manager.set_window_title(self.title)  # type: ignore[attr-defined]
+            # Textos externos
+            if self.title_text:
+                self._fig.text(0.01, 0.98, self.title_text, ha="left", va="top")
+            if self.device_text:
+                self._fig.text(0.99, 0.98, self.device_text, ha="right", va="top")
 
     def update(self, image: np.ndarray) -> None:
         self._ensure_backend()
@@ -37,6 +45,9 @@ class LiveViewer:
             self._im = self._ax.imshow(image, origin="lower")
             self._ax.set_xlabel("Tiempo (seg)")
             self._ax.set_ylabel("Frecuencia (Hz)")
+            # Eje Y a la derecha
+            self._ax.yaxis.tick_right()
+            self._ax.yaxis.set_label_position("right")
             # Configura ticks de frecuencia en Hz
             try:
                 import numpy as _np
@@ -45,6 +56,17 @@ class LiveViewer:
                 y_pos = _np.clip(y_pos, 0, image.shape[0] - 1)
                 self._ax.set_yticks(y_pos)
                 self._ax.set_yticklabels([f"{int(f)}" for f in y_freqs])
+            except Exception:
+                pass
+            # Escala de tiempo real: 0s a la derecha, máximo a la izquierda
+            try:
+                import numpy as _np
+                w = image.shape[1]
+                max_span = w * float(self.seconds_per_col)
+                xt_pos = _np.linspace(w - 1, 0, num=6)
+                xt_lbl = [f"{t:.1f}" for t in _np.linspace(0.0, max_span, num=6)]
+                self._ax.set_xticks(xt_pos)
+                self._ax.set_xticklabels(xt_lbl)
             except Exception:
                 pass
             self._fig.tight_layout()  # type: ignore[union-attr]

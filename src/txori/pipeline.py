@@ -34,6 +34,7 @@ class Pipeline:
         n_bins = int(self.cfg.cutoff_hz // self.cfg.fft_bin_hz) + 1
         self.fft = FFTAnalyzer(fs=float(self.cfg.sample_rate), fc=float(self.cfg.cutoff_hz), bin_hz=float(self.cfg.fft_bin_hz))
         self.renderer = SpectrogramRenderer(height=n_bins, width=int(self.cfg.image_width), average_frames=int(self.cfg.average_frames), update_interval=int(self.cfg.update_interval))
+        self.source_label = getattr(cap, "label", lambda: "Entrada")()
 
     def step(self) -> None:
         window = self.capture.step()

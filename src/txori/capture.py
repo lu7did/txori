@@ -23,6 +23,9 @@ class BaseCapture(ABC):
     def next_sample(self) -> float:
         """Obtiene la siguiente muestra (valor escalar)."""
 
+    def label(self) -> str:
+        return "Entrada"
+
 
 class SyntheticSineCapture(BaseCapture):
     """Generador sintético de señal senoidal para pruebas y CI."""
@@ -30,12 +33,16 @@ class SyntheticSineCapture(BaseCapture):
     def __init__(self, freq_hz: float = 440.0, cfg: SystemConfig | None = None) -> None:
         self.cfg = cfg or SystemConfig()
         self._t = 0
-        self._omega = tau * freq_hz / self.cfg.sample_rate
+        self._freq = float(freq_hz)
+        self._omega = tau * self._freq / self.cfg.sample_rate
 
     def next_sample(self) -> float:
         v = sin(self._omega * self._t)
         self._t += 1
         return float(v)
+
+    def label(self) -> str:
+        return f"Sintético {int(self._freq)} Hz"
 
 
 class AudioInputCapture(BaseCapture):
@@ -53,11 +60,21 @@ class AudioInputCapture(BaseCapture):
             blocksize=1,
         )
         self._stream.start()
+        # Resuelve nombre del dispositivo
+        try:  # pragma: no cover - dependiente del entorno
+            dev = getattr(self._stream, "device", device)
+            info = sd.query_devices(dev) if dev is not None else sd.query_devices(kind="input")
+            self._device_name = str(info.get("name", "dispositivo"))
+        except Exception:  # pragma: no cover - robustez
+            self._device_name = "dispositivo"
 
     def next_sample(self) -> float:  # pragma: no cover - requiere hardware
         assert self._stream is not None
         frames, _ = self._stream.read(1)
         return float(frames[0, 0])
+
+    def label(self) -> str:  # pragma: no cover - depende de hardware
+        return f"Audio: {getattr(self, '_device_name', 'dispositivo')}"
 
 
 class SlidingWindow:
