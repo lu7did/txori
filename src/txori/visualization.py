@@ -51,7 +51,9 @@ class SpectrogramRenderer:
         if spectrum.ndim != 1:
             raise VisualizationError("El espectro debe ser 1-D")
         if spectrum.size != self.height:
-            raise VisualizationError("La altura de imagen debe coincidir con el espectro")
+            raise VisualizationError(
+                "La altura de imagen debe coincidir con el espectro"
+            )
         self._accum.append(spectrum.astype(np.float64))
         if len(self._accum) > self.average_frames:
             self._accum.popleft()

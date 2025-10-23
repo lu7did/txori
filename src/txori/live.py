@@ -50,7 +50,9 @@ class LiveViewer:
             if self.device_text:
                 self._fig.text(0.99, 0.995, self.device_text, ha="right", va="top")
 
-    def update(self, image: np.ndarray, level: float | None = None) -> None:  # pragma: no cover - depende de matplotlib
+    def update(
+        self, image: np.ndarray, level: float | None = None
+    ) -> None:  # pragma: no cover - depende de matplotlib
         self._ensure_backend()
         assert self._ax_spec is not None and self._ax_top is not None
         global plt  # type: ignore[name-defined]
@@ -65,6 +67,7 @@ class LiveViewer:
             # Configura ticks de frecuencia en Hz
             try:
                 import numpy as _np
+
                 y_freqs = _np.linspace(0.0, float(self.max_freq_hz), num=6)
                 y_pos = (y_freqs / max(float(self.bin_hz), 1e-9)).astype(int)
                 y_pos = _np.clip(y_pos, 0, image.shape[0] - 1)
@@ -82,7 +85,9 @@ class LiveViewer:
             self._ax_top.set_xlim(0, w)
             self._ax_top.set_ylim(0, trace_h)
             if self._im_top is None:
-                self._im_top = self._ax_top.imshow(self._trace_img, origin="lower", aspect="auto")
+                self._im_top = self._ax_top.imshow(
+                    self._trace_img, origin="lower", aspect="auto"
+                )
             else:
                 self._im_top.set_data(self._trace_img)
         # Desplaza y dibuja la muestra de nivel
@@ -101,6 +106,7 @@ class LiveViewer:
         # Escala de tiempo real: 0s a la derecha, máximo a la izquierda (recalcular por si cambia tamaño)
         try:
             import numpy as _np
+
             max_span = w * float(self.seconds_per_col)
             xt_pos = _np.linspace(w - 1, 0, num=6)
             xt_lbl = [f"{t:.1f}" for t in _np.linspace(0.0, max_span, num=6)]

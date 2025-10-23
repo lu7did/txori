@@ -1,5 +1,6 @@
 """Excepciones específicas del dominio."""
 
+
 class TxoriError(Exception):
     """Error base del paquete."""
 

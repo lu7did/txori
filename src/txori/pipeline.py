@@ -35,16 +35,26 @@ class Pipeline:
     _last_level: float | None = field(default=None, init=False, repr=False)
 
     def __post_init__(self) -> None:
-        cap = AudioInputCapture(self.cfg) if self.cfg.use_audio else SyntheticSineCapture(cfg=self.cfg)
+        cap = (
+            AudioInputCapture(self.cfg)
+            if self.cfg.use_audio
+            else SyntheticSineCapture(cfg=self.cfg)
+        )
         self.capture = CaptureController(cap, window_size=self.cfg.window_size)
-        self.lpf = OnePoleLowPass(fs=float(self.cfg.sample_rate), fc=float(self.cfg.cutoff_hz))
+        self.lpf = OnePoleLowPass(
+            fs=float(self.cfg.sample_rate), fc=float(self.cfg.cutoff_hz)
+        )
         self.proc = IdentityProcessor()
         # Diezmado 48 kHz -> 6 kHz (1 de cada 8)
         self._decim_factor = max(1, int(self.cfg.sample_rate // 6000))
         self._decim_rate = int(self.cfg.sample_rate // self._decim_factor)
         n_bins = int(self.cfg.cutoff_hz // self.cfg.fft_bin_hz) + 1
         # FFT en dominio diezmado
-        self.fft = FFTAnalyzer(fs=float(self._decim_rate), fc=float(self.cfg.cutoff_hz), bin_hz=float(self.cfg.fft_bin_hz))
+        self.fft = FFTAnalyzer(
+            fs=float(self._decim_rate),
+            fc=float(self.cfg.cutoff_hz),
+            bin_hz=float(self.cfg.fft_bin_hz),
+        )
         # Render: una columna por actualización
         self.renderer = SpectrogramRenderer(
             height=n_bins,
@@ -71,7 +81,11 @@ class Pipeline:
                 spectrum = self.fft.analyze(processed)
                 self.renderer.push_spectrum(spectrum)
 
-    def run(self, seconds: float | None = None, on_frame: Callable[[np.ndarray, float | None], None] | None = None) -> None:
+    def run(
+        self,
+        seconds: float | None = None,
+        on_frame: Callable[[np.ndarray, float | None], None] | None = None,
+    ) -> None:
         """Ejecuta y llama on_frame(img, nivel) cuando hay nueva columna generada."""
         start = time.perf_counter()
         while True:

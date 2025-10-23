@@ -7,7 +7,9 @@ from txori.visualization import SpectrogramRenderer
 
 def test_renderer_draws_and_saves(tmp_path) -> None:
     h, w = 16, 32
-    renderer = SpectrogramRenderer(height=h, width=w, average_frames=2, update_interval=1)
+    renderer = SpectrogramRenderer(
+        height=h, width=w, average_frames=2, update_interval=1
+    )
     s1 = np.zeros(h, dtype=float)
     s1[0] = 1.0
     renderer.push_spectrum(s1)

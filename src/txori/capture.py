@@ -48,7 +48,9 @@ class SyntheticSineCapture(BaseCapture):
 class AudioInputCapture(BaseCapture):
     """Captura desde el dispositivo de audio usando sounddevice."""
 
-    def __init__(self, cfg: SystemConfig | None = None, device: int | str | None = None) -> None:
+    def __init__(
+        self, cfg: SystemConfig | None = None, device: int | str | None = None
+    ) -> None:
         if sd is None:
             raise AudioUnavailableError("sounddevice no disponible en este entorno")
         self.cfg = cfg or SystemConfig()
@@ -63,7 +65,11 @@ class AudioInputCapture(BaseCapture):
         # Resuelve nombre del dispositivo
         try:  # pragma: no cover - dependiente del entorno
             dev = getattr(self._stream, "device", device)
-            info = sd.query_devices(dev) if dev is not None else sd.query_devices(kind="input")
+            info = (
+                sd.query_devices(dev)
+                if dev is not None
+                else sd.query_devices(kind="input")
+            )
             self._device_name = str(info.get("name", "dispositivo"))
         except Exception:  # pragma: no cover - robustez
             self._device_name = "dispositivo"
