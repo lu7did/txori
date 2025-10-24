@@ -24,7 +24,7 @@ from .config import SystemConfig
 
 from .filtering import OnePoleLowPass
 from .processing import AGCProcessor, DSPProcessor, IdentityProcessor
-from .visualization import SpectrogramRenderer
+
 
 
 @dataclass(slots=True)
@@ -37,7 +37,7 @@ class Pipeline:
     proc: IdentityProcessor = field(init=False)
     agc: AGCProcessor = field(init=False)
     dsp: DSPProcessor = field(init=False)
-    renderer: SpectrogramRenderer = field(init=False)
+
     source_label: str = field(init=False)
     # Estado de temporización/diezmado
     _decim_factor: int = field(init=False, repr=False)
@@ -128,15 +128,7 @@ class Pipeline:
                 self._col_count += 1
                 if self._col_count >= int(self.cfg.samples_per_col):
                     self._col_count = 0
-                    processed = self.proc.process(window)
-                    spectrum = self._analyze(processed)
-                    h = int(self.renderer.height)
-                    if spectrum.size != h:
-                        import numpy as _np
-                        vbf = int(getattr(self.cfg, "vertical_bins_factor", 1))
-                        ups = _np.repeat(spectrum, max(1, vbf))
-                        spectrum = ups[:h] if ups.size >= h else _np.pad(ups, (0, h - ups.size))
-                    self.renderer.push_spectrum(spectrum)
+                    # Waterfall eliminado: no renderizamos espectro
         else:
             # DSP: LPF -> decimación 8:1 -> AGC -> DSP -> FFT
             filtered = self.lpf.process_window(window)
@@ -152,16 +144,7 @@ class Pipeline:
                 self._col_count += 1
                 if self._col_count >= int(self.cfg.samples_per_col):
                     self._col_count = 0
-                    agc_out = self.agc.process(self._dsp_buf)
-                    dsp_out = self.dsp.process(agc_out)
-                    spectrum = self._analyze(dsp_out)
-                    h = int(self.renderer.height)
-                    if spectrum.size != h:
-                        import numpy as _np
-                        vbf = int(getattr(self.cfg, "vertical_bins_factor", 1))
-                        ups = _np.repeat(spectrum, max(1, vbf))
-                        spectrum = ups[:h] if ups.size >= h else _np.pad(ups, (0, h - ups.size))
-                    self.renderer.push_spectrum(spectrum)
+                    # Waterfall eliminado: no renderizamos espectro
         return window
 
     def _analyze(self, window: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
@@ -206,10 +189,6 @@ class Pipeline:
                 if on_time_sample is not None:
                     sample = float(window[0] if raw_input else self._last_level or 0.0)
                     on_time_sample(sample)
-            # Actualizar espectrograma si hay nueva columna
-            if on_frame is not None:
-                img = self.renderer.consume_frame()
-                if img is not None:
-                    on_frame(img, self._last_level)
+            # Waterfall eliminado: no hay frames para consumir
             if seconds is not None and (time.perf_counter() - start) >= seconds:
                 break

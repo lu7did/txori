@@ -7,10 +7,8 @@ from txori.__main__ import main  # pragma: no cover
 
 
 def test_cli_main_runs(tmp_path, monkeypatch) -> None:
-    out = tmp_path / "spec.png"
-    monkeypatch.setattr(sys, "argv", ["txori", "--seconds", "0.01", "--out", str(out)])
+    monkeypatch.setattr(sys, "argv", ["txori", "--seconds", "0.01"])  # sin waterfall
     main()
-    assert out.exists() and out.stat().st_size > 0
 
 
 def test_cli_live_mode_no_crash(monkeypatch):
