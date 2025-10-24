@@ -28,7 +28,9 @@ class LiveViewer:
         # Importa perezosamente matplotlib para no requerirlo en CI/tests
         global plt
         try:
-            import matplotlib.pyplot as plt  # noqa: F401
+            import importlib
+
+            plt = importlib.import_module("matplotlib.pyplot")
         except Exception as e:  # pragma: no cover - dependiente del entorno
             raise RuntimeError(
                 "La visualización en vivo requiere matplotlib. Instala con 'pip install matplotlib'."
@@ -106,7 +108,9 @@ class TimeViewer:
     def _ensure_backend(self) -> None:  # pragma: no cover
         global plt
         try:
-            import matplotlib.pyplot as plt  # noqa: F401
+            import importlib
+
+            plt = importlib.import_module("matplotlib.pyplot")
         except Exception as e:  # pragma: no cover
             raise RuntimeError(
                 "La visualización temporal requiere matplotlib. Instala con 'pip install matplotlib'."
