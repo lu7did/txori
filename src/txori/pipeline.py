@@ -10,7 +10,12 @@ from dataclasses import dataclass, field
 import numpy as np
 import numpy.typing as npt
 
-from .capture import AudioInputCapture, CaptureController, SyntheticCWToneCapture, SyntheticSineCapture
+from .capture import (
+    AudioInputCapture,
+    CaptureController,
+    SyntheticCWToneCapture,
+    SyntheticSineCapture,
+)
 from .config import SystemConfig
 from .fft_analysis import FFTAnalyzer
 from .filtering import OnePoleLowPass
