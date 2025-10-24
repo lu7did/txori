@@ -46,12 +46,13 @@ class SpectrogramRenderer:
         # Mapeo en bandas con umbrales fijos (no se usa t continuo)
         # Gradiente suave con umbrales dB definidos para transiciones
         stops = [
-            (0, 0, 255),  # blue
+            (0, 0, 128),   # navy (fondo)
+            (0, 0, 255),   # blue
             (135, 206, 235),  # sky blue
-            (0, 255, 255),  # cyan
-            (0, 255, 0),  # green
-            (255, 255, 0),  # yellow
-            (255, 0, 0),  # red
+            (0, 255, 255),   # cyan
+            (0, 255, 0),   # green
+            (255, 255, 0),   # yellow
+            (255, 0, 0),   # red
             (255, 255, 255),  # white
         ]
         # Umbrales en dB relativos al máximo para los stops anteriores
