@@ -79,7 +79,13 @@ def main() -> None:
         help="Frecuencia de corte del pasabajos en Hz (default 3000)",
     )
     parser.add_argument(
-        "--bin", type=float, default=None, help="Ancho de bin FFT en Hz (default 3.0)"
+        "--bin", type=float, default=None, help="Ancho de bin FFT en Hz (default 6.0)"
+    )
+    parser.add_argument(
+        "--spec-speed",
+        type=float,
+        default=None,
+        help="Factor de velocidad del espectrograma relativo al tiempo (default 1.0)",
     )
     parser.add_argument(
         "--avg-samples",
@@ -118,12 +124,13 @@ def main() -> None:
         use_audio=bool(args.audio) and not bool(args.test) and not bool(args.cw),
         image_width=(args.width if args.width is not None else 1200),
         cutoff_hz=(args.cutoff if args.cutoff is not None else 3000.0),
-        fft_bin_hz=(args.bin if args.bin is not None else 3.0),
+        fft_bin_hz=(args.bin if args.bin is not None else 6.0),
         samples_per_col=(args.avg_samples if args.avg_samples is not None else 15),
         test_tone_hz=(args.tone if args.tone is not None else 1000.0),
         cw_mode=bool(args.cw),
         cw_tone_hz=(args.cw_tone if args.cw_tone is not None else 600.0),
         direct_mode=bool(use_direct),
+        spec_speed_factor=(args.spec_speed if args.spec_speed is not None else 1.0),
     )
     pipe = Pipeline(cfg)
     seconds = None if (args.forever or args.seconds is None) else float(args.seconds)
