@@ -81,9 +81,13 @@ class Pipeline:
         self._decim_rate = int(self.cfg.sample_rate // self._decim_factor)
         # Velocidad de columnas controlada por spec_speed_factor
         self._samples_per_col_eff = max(1, int(round(self.cfg.samples_per_col / max(self.cfg.spec_speed_factor, 1e-9))))
-        # Atenuación previa a FFT en ganancia lineal (10^(dB/10))
-        att = float(getattr(self.cfg, "att_db", -40.0))
-        self._att_gain = 1.0 if abs(att) < 1e-12 else float(10.0 ** (att / 10.0))
+        # Atenuación previa a FFT en ganancia lineal (10^(dB/10)) si fue indicada
+        att_opt = getattr(self.cfg, "att_db", None)
+        if att_opt is None:
+            self._att_gain = 1.0
+        else:
+            att = float(att_opt)
+            self._att_gain = 1.0 if abs(att) < 1e-12 else float(10.0 ** (att / 10.0))
         # Aplicar atenuación por muestra en captura
         try:
             setattr(self.capture, "gain", float(self._att_gain))
