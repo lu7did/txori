@@ -14,7 +14,9 @@ Procesamiento de señales en tiempo casi-real con Python 3.12.
 
 - --audio: usar entrada de audio real
 - --test: usar generador interno de senoidal
-- --tone HZ: frecuencia del tono de test (default 1000 Hz)
+- --tone HZ: frecuencia del tono de test (default 1000 Hz; requiere --test)
+- --cw: usar generador CW (tono 600 Hz conmutado 57 ms); ignora --audio/--tone/--test
+- --cw-tone HZ: frecuencia del tono CW (default 600 Hz)
 - --time: abrir ventana separada con la señal temporal cruda
 - --seconds, --forever, --out, --titulo, --width, --cutoff, --bin, --avg-samples
 
@@ -39,6 +41,10 @@ python -m txori --seconds 2 --time
 
 # Modo test con tono configurable
 python -m txori --test --tone 1000 --seconds 2
+
+# Modo CW conmutado 57 ms (tono 600 Hz por defecto)
+python -m txori --cw --seconds 2
+python -m txori --cw --cw-tone 700 --seconds 2
 
 # Guardar a archivo (sin ventana):
 python -m txori --seconds 2 --out spectrogram.png

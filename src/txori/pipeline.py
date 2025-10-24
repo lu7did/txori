@@ -1,3 +1,4 @@
+# (c) Dr. Pedro E. Colla 2020-2025 (LU7DZ)
 """Orquestación de la canalización de procesamiento."""
 
 from __future__ import annotations
@@ -9,7 +10,7 @@ from dataclasses import dataclass, field
 import numpy as np
 import numpy.typing as npt
 
-from .capture import AudioInputCapture, CaptureController, SyntheticSineCapture
+from .capture import AudioInputCapture, CaptureController, SyntheticCWToneCapture, SyntheticSineCapture
 from .config import SystemConfig
 from .fft_analysis import FFTAnalyzer
 from .filtering import OnePoleLowPass
@@ -36,13 +37,16 @@ class Pipeline:
     _last_level: float | None = field(default=None, init=False, repr=False)
 
     def __post_init__(self) -> None:
-        cap = (
-            AudioInputCapture(self.cfg)
-            if self.cfg.use_audio
-            else SyntheticSineCapture(
-                freq_hz=float(self.cfg.test_tone_hz), cfg=self.cfg
+        if self.cfg.cw_mode:
+            cap = SyntheticCWToneCapture(freq_hz=float(self.cfg.cw_tone_hz), cfg=self.cfg)
+        else:
+            cap = (
+                AudioInputCapture(self.cfg)
+                if self.cfg.use_audio
+                else SyntheticSineCapture(
+                    freq_hz=float(self.cfg.test_tone_hz), cfg=self.cfg
+                )
             )
-        )
         self.capture = CaptureController(cap, window_size=self.cfg.window_size)
         self.lpf = OnePoleLowPass(
             fs=float(self.cfg.sample_rate), fc=float(self.cfg.cutoff_hz)

@@ -1,3 +1,4 @@
+# (c) Dr. Pedro E. Colla 2020-2025 (LU7DZ)
 """Subsistema de captura de señales."""
 
 from __future__ import annotations
@@ -46,6 +47,34 @@ class SyntheticSineCapture(BaseCapture):
 
     def label(self) -> str:
         return f"Sintético {int(self._freq)} Hz"
+
+
+class SyntheticCWToneCapture(BaseCapture):
+    """Generador CW: tono senoidal conmutado ON/OFF cada 57 ms.
+
+    Por defecto 600 Hz; la duración del bloque ON y OFF es 57 ms cada uno.
+    """
+
+    def __init__(self, freq_hz: float = 600.0, cfg: SystemConfig | None = None) -> None:
+        self.cfg = cfg or SystemConfig()
+        self._t = 0
+        self._freq = float(freq_hz)
+        self._omega = tau * self._freq / self.cfg.sample_rate
+        self._block_samples = max(1, int(round(0.057 * self.cfg.sample_rate)))
+        self._remain = self._block_samples
+        self._on = True
+
+    def next_sample(self) -> float:
+        val = sin(self._omega * self._t) if self._on else 0.0
+        self._t += 1
+        self._remain -= 1
+        if self._remain <= 0:
+            self._on = not self._on
+            self._remain = self._block_samples
+        return float(val)
+
+    def label(self) -> str:
+        return f"CW {int(self._freq)} Hz (57 ms on/off)"
 
 
 class AudioInputCapture(BaseCapture):

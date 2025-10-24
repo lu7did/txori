@@ -1,3 +1,4 @@
+# (c) Dr. Pedro E. Colla 2020-2025 (LU7DZ)
 """Subsistema de límite de ancho de banda (filtro pasabajos)."""
 
 from __future__ import annotations

@@ -1,3 +1,4 @@
+# (c) Dr. Pedro E. Colla 2020-2025 (LU7DZ)
 """CLI mínima para ejecutar la canalización."""
 
 from __future__ import annotations
@@ -25,6 +26,20 @@ def main() -> None:
         type=float,
         default=None,
         help="Frecuencia en Hz para el tono de test (requiere --test)",
+    )
+    parser.add_argument(
+        "--cw",
+        action="store_true",
+        help=(
+            "Usar generador CW: tono 600 Hz conmutado 57 ms ON/OFF; ignora --audio y --tone"
+        ),
+    )
+    parser.add_argument(
+        "--cw-tone",
+        dest="cw_tone",
+        type=float,
+        default=None,
+        help="Frecuencia del tono CW (default 600 Hz)",
     )
     parser.add_argument(
         "--time",
@@ -72,12 +87,14 @@ def main() -> None:
     args = parser.parse_args()
 
     cfg = SystemConfig(
-        use_audio=bool(args.audio) and not bool(args.test),
+        use_audio=bool(args.audio) and not bool(args.test) and not bool(args.cw),
         image_width=(args.width if args.width is not None else 1200),
         cutoff_hz=(args.cutoff if args.cutoff is not None else 3000.0),
         fft_bin_hz=(args.bin if args.bin is not None else 3.0),
         samples_per_col=(args.avg_samples if args.avg_samples is not None else 15),
         test_tone_hz=(args.tone if args.tone is not None else 1000.0),
+        cw_mode=bool(args.cw),
+        cw_tone_hz=(args.cw_tone if args.cw_tone is not None else 600.0),
     )
     pipe = Pipeline(cfg)
     seconds = None if (args.forever or args.seconds is None) else float(args.seconds)

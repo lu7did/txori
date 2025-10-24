@@ -1,3 +1,4 @@
+# (c) Dr. Pedro E. Colla 2020-2025 (LU7DZ)
 """Configuración del sistema."""
 
 from __future__ import annotations
@@ -31,3 +32,5 @@ class SystemConfig:
     samples_per_col: int = 15
     use_audio: bool = False
     test_tone_hz: float = 1000.0
+    cw_mode: bool = False
+    cw_tone_hz: float = 600.0

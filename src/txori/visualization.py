@@ -1,3 +1,4 @@
+# (c) Dr. Pedro E. Colla 2020-2025 (LU7DZ)
 """Visualización de espectro como imagen desplazable."""
 
 from __future__ import annotations

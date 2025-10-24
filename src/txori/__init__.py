@@ -1,3 +1,4 @@
+# (c) Dr. Pedro E. Colla 2020-2025 (LU7DZ)
 """Txori: biblioteca de procesamiento de señales y visualización.
 
 Este paquete proporciona una canalización modular para:
