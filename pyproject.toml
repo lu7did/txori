@@ -45,7 +45,7 @@ where = ["src"]
 [tool.black]
 line-length = 88
 target-version = ["py312"]
-extend-exclude = "^(src/txori/(?:__main__|pipeline|live)\\.py)$"
+extend-exclude = "(?:^|.*/)?src/txori/(?:__main__|pipeline|live)\\.py$"
 
 [tool.ruff]
 line-length = 88
