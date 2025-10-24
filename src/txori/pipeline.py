@@ -99,7 +99,7 @@ class Pipeline:
         # Render: una columna por actualización
         self.renderer = SpectrogramRenderer(
             height=n_bins,
-            width=int(max(self.cfg.image_width, 1200)),
+            width=int(max(self.cfg.image_width * 10, 1200)),
 
             average_frames=int(1 if self.cfg.cw_mode else self.cfg.average_frames),
             update_interval=1,
