@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 import numpy.typing as npt
+import time
 from PIL import Image
 
 from .exceptions import VisualizationError
@@ -23,6 +24,8 @@ class SpectrogramRenderer:
     average_frames: int = 100
     update_interval: int = 5
     pixels_per_bin: int = 1
+    max_fps: float = 30.0
+    _last_emit: float = field(default=0.0, init=False)
     _accum: deque[npt.NDArray[np.float64]] = field(default_factory=deque, init=False)
     _image: npt.NDArray[np.uint8] = field(init=False)
     _norm_eps: float = 1e-12
@@ -106,7 +109,13 @@ class SpectrogramRenderer:
         self.to_pil().save(path)
 
     def consume_frame(self) -> npt.NDArray[np.uint8] | None:
+        # Limitar refresco a max_fps para no sobrecargar GUI
+        now = time.perf_counter()
+        min_interval = 1.0 / max(1e-6, float(self.max_fps))
+        if (now - self._last_emit) < min_interval:
+            return None
         if self._dirty:
             self._dirty = False
+            self._last_emit = now
             return self._image
         return None
