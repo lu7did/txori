@@ -125,7 +125,9 @@ class TimeViewer:
             self._fig, self._ax = plt.subplots(1, 1)
             self._fig.canvas.manager.set_window_title(self.title)
             n = max(1, int(self.sample_rate * self.span_seconds))
-            max_points = min(n, 200_000)
+            self._fig.canvas.draw()  # necesario para obtener bbox
+            width_px = int(getattr(self._ax, 'bbox', None).width) if hasattr(self._ax, 'bbox') else 0
+            max_points = min(n, max(1000, width_px or 2000))  # ~1 px por muestra visible
             self._dec = max(1, n // max_points)
             self._buf = _np.zeros(n, dtype=_np.float32)  # almacena todas las muestras del span
             self._ybuf = _np.zeros(max_points, dtype=_np.float32)  # vista decimada para dibujar
