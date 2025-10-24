@@ -100,6 +100,12 @@ def main() -> None:
         help="Píxeles verticales por bin del espectrograma (default 4)",
     )
     parser.add_argument(
+        "--pixbin",
+        type=int,
+        default=None,
+        help="Píxeles por bin del espectrograma (default = actual*4, típicamente 16)",
+    )
+    parser.add_argument(
         "--avg-samples",
         type=int,
         default=None,
@@ -132,6 +138,13 @@ def main() -> None:
     # Resolver modo: por defecto DSP; si ambos, prioriza DIRECT
     use_direct = True if args.direct else False
 
+    # Resolver pixeles por bin: --pixbin > --ppb > default actual*4
+    _default_pixbin = SystemConfig().pixels_per_bin * 4
+    _pixels_per_bin = (
+        int(args.pixbin)
+        if args.pixbin is not None
+        else (int(args.ppb) if args.ppb is not None else int(_default_pixbin))
+    )
     cfg = SystemConfig(
         use_audio=bool(args.audio) and not bool(args.test) and not bool(args.cw),
         image_width=(args.width if args.width is not None else 1200),
@@ -144,7 +157,7 @@ def main() -> None:
         direct_mode=bool(use_direct),
         spec_speed_factor=(args.spec_speed if args.spec_speed is not None else 1.0),
         att_db=(args.att if args.att is not None else -40.0),
-        pixels_per_bin=(args.ppb if args.ppb is not None else 4),
+        pixels_per_bin=int(_pixels_per_bin),
     )
     pipe = Pipeline(cfg)
     seconds = None if (args.forever or args.seconds is None) else float(args.seconds)
