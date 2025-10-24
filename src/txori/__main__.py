@@ -79,7 +79,7 @@ def main() -> None:
         help="Frecuencia de corte del pasabajos en Hz (default 3000)",
     )
     parser.add_argument(
-        "--bin", type=float, default=None, help="Ancho de bin FFT en Hz (default 6.0)"
+        "--bin", type=float, default=None, help="Ancho de bin FFT en Hz (default 10.0)"
     )
     parser.add_argument(
         "--att",
@@ -130,7 +130,7 @@ def main() -> None:
         use_audio=bool(args.audio) and not bool(args.test) and not bool(args.cw),
         image_width=(args.width if args.width is not None else 1200),
         cutoff_hz=(args.cutoff if args.cutoff is not None else 3000.0),
-        fft_bin_hz=(args.bin if args.bin is not None else 6.0),
+        fft_bin_hz=(args.bin if args.bin is not None else 10.0),
         samples_per_col=(args.avg_samples if args.avg_samples is not None else 15),
         test_tone_hz=(args.tone if args.tone is not None else 1000.0),
         cw_mode=bool(args.cw),
