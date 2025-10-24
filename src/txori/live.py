@@ -135,7 +135,8 @@ class TimeViewer:
             width_px = int(getattr(self._ax, "bbox", None).width) if hasattr(self._ax, "bbox") else 1200
             vis = min(n, max(1000, width_px))  # ~1 píxel por muestra visible
             self._dec = max(1, n // vis)
-            self._spp = int(self._dec)  # 1 píxel cada spp muestras => 30s cubren todo el eje
+            speed_factor = 4  # entre 3 y 5 según pedido del usuario
+            self._spp = max(1, int(round(self._dec / speed_factor)))
             self._px_dec = 1
             self._buf = _np.zeros(n, dtype=_np.float32)  # buffer completo
             self._ybuf = _np.zeros(vis, dtype=_np.float32)  # vista decimada
