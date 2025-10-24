@@ -88,7 +88,13 @@ def main() -> None:
         "--time-speed",
         type=float,
         default=None,
-        help="Factor de velocidad horizontal del gráfico de tiempo (por defecto 43.2)",
+        help="Factor de velocidad horizontal del gráfico de tiempo (por defecto 86.4)",
+    )
+    parser.add_argument(
+        "--time-color",
+        type=str,
+        default=None,
+        help="Color de la línea de tiempo (por defecto 'navy')",
     )
     args = parser.parse_args()
 
@@ -127,7 +133,8 @@ def main() -> None:
             TimeViewer(
                 sample_rate=cfg.sample_rate,
                 span_seconds=(seconds if seconds is not None else 30.0),
-                speed_factor=(args.time_speed if args.time_speed is not None else 43.2),
+                speed_factor=(args.time_speed if args.time_speed is not None else 86.4),
+                time_color=(args.time_color if args.time_color is not None else "navy"),
             )
             if args.time
             else None

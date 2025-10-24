@@ -10,6 +10,7 @@ Este paquete proporciona una canalización modular para:
 """
 
 from .config import SystemConfig
+from .live import LiveViewer, TimeViewer
 from .pipeline import Pipeline
 
-__all__ = ["SystemConfig", "Pipeline"]
+__all__ = ["SystemConfig", "Pipeline", "LiveViewer", "TimeViewer"]
