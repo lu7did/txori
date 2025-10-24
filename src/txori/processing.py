@@ -12,3 +12,17 @@ class IdentityProcessor:
 
     def process(self, window: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         return window.copy()
+
+
+class AGCProcessor:
+    """Control Automático de Ganancia (placeholder): copia sin cambios."""
+
+    def process(self, window: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+        return window.copy()
+
+
+class DSPProcessor:
+    """Módulo DSP (placeholder): copia sin cambios."""
+
+    def process(self, window: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+        return window.copy()

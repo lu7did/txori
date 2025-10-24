@@ -23,7 +23,7 @@ from .capture import (
 from .config import SystemConfig
 from .fft_analysis import FFTAnalyzer
 from .filtering import OnePoleLowPass
-from .processing import IdentityProcessor
+from .processing import AGCProcessor, DSPProcessor, IdentityProcessor
 from .visualization import SpectrogramRenderer
 
 
@@ -35,6 +35,8 @@ class Pipeline:
     capture: CaptureController = field(init=False)
     lpf: OnePoleLowPass = field(init=False)
     proc: IdentityProcessor = field(init=False)
+    agc: AGCProcessor = field(init=False)
+    dsp: DSPProcessor = field(init=False)
     fft: FFTAnalyzer = field(init=False)
     renderer: SpectrogramRenderer = field(init=False)
     source_label: str = field(init=False)
@@ -44,6 +46,8 @@ class Pipeline:
     _step_count: int = field(default=0, init=False, repr=False)
     _col_count: int = field(default=0, init=False, repr=False)
     _last_level: float | None = field(default=None, init=False, repr=False)
+    _dsp_buf: npt.NDArray[np.float64] = field(init=False, repr=False)
+    _direct: bool = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
         cap: BaseCapture
@@ -59,16 +63,22 @@ class Pipeline:
                     freq_hz=float(self.cfg.test_tone_hz), cfg=self.cfg
                 )
             )
-        self.capture = CaptureController(cap, window_size=self.cfg.window_size)
+        # Modo de procesamiento
+        self._direct = bool(self.cfg.direct_mode)
+        # Ventana de captura (en directo usamos al menos 6000)
+        win_size = max(self.cfg.window_size, 6000) if self._direct else self.cfg.window_size
+        self.capture = CaptureController(cap, window_size=win_size)
         self.lpf = OnePoleLowPass(
             fs=float(self.cfg.sample_rate), fc=float(self.cfg.cutoff_hz)
         )
         self.proc = IdentityProcessor()
-        # Diezmado 48 kHz -> 6 kHz (1 de cada 8)
-        self._decim_factor = max(1, int(self.cfg.sample_rate // 6000))
+        self.agc = AGCProcessor()
+        self.dsp = DSPProcessor()
+        # Diezmado: directo=1; DSP=48 kHz -> 6 kHz (1 de cada 8)
+        self._decim_factor = 1 if self._direct else max(1, int(self.cfg.sample_rate // 6000))
         self._decim_rate = int(self.cfg.sample_rate // self._decim_factor)
         n_bins = int(self.cfg.cutoff_hz // self.cfg.fft_bin_hz) + 1
-        # FFT en dominio diezmado
+        # FFT
         self.fft = FFTAnalyzer(
             fs=float(self._decim_rate),
             fc=float(self.cfg.cutoff_hz),
@@ -81,24 +91,56 @@ class Pipeline:
             average_frames=int(self.cfg.average_frames),
             update_interval=1,
         )
+        # Buffer DSP de 6000 muestras (en dominio diezmado si aplica)
+        import numpy as _np
+
+        self._dsp_buf = _np.zeros(6000, dtype=_np.float64)
         self.source_label = getattr(cap, "label", lambda: "Entrada")()
 
     def step(self) -> npt.NDArray[np.float64]:
         window = self.capture.step()
-        filtered = self.lpf.process_window(window)
-        # Nivel instantáneo tras pasabajos (tiempo real): módulo de la muestra más reciente
-        self._last_level = float(abs(filtered[0]))
-        # Diezmado para columna de espectrograma
-        self._step_count += 1
-        if self._step_count % self._decim_factor == 0:
-            self._col_count += 1
-            if self._col_count >= int(self.cfg.samples_per_col):
-                self._col_count = 0
-                # Ventana diezmada para análisis
-                decimated_window = filtered[:: self._decim_factor]
-                processed = self.proc.process(decimated_window)
-                spectrum = self.fft.analyze(processed)
-                self.renderer.push_spectrum(spectrum)
+        if self._direct:
+            # Modo directo: sin filtro ni decimación
+            self._last_level = float(abs(window[0]))
+            self._step_count += 1
+            if self._step_count % self._decim_factor == 0:  # 1:1 por muestra
+                self._col_count += 1
+                if self._col_count >= int(self.cfg.samples_per_col):
+                    self._col_count = 0
+                    processed = self.proc.process(window)
+                    spectrum = self.fft.analyze(processed)
+                    h = int(self.renderer.height)
+                    if spectrum.size != h:
+                        import numpy as _np
+
+                        spectrum = (
+                            spectrum[:h]
+                            if spectrum.size >= h
+                            else _np.pad(spectrum, (0, h - spectrum.size))
+                        )
+                    self.renderer.push_spectrum(spectrum)
+        else:
+            # DSP: LPF -> decimación 8:1 -> AGC -> DSP -> FFT
+            filtered = self.lpf.process_window(window)
+            self._last_level = float(abs(filtered[0]))
+            self._step_count += 1
+            if self._step_count % self._decim_factor == 0:
+                # Nueva muestra diezmada: tomar la más reciente
+                import numpy as _np
+
+                decim_sample = float(filtered[0])
+                self._dsp_buf = _np.roll(self._dsp_buf, 1)
+                self._dsp_buf[0] = decim_sample
+                self._col_count += 1
+                if self._col_count >= int(self.cfg.samples_per_col):
+                    self._col_count = 0
+                    agc_out = self.agc.process(self._dsp_buf)
+                    dsp_out = self.dsp.process(agc_out)
+                    spectrum = self.fft.analyze(dsp_out)
+                    h = int(self.renderer.height)
+                    if spectrum.size != h:
+                        spectrum = spectrum[:h]
+                    self.renderer.push_spectrum(spectrum)
         return window
 
     def run(

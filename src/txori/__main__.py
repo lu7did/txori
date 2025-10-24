@@ -123,9 +123,13 @@ def main() -> None:
     else:
         from .live import LiveViewer, TimeViewer  # import perezoso
 
-        decim_rate = cfg.sample_rate // max(1, cfg.sample_rate // 6000)
+        if cfg.direct_mode:
+            decim_rate = int(cfg.sample_rate)
+            decim_factor = 1
+        else:
+            decim_factor = max(1, int(cfg.sample_rate // 6000))
+            decim_rate = int(cfg.sample_rate // decim_factor)
         seconds_per_col = float(cfg.samples_per_col) / float(decim_rate)
-        decim_factor = cfg.sample_rate // max(1, int(decim_rate))
         spp_target = int(decim_factor) * int(cfg.samples_per_col)
         viewer = LiveViewer(
             max_freq_hz=float(cfg.cutoff_hz),
