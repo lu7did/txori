@@ -1,6 +1,8 @@
-"""Orquestación de la canalización de procesamiento.
+"""
+Orquestación de la canalización de procesamiento.
 
-(c) Dr. Pedro E. Colla 2020-2025 (LU7DZ)."""
+(c) Dr. Pedro E. Colla 2020-2025 (LU7DZ).
+"""
 
 from __future__ import annotations
 
