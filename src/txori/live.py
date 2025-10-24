@@ -124,10 +124,12 @@ class TimeViewer:
             plt.ion()
             self._fig, self._ax = plt.subplots(1, 1)
             self._fig.canvas.manager.set_window_title(self.title)
-            n_points = max(1, int(self.sample_rate * self.span_seconds))
-            self._buf = _np.zeros(n_points, dtype=_np.float32)
-            self._ybuf = _np.zeros(n_points, dtype=_np.float32)
-            x = _np.linspace(-self.span_seconds, 0.0, n_points)
+            n = max(1, int(self.sample_rate * self.span_seconds))
+            max_points = min(n, 200_000)
+            self._dec = max(1, n // max_points)
+            self._buf = _np.zeros(n, dtype=_np.float32)  # almacena todas las muestras del span
+            self._ybuf = _np.zeros(max_points, dtype=_np.float32)  # vista decimada para dibujar
+            x = _np.linspace(-self.span_seconds, 0.0, max_points)
             (self._line,) = self._ax.plot(x, self._buf, color="lime")
             self._ax.set_xlim(-self.span_seconds, 0.0)
             self._ax.set_ylim(-1.1, 1.1)
