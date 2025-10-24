@@ -90,6 +90,8 @@ class Pipeline:
         except Exception:
             pass
         n_bins = int(self.cfg.cutoff_hz // self.cfg.fft_bin_hz) + 1
+        vbf = int(getattr(self.cfg, "vertical_bins_factor", 1))
+        view_bins = max(1, int(n_bins) * max(1, vbf))
         # FFT
         self.fft = FFTAnalyzer(
             fs=float(self._decim_rate),
@@ -98,7 +100,7 @@ class Pipeline:
         )
         # Render: una columna por actualización
         self.renderer = SpectrogramRenderer(
-            height=n_bins,
+            height=view_bins,
             width=int(max(self.cfg.image_width * 10, 1200)),
 
             average_frames=int(1 if self.cfg.cw_mode else self.cfg.average_frames),

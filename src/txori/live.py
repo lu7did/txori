@@ -21,6 +21,7 @@ class LiveViewer:
     max_freq_hz: float = 3000.0
     bin_hz: float = 3.0
     pixels_per_bin: int = 1
+    vertical_bins_factor: int = 1
     seconds_per_col: float = 0.001
     title_text: str | None = None
     device_text: str | None = None
