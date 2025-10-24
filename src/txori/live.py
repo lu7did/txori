@@ -136,7 +136,11 @@ class TimeViewer:
             self._ax.set_xlabel("Tiempo (s)")
             self._ax.set_ylabel("Amplitud (V)")
             self._ax.grid(True, alpha=0.2)
-            plt.show(block=False)  # asegurar visualización inmediata
+            plt.show(block=False)
+            # Dibujo inicial
+            self._line.set_data(self._x, self._ybuf)
+            self._fig.canvas.draw_idle()
+            plt.pause(0.01)
 
     def push_sample(
         self, sample: float
