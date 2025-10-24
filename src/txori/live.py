@@ -1,4 +1,5 @@
 """(c) Dr. Pedro E. Colla 2020-2025 (LU7DZ)."""
+
 from __future__ import annotations
 
 from collections import deque
