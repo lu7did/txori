@@ -100,6 +100,7 @@ class TimeViewer:
     sample_rate: int
     span_seconds: float
     title: str = "Txori - Tiempo"
+    speed_factor: float = 43.2
     _fig: Any | None = None
     _ax: Any | None = None
     _line: Any | None = None
@@ -139,8 +140,8 @@ class TimeViewer:
             )
             vis = min(n, max(1000, width_px))  # ~1 píxel por muestra visible
             self._dec = max(1, n // vis)
-            speed_factor = 43.2  # triplicar nuevamente los píxeles/segundo (3x sobre 14.4)
-            self._spp = max(1, int(round(self._dec / speed_factor)))
+            sf = float(self.speed_factor)
+            self._spp = max(1, int(round(self._dec / max(sf, 1e-9))))
             self._px_dec = 1
             self._buf = _np.zeros(n, dtype=_np.float32)  # buffer completo
             self._ybuf = _np.zeros(vis, dtype=_np.float32)  # vista decimada
@@ -162,7 +163,10 @@ class TimeViewer:
     ) -> None:  # pragma: no cover - depende de matplotlib
         self._ensure_backend()
         assert (
-            self._buf is not None and self._line is not None and self._fig is not None and self._ybuf is not None
+            self._buf is not None
+            and self._line is not None
+            and self._fig is not None
+            and self._ybuf is not None
         )
         # Insertar muestra, acumular y desplazar 1 píxel en X por muestra
         n = self._buf.shape[0]
