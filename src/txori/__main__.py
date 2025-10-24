@@ -84,6 +84,12 @@ def main() -> None:
         default=None,
         help="Muestras diezmadas a promediar por columna (default 15)",
     )  # promedio para traza superior y espectrograma
+    parser.add_argument(
+        "--time-speed",
+        type=float,
+        default=None,
+        help="Factor de velocidad horizontal del gráfico de tiempo (por defecto 43.2)",
+    )
     args = parser.parse_args()
 
     cfg = SystemConfig(
@@ -121,6 +127,7 @@ def main() -> None:
             TimeViewer(
                 sample_rate=cfg.sample_rate,
                 span_seconds=(seconds if seconds is not None else 30.0),
+                speed_factor=(args.time_speed if args.time_speed is not None else 43.2),
             )
             if args.time
             else None
