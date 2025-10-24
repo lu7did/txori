@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.2] - 2025-10-24
+### Added
+- Se habilitará una opción "--test" que cuando sea indicada se tomará la señal a procesar por el sistema desde un generador interno de muestras que creará una señal sinusoidal de 1000 Hz por default, se agregará un parametro adicional "--tone" con la indicación de la frecuencia en hertz que tendrá la señal de test si es indicada.
+
 ## [0.1.1] - 2025-10-23
 ### Added
 - Ventana de tiempo separada y opcional (`--time`) que muestra la señal cruda sin procesar, con duración igual al espectrograma y actualización independiente; en `--forever` sigue mostrando hasta interrupción.

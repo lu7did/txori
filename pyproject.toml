@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "txori"
-version = "0.1.1"
+version = "0.1.2"
 description = "Procesamiento de señales en tiempo casi-real: captura, filtrado, análisis FFT y visualización."
 readme = "README.md"
 requires-python = ">=3.12"
