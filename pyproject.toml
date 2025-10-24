@@ -84,7 +84,7 @@ explicit_package_bases = true
 [[tool.mypy.overrides]]
 module = ["matplotlib.*", "txori.testwave"]
 ignore_missing_imports = true
-exclude = "^src/testwave\.py$"
+exclude = '^(src/testwave\.py)$'
 
 [tool.pytest.ini_options]
 minversion = "8.0"
