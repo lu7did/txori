@@ -103,10 +103,10 @@ class TimeViewer:
     _fig: Any | None = None
     _ax: Any | None = None
     _line: Any | None = None
-    _buf: npt.NDArray[np.float64] | None = None
+    _buf: npt.NDArray[np.float32] | None = None
+    _ybuf: npt.NDArray[np.float32] | None = None
     _last_draw_t: float = 0.0
-    _push_every: int = 1
-    _sample_idx: int = 0
+    _idx: int = -1
 
     def _ensure_backend(self) -> None:  # pragma: no cover
         global plt
@@ -124,10 +124,9 @@ class TimeViewer:
             plt.ion()
             self._fig, self._ax = plt.subplots(1, 1)
             self._fig.canvas.manager.set_window_title(self.title)
-            total = max(1, int(self.sample_rate * self.span_seconds))
-            n_points = min(total, 5000)
-            self._push_every = max(1, (total + n_points - 1) // n_points)
-            self._buf = _np.zeros(n_points, dtype=_np.float64)
+            n_points = max(1, int(self.sample_rate * self.span_seconds))
+            self._buf = _np.zeros(n_points, dtype=_np.float32)
+            self._ybuf = _np.zeros(n_points, dtype=_np.float32)
             x = _np.linspace(-self.span_seconds, 0.0, n_points)
             (self._line,) = self._ax.plot(x, self._buf, color="lime")
             self._ax.set_xlim(-self.span_seconds, 0.0)
