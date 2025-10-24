@@ -120,7 +120,7 @@ def main() -> None:
         time_viewer = (
             TimeViewer(
                 sample_rate=cfg.sample_rate,
-                span_seconds=seconds_per_col * cfg.image_width,
+                span_seconds=(seconds if seconds is not None else 30.0),
             )
             if args.time
             else None
