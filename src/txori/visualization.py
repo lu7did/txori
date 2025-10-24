@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import math
+from bisect import bisect_right
 from collections import deque
 from dataclasses import dataclass, field
 
