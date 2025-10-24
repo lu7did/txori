@@ -43,7 +43,9 @@ class Pipeline:
 
     def __post_init__(self) -> None:
         if self.cfg.cw_mode:
-            cap = SyntheticCWToneCapture(freq_hz=float(self.cfg.cw_tone_hz), cfg=self.cfg)
+            cap = SyntheticCWToneCapture(
+                freq_hz=float(self.cfg.cw_tone_hz), cfg=self.cfg
+            )
         else:
             cap = (
                 AudioInputCapture(self.cfg)
