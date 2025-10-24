@@ -2,17 +2,16 @@
 
 from __future__ import annotations
 
+import importlib
 from abc import ABC, abstractmethod
 from math import sin, tau
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
 
 from .config import SystemConfig
 from .exceptions import AudioUnavailableError
-
-from typing import Any
-import importlib
 
 try:
     sd: Any = importlib.import_module("sounddevice")

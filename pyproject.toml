@@ -48,6 +48,7 @@ target-version = ["py312"]
 [tool.ruff]
 line-length = 88
 src = ["src"]
+fix = false
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "D", "B", "C90"]
