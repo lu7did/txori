@@ -78,8 +78,8 @@ class Pipeline:
         # Diezmado: directo=1; DSP=48 kHz -> 6 kHz (1 de cada 8)
         self._decim_factor = 1 if self._direct else max(1, int(self.cfg.sample_rate // 6000))
         self._decim_rate = int(self.cfg.sample_rate // self._decim_factor)
-        # Duplicar velocidad de columnas: usar la mitad de muestras por columna
-        self._samples_per_col_eff = max(1, int(self.cfg.samples_per_col) // 2)
+        # Triplicar velocidad de columnas: usar un tercio de muestras por columna
+        self._samples_per_col_eff = max(1, int(self.cfg.samples_per_col) // 3)
         n_bins = int(self.cfg.cutoff_hz // self.cfg.fft_bin_hz) + 1
         # FFT
         self.fft = FFTAnalyzer(

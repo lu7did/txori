@@ -147,8 +147,8 @@ class TimeViewer:
             self._dec = max(1, n // vis)
             sf = float(self.speed_factor)
             if self.sync_spp is not None:
-                # Ingresar nuevos píxeles al doble de velocidad: mitad de muestras por píxel
-                self._spp = max(1, int(self.sync_spp) // 2)
+                # Ingresar nuevos píxeles al triple de velocidad: tercio de muestras por píxel
+                self._spp = max(1, int(self.sync_spp) // 3)
             else:
                 self._spp = max(1, int(round(self._dec / max(sf, 1e-9))))
             self._px_dec = 1

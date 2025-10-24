@@ -143,7 +143,7 @@ def main() -> None:
         else:
             decim_factor = max(1, int(cfg.sample_rate // 6000))
             decim_rate = int(cfg.sample_rate // decim_factor)
-        eff_spc = max(1, int(cfg.samples_per_col) // 2)
+        eff_spc = max(1, int(round(cfg.samples_per_col / max(cfg.spec_speed_factor, 1e-9))))
         seconds_per_col = float(eff_spc) / float(decim_rate)
         spp_target = int(decim_factor) * int(eff_spc)
         viewer = LiveViewer(
