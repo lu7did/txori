@@ -172,11 +172,12 @@ class TimeViewer:
             self._ybuf = np.roll(self._ybuf, -1)
             self._ybuf[-1] = self._latest
             self._since_draw += 1
-        # Redibujar cada ~500 px para evitar cuello de botella de UI
-
-        if self._since_draw >= 500:
-            self._since_draw = 0
+        # Redibujar a ~30 FPS para mostrar avance continuo
+        import time as _time
+        now = _time.perf_counter()
+        if now - self._last_draw_t >= 1.0 / 30.0:
             self._line.set_data(self._x, self._ybuf)
             self._fig.canvas.draw_idle()
+            self._last_draw_t = now
             global plt
             plt.pause(0.001)
