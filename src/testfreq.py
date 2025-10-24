@@ -1,28 +1,53 @@
-import matplotlib.pyplot as plt
 import numpy as np
-import sounddevice as sd
-from scipy.signal import spectrogram
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import librosa # O podrías usar scipy.io.wavfile para leer archivos .wav
+import sounddevice as sd # Para la entrada de audio en tiempo real
 
-# Configuration for audio input
-samplerate = 44100  # samples per second
-duration = 5      # seconds
-channels = 1      # mono
+# --- Parámetros ---
+frame_rate = 30  # Hz
+sample_rate = 44100 # Tasa de muestreo del audio
+fft_size = 2048
+hop_length = 512 # Salto entre ventanas de FFT
 
-# Record audio
-print("Recording audio...")
-audio_data = sd.rec(int(samplerate * duration), samplerate=samplerate, channels=channels, dtype='float32')
-sd.wait()  # Wait until recording is finished
-print("Recording finished.")
+# --- Inicialización de la figura y los ejes ---
+fig, ax = plt.subplots()
+img = ax.imshow(np.zeros((fft_size // 2, 100)), aspect='auto', origin='lower',
+                extent=[0, 10, 0, 10]) # Inicializa una imagen vacía
+ax.set_xlabel("Tiempo (s)")
+ax.set_ylabel("Frecuencia (Hz)")
+ax.set_title("Espectrograma en tiempo real")
 
-# Calculate spectrogram
-frequencies, times, Sxx = spectrogram(audio_data.flatten(), fs=samplerate)
+# --- Función de actualización ---
+def update(frame):
+    # Obtener un bloque de datos de audio (ejemplo con datos de entrada de audio)
+    # En un caso real, aquí leerías un fragmento de audio del micrófono.
+    # Usaremos un array de ejemplo que se actualizará en cada frame.
+    new_data = np.random.randn(hop_length)
+    
+    # Calcular el espectrograma del nuevo bloque
+    frequencies, times, spectrogram = signal.spectrogram(new_data, fs=sample_rate,
+                                                         nperseg=fft_size,
+                                                         noverlap=fft_size - hop_length)
+    
+    # Actualizar la imagen del espectrograma
+    # `img.set_data()` es la forma de actualizar los datos de la imagen existente
+    # `img.set_data()` toma los datos espectrogramas de la última ventana.
+    img.set_data(spectrogram)
 
-# Plot the spectrogram
-plt.figure(figsize=(10, 6))
-plt.pcolormesh(times, frequencies, 10 * np.log10(Sxx), shading='gouraud')
-plt.title("Audio Spectrogram")
-plt.xlabel("Time (s)")
-plt.ylabel("Frequency (Hz)")
-plt.colorbar(label="Intensity (dB)")
-plt.ylim([0, samplerate / 2]) # Limit y-axis to Nyquist frequency
+    # Mover el eje X para dar la impresión de movimiento
+    # El eje X se actualiza dinámicamente a medida que llegan nuevos datos.
+    # Esta línea puede necesitar ajustes dependiendo de cómo quieras mover el eje X.
+    # Ejemplo: `ax.set_xlim()` para desplazar la ventana de visualización.
+    
+    # La función `update` se llama 30 veces por segundo.
+    return img,
+
+# --- Creación de la animación ---
+# La animación llama a la función 'update' 30 veces por segundo.
+ani = animation.FuncAnimation(fig, update, frames=None,
+                              interval=1000/frame_rate, blit=True,
+                              cache_frame_data=False)
+
 plt.show()
+

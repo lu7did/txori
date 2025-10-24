@@ -179,9 +179,9 @@ def main() -> None:
             decim_factor = max(1, int(cfg.sample_rate // 6000))
             decim_rate = int(cfg.sample_rate // decim_factor)
             fmax = 3_000.0
-        # Una columna visible cada 3 FFT (una FFT por muestra diezmada)
-        seconds_per_col = 3.0 / float(decim_rate)
-        spp_target = int(decim_factor) * 3
+        # Una columna por cada FFT (una FFT por muestra diezmada); GUI 30 FPS
+        seconds_per_col = 1.0 / float(decim_rate)
+        spp_target = int(decim_factor) * 1
         viewer = LiveViewer(
             max_freq_hz=float(fmax),
             bin_hz=float(cfg.fft_bin_hz),
