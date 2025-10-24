@@ -14,6 +14,52 @@ plt: Any = None
 
 
 @dataclass
+class SpectrometerViewer:
+    """Área de dibujo del espectrómetro (solo --dsp)."""
+
+    title_text: str | None = None
+    device_text: str | None = None
+    _fig: Any | None = None
+    _ax: Any | None = None
+
+    def _ensure_backend(self) -> None:  # pragma: no cover
+        global plt
+        try:
+            import importlib
+
+            plt = importlib.import_module("matplotlib.pyplot")
+        except Exception as e:  # pragma: no cover
+            raise RuntimeError(
+                "La visualización requiere matplotlib. Instala con 'pip install matplotlib'."
+            ) from e
+        if self._fig is None:
+            plt.ion()
+            self._fig, self._ax = plt.subplots(1, 1)
+            try:
+                self._fig.set_size_inches(6.0, 4.0, forward=True)
+            except Exception:
+                pass
+            self._fig.canvas.manager.set_window_title("Txori - Espectrómetro")
+            if self.title_text:
+                self._fig.suptitle(self.title_text)
+            if self.device_text and self._ax is not None:
+                self._ax.set_title(self.device_text, fontsize=9)
+            assert self._ax is not None
+            self._ax.set_facecolor("navy")
+            self._ax.set_xlim(0.0, 30.0)
+            self._ax.set_ylim(0.0, 3000.0)
+            self._ax.set_xlabel("Tiempo (s)")
+            self._ax.set_ylabel("Frecuencia (Hz)")
+            self._ax.grid(False)
+            plt.show(block=False)
+            self._fig.canvas.draw_idle()
+            plt.pause(0.01)
+
+    def show(self) -> None:  # pragma: no cover
+        self._ensure_backend()
+
+
+@dataclass
 class LiveViewer:
     """Visor en vivo de espectrograma en ventana propia."""
 

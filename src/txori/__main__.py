@@ -67,6 +67,12 @@ def main() -> None:
         "--titulo", type=str, default=None, help="Texto a mostrar como título externo"
     )
     parser.add_argument(
+        "--text",
+        type=str,
+        default=None,
+        help="Título para el espectrómetro (solo en --dsp)",
+    )
+    parser.add_argument(
         "--width",
         type=int,
         default=None,
@@ -162,7 +168,7 @@ def main() -> None:
     pipe = Pipeline(cfg)
     seconds = None if (args.forever or args.seconds is None) else float(args.seconds)
     # Waterfall eliminado: no se genera ni guarda imagen
-    from .live import TimeViewer  # import perezoso
+    from .live import TimeViewer, SpectrometerViewer  # import perezoso
     # Configurar time viewer si se pide
     if cfg.direct_mode:
         decim_factor = 1
@@ -182,6 +188,14 @@ def main() -> None:
         if args.time
         else None
     )
+    # Crear espectrómetro (área en navy) sólo en --dsp
+    spectro_viewer = None
+    if not cfg.direct_mode:
+        spectro_viewer = SpectrometerViewer(
+            title_text=(args.text or "Espectrómetro"),
+            device_text=f"{getattr(pipe, 'source_label', 'Entrada')} @ {cfg.sample_rate} Hz",
+        )
+        spectro_viewer.show()
     try:
         pipe.run(
             seconds=seconds,
