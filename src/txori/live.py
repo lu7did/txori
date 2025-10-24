@@ -112,6 +112,7 @@ class TimeViewer:
     _latest: float = 0.0
     _spp: int = 1  # samples per pixel
     _samp_accum: int = 0
+    _since_draw: int = 0
 
     def _ensure_backend(self) -> None:  # pragma: no cover
         global plt
@@ -170,14 +171,12 @@ class TimeViewer:
             # Desplazar un pixel a la izquierda e insertar última muestra al final
             self._ybuf = np.roll(self._ybuf, -1)
             self._ybuf[-1] = self._latest
-            self._line.set_data(self._x, self._ybuf)
-        # Throttle de redibujado: ~40 FPS
-        import time as _time
+            self._since_draw += 1
+        # Redibujar cada ~500 px para evitar cuello de botella de UI
 
-        now = _time.perf_counter()
-        if now - self._last_draw_t >= 1.0 / 40.0:
+        if self._since_draw >= 500:
+            self._since_draw = 0
             self._line.set_data(self._x, self._ybuf)
             self._fig.canvas.draw_idle()
-            self._last_draw_t = now
             global plt
             plt.pause(0.001)
