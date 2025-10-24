@@ -110,15 +110,18 @@ class Pipeline:
         raw_input: si True, on_time_sample recibe la muestra de ENTRADA sin filtrar.
         """
         start = time.perf_counter()
+        chunk = max(256, int(self.cfg.sample_rate // 40))  # ~40 FPS
         while True:
-            window = self.step()
-            if on_time_sample is not None:
-                sample = float(window[0] if raw_input else self._last_level or 0.0)
-                on_time_sample(sample)
+            # Procesar un bloque de muestras
+            for _ in range(chunk):
+                window = self.step()
+                if on_time_sample is not None:
+                    sample = float(window[0] if raw_input else self._last_level or 0.0)
+                    on_time_sample(sample)
+            # Actualizar espectrograma si hay nueva columna
             if on_frame is not None:
                 img = self.renderer.consume_frame()
                 if img is not None:
                     on_frame(img, self._last_level)
             if seconds is not None and (time.perf_counter() - start) >= seconds:
                 break
-            time.sleep(1.0 / self.cfg.sample_rate)  # pace loop for UI responsiveness
