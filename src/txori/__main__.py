@@ -111,8 +111,8 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    # Resolver modo: por defecto DIRECT; si ambos, prioriza DIRECT
-    use_direct = True if (not args.dsp) or args.direct else False
+    # Resolver modo: por defecto DSP; si ambos, prioriza DIRECT
+    use_direct = True if args.direct else False
 
     cfg = SystemConfig(
         use_audio=bool(args.audio) and not bool(args.test) and not bool(args.cw),
@@ -143,8 +143,9 @@ def main() -> None:
         else:
             decim_factor = max(1, int(cfg.sample_rate // 6000))
             decim_rate = int(cfg.sample_rate // decim_factor)
-        seconds_per_col = float(cfg.samples_per_col) / float(decim_rate)
-        spp_target = int(decim_factor) * int(cfg.samples_per_col)
+        eff_spc = max(1, int(cfg.samples_per_col) // 2)
+        seconds_per_col = float(eff_spc) / float(decim_rate)
+        spp_target = int(decim_factor) * int(eff_spc)
         viewer = LiveViewer(
             max_freq_hz=float(cfg.cutoff_hz),
             bin_hz=float(cfg.fft_bin_hz),
