@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.1] - 2025-10-23
+### Added
+- Ventana de tiempo separada y opcional (`--time`) que muestra la señal cruda sin procesar, con duración igual al espectrograma y actualización independiente; en `--forever` sigue mostrando hasta interrupción.
+- Modo de prueba (`--test`) que fuerza la señal desde un generador interno; frecuencia configurable con `--tone` (default 1000 Hz).
+- Escala de color del espectrograma ahora usa asignación logarítmica (dB) para la energía por bucket.
+- Opción --titulo para título externo en la UI.
+- Ayuda/README actualizados con nuevas opciones.
+
+### Fixed
+- Errores de MyPy en live.py y capture.py: inicialización de `plt`, tipos `Any`, y eliminación de `type: ignore` innecesario.
+
 ## [0.1.0] - 2025-10-23
 ### Added
 - Estructura de proyecto empaquetable (src layout) y configuración (Ruff, Black, MyPy, PyTest, Bandit).

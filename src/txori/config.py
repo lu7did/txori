@@ -30,3 +30,4 @@ class SystemConfig:
     update_interval: int = 1
     samples_per_col: int = 15
     use_audio: bool = False
+    test_tone_hz: float = 1000.0

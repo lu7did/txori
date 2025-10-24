@@ -6,6 +6,7 @@ import math
 from dataclasses import dataclass, field
 
 import numpy as np
+import numpy.typing as npt
 
 
 @dataclass(slots=True)
@@ -31,8 +32,8 @@ class OnePoleLowPass:
         self.y_prev = y
         return y
 
-    def process_window(self, window: np.ndarray) -> np.ndarray:
-        out = np.empty_like(window)
+    def process_window(self, window: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+        out: npt.NDArray[np.float64] = np.empty_like(window)
         # Procesa desde la muestra más reciente hacia las antiguas
         for i in range(window.shape[0]):
             out[i] = self.process_sample(float(window[i]))

@@ -6,14 +6,18 @@ from abc import ABC, abstractmethod
 from math import sin, tau
 
 import numpy as np
+import numpy.typing as npt
 
 from .config import SystemConfig
 from .exceptions import AudioUnavailableError
 
+from typing import Any
+import importlib
+
 try:
-    import sounddevice as sd  # type: ignore
+    sd: Any = importlib.import_module("sounddevice")
 except Exception:  # pragma: no cover - dependiente del entorno
-    sd = None  # type: ignore
+    sd = None
 
 
 class BaseCapture(ABC):
@@ -94,14 +98,14 @@ class SlidingWindow:
         if size <= 0:
             raise ValueError("size debe ser > 0")
         self.size = size
-        self._buf: np.ndarray = np.zeros(size, dtype=np.float64)
+        self._buf: npt.NDArray[np.float64] = np.zeros(size, dtype=np.float64)
 
     def push(self, sample: float) -> None:
         self._buf = np.roll(self._buf, 1)
         self._buf[0] = sample
 
     @property
-    def array(self) -> np.ndarray:
+    def array(self) -> npt.NDArray[np.float64]:
         return self._buf
 
 
@@ -112,7 +116,7 @@ class CaptureController:
         self.strategy = strategy
         self.window = SlidingWindow(window_size)
 
-    def step(self) -> np.ndarray:
+    def step(self) -> npt.NDArray[np.float64]:
         """Toma una muestra y retorna la ventana actualizada."""
         self.window.push(self.strategy.next_sample())
         return self.window.array

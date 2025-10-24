@@ -16,6 +16,22 @@ def main() -> None:
         "--audio", action="store_true", help="Usar entrada de audio real"
     )
     parser.add_argument(
+        "--test",
+        action="store_true",
+        help="Usar generador interno de tono senoidal (por defecto 1000 Hz; ver --tone)",
+    )
+    parser.add_argument(
+        "--tone",
+        type=float,
+        default=None,
+        help="Frecuencia en Hz para el tono de test (requiere --test)",
+    )
+    parser.add_argument(
+        "--time",
+        action="store_true",
+        help="Mostrar ventana separada con la señal temporal sin procesar",
+    )
+    parser.add_argument(
         "--seconds",
         type=float,
         default=None,
@@ -56,11 +72,12 @@ def main() -> None:
     args = parser.parse_args()
 
     cfg = SystemConfig(
-        use_audio=bool(args.audio),
+        use_audio=bool(args.audio) and not bool(args.test),
         image_width=(args.width if args.width is not None else 1200),
         cutoff_hz=(args.cutoff if args.cutoff is not None else 3000.0),
         fft_bin_hz=(args.bin if args.bin is not None else 3.0),
         samples_per_col=(args.avg_samples if args.avg_samples is not None else 15),
+        test_tone_hz=(args.tone if args.tone is not None else 1000.0),
     )
     pipe = Pipeline(cfg)
     seconds = None if (args.forever or args.seconds is None) else float(args.seconds)
@@ -72,7 +89,7 @@ def main() -> None:
         pipe.run(seconds=seconds)
         pipe.renderer.save(args.out)
     else:
-        from .live import LiveViewer  # import perezoso
+        from .live import LiveViewer, TimeViewer  # import perezoso
 
         decim_rate = cfg.sample_rate // max(1, cfg.sample_rate // 6000)
         seconds_per_col = float(cfg.samples_per_col) / float(decim_rate)
@@ -83,8 +100,18 @@ def main() -> None:
             title_text=args.titulo,
             device_text=getattr(pipe, "source_label", None),
         )
+        time_viewer = (
+            TimeViewer(sample_rate=cfg.sample_rate, span_seconds=seconds_per_col * cfg.image_width)
+            if args.time
+            else None
+        )
         try:
-            pipe.run(seconds=seconds, on_frame=viewer.update)
+            pipe.run(
+                seconds=seconds,
+                on_frame=viewer.update,
+                on_time_sample=(time_viewer.push_sample if time_viewer else None),
+                raw_input=True,
+            )
         except KeyboardInterrupt:
             pass
 

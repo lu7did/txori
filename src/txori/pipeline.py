@@ -7,6 +7,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 
 import numpy as np
+import numpy.typing as npt
 
 from .capture import AudioInputCapture, CaptureController, SyntheticSineCapture
 from .config import SystemConfig
@@ -38,7 +39,7 @@ class Pipeline:
         cap = (
             AudioInputCapture(self.cfg)
             if self.cfg.use_audio
-            else SyntheticSineCapture(cfg=self.cfg)
+            else SyntheticSineCapture(freq_hz=float(self.cfg.test_tone_hz), cfg=self.cfg)
         )
         self.capture = CaptureController(cap, window_size=self.cfg.window_size)
         self.lpf = OnePoleLowPass(
@@ -64,7 +65,7 @@ class Pipeline:
         )
         self.source_label = getattr(cap, "label", lambda: "Entrada")()
 
-    def step(self) -> None:
+    def step(self) -> npt.NDArray[np.float64]:
         window = self.capture.step()
         filtered = self.lpf.process_window(window)
         # Nivel instantáneo tras pasabajos (tiempo real): módulo de la muestra más reciente
@@ -80,16 +81,25 @@ class Pipeline:
                 processed = self.proc.process(decimated_window)
                 spectrum = self.fft.analyze(processed)
                 self.renderer.push_spectrum(spectrum)
+        return window
 
     def run(
         self,
         seconds: float | None = None,
-        on_frame: Callable[[np.ndarray, float | None], None] | None = None,
+        on_frame: Callable[[npt.NDArray[np.uint8], float | None], None] | None = None,
+        on_time_sample: Callable[[float], None] | None = None,
+        raw_input: bool = False,
     ) -> None:
-        """Ejecuta y llama on_frame(img, nivel) cuando hay nueva columna generada."""
+        """Ejecuta; llama on_frame(img, nivel) con nuevas columnas y on_time_sample(sample) por muestra.
+
+        raw_input: si True, on_time_sample recibe la muestra de ENTRADA sin filtrar.
+        """
         start = time.perf_counter()
         while True:
-            self.step()
+            window = self.step()
+            if on_time_sample is not None:
+                sample = float(window[0] if raw_input else self._last_level or 0.0)
+                on_time_sample(sample)
             if on_frame is not None:
                 img = self.renderer.consume_frame()
                 if img is not None:

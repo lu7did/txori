@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import math
 from collections import deque
 from dataclasses import dataclass, field
 
 import numpy as np
+import numpy.typing as npt
 from PIL import Image
 
 from .exceptions import VisualizationError
@@ -19,8 +21,8 @@ class SpectrogramRenderer:
     width: int
     average_frames: int = 100
     update_interval: int = 5
-    _accum: deque[np.ndarray] = field(default_factory=deque, init=False)
-    _image: np.ndarray = field(init=False)
+    _accum: deque[npt.NDArray[np.float64]] = field(default_factory=deque, init=False)
+    _image: npt.NDArray[np.uint8] = field(init=False)
     _norm_eps: float = 1e-12
     _dirty: bool = field(default=False, init=False)
 
@@ -32,22 +34,24 @@ class SpectrogramRenderer:
         self._image[:, :] = (0, 0, 80)
 
     @property
-    def image(self) -> np.ndarray:
+    def image(self) -> npt.NDArray[np.uint8]:
         return self._image
 
     def _energy_to_color(self, e: float, emax: float) -> tuple[int, int, int]:
-        t = float(e / (emax + self._norm_eps))
+        # Escala logarítmica en dB relativa al máximo
+        e_safe = max(e, self._norm_eps)
+        emax_safe = max(emax, self._norm_eps)
+        db = 20.0 * math.log10(e_safe / emax_safe)
+        # Mapear rango -80 dB .. 0 dB a 0..1
+        t = (db + 80.0) / 80.0
         t = max(0.0, min(1.0, t))
-        # azul -> azul claro -> casi blanco azulado
-        base_blue = 80
-        inc = int(175 * t)
-        b = min(255, base_blue + inc)
-        w = int(200 * t)
-        r = min(255, w)
-        g = min(255, w)
+        # azul -> cian -> verde -> amarillo -> rojo (gradiente simple)
+        r = int(255 * max(0.0, 2 * t - 1.0))
+        g = int(255 * min(1.0, 2 * t))
+        b = int(255 * (1.0 - t))
         return (r, g, b)
 
-    def push_spectrum(self, spectrum: np.ndarray) -> None:
+    def push_spectrum(self, spectrum: npt.NDArray[np.float64]) -> None:
         if spectrum.ndim != 1:
             raise VisualizationError("El espectro debe ser 1-D")
         if spectrum.size != self.height:
@@ -75,7 +79,7 @@ class SpectrogramRenderer:
     def save(self, path: str) -> None:
         self.to_pil().save(path)
 
-    def consume_frame(self) -> np.ndarray | None:
+    def consume_frame(self) -> npt.NDArray[np.uint8] | None:
         if self._dirty:
             self._dirty = False
             return self._image

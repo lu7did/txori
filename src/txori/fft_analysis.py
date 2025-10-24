@@ -6,6 +6,7 @@ import math
 from dataclasses import dataclass
 
 import numpy as np
+import numpy.typing as npt
 
 
 @dataclass(slots=True)
@@ -16,7 +17,7 @@ class FFTAnalyzer:
     fc: float
     bin_hz: float
 
-    def analyze(self, window: np.ndarray) -> np.ndarray:
+    def analyze(self, window: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         nfft_min = int(math.ceil(self.fs / max(self.bin_hz, 1e-9)))
         nfft = 1 << (nfft_min - 1).bit_length()  # potencia de 2 >= nfft_min
         # Aplica ventana de Hann para reducir leakage; zero-pad a nfft
