@@ -107,6 +107,9 @@ class TimeViewer:
     _ybuf: npt.NDArray[np.float32] | None = None
     _last_draw_t: float = 0.0
     _idx: int = -1
+    _px_dec: int = 1
+    _px_accum: int = 0
+    _latest: float = 0.0
 
     def _ensure_backend(self) -> None:  # pragma: no cover
         global plt
@@ -127,8 +130,9 @@ class TimeViewer:
             n = max(1, int(self.sample_rate * self.span_seconds))
             self._fig.canvas.draw()  # obtener bbox/anchura
             width_px = int(getattr(self._ax, "bbox", None).width) if hasattr(self._ax, "bbox") else 1200
-            vis = min(n, max(1000, width_px))  # ~1 muestra por píxel visible
+            vis = min(n, max(1000, width_px))  # ~1 píxel por muestra visible
             self._dec = max(1, n // vis)
+            self._px_dec = max(1, int(round(self.sample_rate / vis * self.span_seconds)))
             self._buf = _np.zeros(n, dtype=_np.float32)  # buffer completo
             self._ybuf = _np.zeros(vis, dtype=_np.float32)  # vista decimada
             self._x = _np.linspace(-self.span_seconds, 0.0, vis)
@@ -151,10 +155,22 @@ class TimeViewer:
         assert (
             self._buf is not None and self._line is not None and self._fig is not None
         )
-        # Insertar muestra en buffer circular completo
+        # Insertar muestra, acumular y desplazar 1 píxel en X por muestra
         n = self._buf.shape[0]
         self._idx = (self._idx + 1) % n
-        self._buf[self._idx] = float(sample)
+        self._latest = float(sample)
+        self._buf[self._idx] = self._latest
+        # Avance horizontal por píxel: cada muestra desplaza la ventana decimada 1 posición
+        self._px_accum += 1
+        if self._px_accum >= getattr(self, "_px_dec", 1):
+            self._px_accum = 0
+            # Construi vista decimada con última muestra a la derecha
+            dec = int(getattr(self, "_dec", 1))
+            m = self._ybuf.shape[0]
+            start = (self._idx + 1 - dec * m) % n
+            idxs = (start + dec * np.arange(m, dtype=int)) % n
+            self._ybuf[:] = self._buf[idxs]
+            self._line.set_data(self._x, self._ybuf)
         # Throttle de redibujado: ~40 FPS
         import time as _time
 
