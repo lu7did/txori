@@ -1,7 +1,6 @@
 # (c) Dr. Pedro E. Colla 2020-2025 (LU7DZ)
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass
 from typing import Any
 
@@ -125,7 +124,7 @@ class TimeViewer:
             self._fig.canvas.manager.set_window_title(self.title)
             total = max(1, int(self.sample_rate * self.span_seconds))
             n_points = min(total, 5000)
-            self._push_every = max(1, int(math.ceil(total / n_points)))
+            self._push_every = max(1, (total + n_points - 1) // n_points)
             self._buf = _np.zeros(n_points, dtype=_np.float64)
             x = _np.linspace(-self.span_seconds, 0.0, n_points)
             (self._line,) = self._ax.plot(x, self._buf, color="lime")
