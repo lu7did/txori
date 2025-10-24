@@ -33,7 +33,7 @@ class FFTAnalyzer:
         freqs = freqs[mask]
         power = (X.real**2 + X.imag**2)[mask]
         # Mapear a bins uniformes de ancho bin_hz: indices 0..n_bins-1
-        n_bins = int(round(self.fc / max(self.bin_hz, 1e-9)))
+        n_bins = int(math.floor(self.fc / max(self.bin_hz, 1e-9))) + 1
         out = np.zeros(n_bins, dtype=np.float64)
         idx = np.floor(freqs / max(self.bin_hz, 1e-9)).astype(int)
         idx = np.clip(idx, 0, n_bins - 1)
