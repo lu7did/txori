@@ -82,6 +82,12 @@ def main() -> None:
         "--bin", type=float, default=None, help="Ancho de bin FFT en Hz (default 6.0)"
     )
     parser.add_argument(
+        "--att",
+        type=float,
+        default=None,
+        help="Atenuación en dB previa a FFT (default -40; 0=sin atenuar)",
+    )
+    parser.add_argument(
         "--spec-speed",
         type=float,
         default=None,
@@ -131,6 +137,7 @@ def main() -> None:
         cw_tone_hz=(args.cw_tone if args.cw_tone is not None else 600.0),
         direct_mode=bool(use_direct),
         spec_speed_factor=(args.spec_speed if args.spec_speed is not None else 1.0),
+        att_db=(args.att if args.att is not None else -40.0),
     )
     pipe = Pipeline(cfg)
     seconds = None if (args.forever or args.seconds is None) else float(args.seconds)

@@ -49,6 +49,7 @@ class Pipeline:
     _dsp_buf: npt.NDArray[np.float64] = field(init=False, repr=False)
     _direct: bool = field(init=False, repr=False)
     _samples_per_col_eff: int = field(init=False, repr=False)
+    _att_gain: float = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
         cap: BaseCapture
@@ -80,6 +81,14 @@ class Pipeline:
         self._decim_rate = int(self.cfg.sample_rate // self._decim_factor)
         # Triplicar velocidad de columnas: usar un tercio de muestras por columna
         self._samples_per_col_eff = max(1, int(self.cfg.samples_per_col) // 3)
+        # Atenuación previa a FFT en ganancia lineal (10^(dB/10))
+        att = float(getattr(self.cfg, "att_db", -40.0))
+        self._att_gain = 1.0 if abs(att) < 1e-12 else float(10.0 ** (att / 10.0))
+        # Aplicar atenuación por muestra en captura
+        try:
+            setattr(self.capture, "gain", float(self._att_gain))
+        except Exception:
+            pass
         n_bins = int(self.cfg.cutoff_hz // self.cfg.fft_bin_hz) + 1
         # FFT
         self.fft = FFTAnalyzer(
