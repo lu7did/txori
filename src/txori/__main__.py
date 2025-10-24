@@ -156,7 +156,7 @@ def main() -> None:
         cw_tone_hz=(args.cw_tone if args.cw_tone is not None else 600.0),
         direct_mode=bool(use_direct),
         spec_speed_factor=(args.spec_speed if args.spec_speed is not None else 4.0),
-        att_db=(args.att if args.att is not None else -40.0),
+        att_db=(args.att if args.att is not None else None),
         pixels_per_bin=int(_pixels_per_bin),
     )
     pipe = Pipeline(cfg)
