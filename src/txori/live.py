@@ -194,6 +194,10 @@ class TimeViewer:
 
             plt.ion()
             self._fig, self._ax = plt.subplots(1, 1)
+            try:
+                self._fig.set_size_inches(6.0, 4.0, forward=True)
+            except Exception:
+                pass
             self._fig.canvas.manager.set_window_title(self.title)
             n = max(1, int(self.sample_rate * self.span_seconds))
             self._fig.canvas.draw()  # obtener bbox/anchura
