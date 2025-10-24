@@ -46,20 +46,25 @@ class SpectrogramRenderer:
         # Mapear rango -80 dB .. 0 dB a 0..1
         t = (db + 80.0) / 80.0
         t = max(0.0, min(1.0, t))
-        # Mapeo por bandas de 10 dB; sin gradiente continuo
-        # Escala por bandas de 10 dB (relativa al máximo):
-        # <= -50 dB: light blue; -50..-40: cyan; -40..-30: verde; -30..-20: amarillo; -20..-10: rojo; > -10: blanco
-        if db <= -50.0:
-            return (173, 216, 230)  # light blue
-        if db <= -40.0:
-            return (0, 255, 255)  # cyan
-        if db <= -30.0:
-            return (0, 255, 0)  # green
-        if db <= -20.0:
-            return (255, 255, 0)  # yellow
-        if db <= -10.0:
-            return (255, 0, 0)  # red
-        return (255, 255, 255)  # white
+        # Gradiente suave segmentado: azul → sky blue → cyan → verde → amarillo → rojo → blanco
+        stops = [
+            (0, 0, 255),  # blue
+            (135, 206, 235),  # sky blue
+            (0, 255, 255),  # cyan
+            (0, 255, 0),  # green
+            (255, 255, 0),  # yellow
+            (255, 0, 0),  # red
+            (255, 255, 255),  # white
+        ]
+        n = len(stops) - 1
+        pos = t * n
+        i = int(pos)
+        i = max(0, min(n - 1, i))
+        f = pos - i
+        r = int(round(stops[i][0] + f * (stops[i + 1][0] - stops[i][0])))
+        g = int(round(stops[i][1] + f * (stops[i + 1][1] - stops[i][1])))
+        b = int(round(stops[i][2] + f * (stops[i + 1][2] - stops[i][2])))
+        return (r, g, b)
 
     def push_spectrum(self, spectrum: npt.NDArray[np.float64]) -> None:
         if spectrum.ndim != 1:
