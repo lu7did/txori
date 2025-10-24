@@ -21,7 +21,7 @@ from .capture import (
     SyntheticSineCapture,
 )
 from .config import SystemConfig
-from .fft_analysis import FFTAnalyzer
+
 from .filtering import OnePoleLowPass
 from .processing import AGCProcessor, DSPProcessor, IdentityProcessor
 from .visualization import SpectrogramRenderer
@@ -37,7 +37,6 @@ class Pipeline:
     proc: IdentityProcessor = field(init=False)
     agc: AGCProcessor = field(init=False)
     dsp: DSPProcessor = field(init=False)
-    fft: FFTAnalyzer = field(init=False)
     renderer: SpectrogramRenderer = field(init=False)
     source_label: str = field(init=False)
     # Estado de temporización/diezmado
@@ -98,11 +97,9 @@ class Pipeline:
         target_bins = int(getattr(self.cfg, "spec_height_px", 800))
         # FFT con tamaño de bin fijo: 30 Hz (direct) o 3.75 Hz (dsp)
         bin_hz_eff = 30.0 if self._direct else 3.75
-        self.fft = FFTAnalyzer(
-            fs=float(self._decim_rate),
-            fc=float(fmax),
-            bin_hz=bin_hz_eff,
-        )
+        self._fs = float(self._decim_rate)
+        self._fc = float(fmax)
+        self._bin_hz = float(bin_hz_eff)
         # Render: altura fija target_bins, ancho >= 2400 px (re-muestreo si difiere)
         self.renderer = SpectrogramRenderer(
             height=target_bins,
@@ -129,7 +126,7 @@ class Pipeline:
                 if self._col_count >= int(self.cfg.samples_per_col):
                     self._col_count = 0
                     processed = self.proc.process(window)
-                    spectrum = self.fft.analyze(processed)
+                    spectrum = self._analyze(processed)
                     h = int(self.renderer.height)
                     if spectrum.size != h:
                         import numpy as _np
@@ -154,7 +151,7 @@ class Pipeline:
                     self._col_count = 0
                     agc_out = self.agc.process(self._dsp_buf)
                     dsp_out = self.dsp.process(agc_out)
-                    spectrum = self.fft.analyze(dsp_out)
+                    spectrum = self._analyze(dsp_out)
                     h = int(self.renderer.height)
                     if spectrum.size != h:
                         import numpy as _np
@@ -163,6 +160,28 @@ class Pipeline:
                         spectrum = ups[:h] if ups.size >= h else _np.pad(ups, (0, h - ups.size))
                     self.renderer.push_spectrum(spectrum)
         return window
+
+    def _analyze(self, window: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+        import numpy as _np
+        n = int(window.size)
+        if n <= 0:
+            return _np.zeros(int(self.renderer.height), dtype=_np.float64)
+        nfft = 1 << (max(1, n) - 1).bit_length()
+        w = _np.hanning(n)
+        xw = (window * w).astype(_np.float64)
+        if nfft > n:
+            xw = _np.pad(xw, (0, nfft - n))
+        X = _np.fft.rfft(xw, n=nfft)
+        freqs = _np.fft.rfftfreq(nfft, d=1.0 / float(self._fs))
+        mask = freqs < (float(self._fc) - 1e-9)
+        freqs = freqs[mask]
+        power = (X.real**2 + X.imag**2)[mask]
+        n_bins = int(_np.floor(float(self._fc) / max(float(self._bin_hz), 1e-9))) + 1
+        out = _np.zeros(n_bins, dtype=_np.float64)
+        idx = _np.floor(freqs / max(float(self._bin_hz), 1e-9)).astype(int)
+        idx = _np.clip(idx, 0, n_bins - 1)
+        _np.add.at(out, idx, power)
+        return out
 
     def run(
         self,
