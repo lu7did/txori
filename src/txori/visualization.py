@@ -50,7 +50,19 @@ class SpectrogramRenderer:
         r = int(255 * max(0.0, 2 * t - 1.0))
         g = int(255 * min(1.0, 2 * t))
         b = int(255 * (1.0 - t))
-        return (r, g, b)
+        # Escala por bandas de 10 dB (relativa al máximo):
+        # <= -50 dB: light blue; -50..-40: cyan; -40..-30: verde; -30..-20: amarillo; -20..-10: rojo; > -10: blanco
+        if db <= -50.0:
+            return (173, 216, 230)  # light blue
+        if db <= -40.0:
+            return (0, 255, 255)  # cyan
+        if db <= -30.0:
+            return (0, 255, 0)  # green
+        if db <= -20.0:
+            return (255, 255, 0)  # yellow
+        if db <= -10.0:
+            return (255, 0, 0)  # red
+        return (255, 255, 255)  # white
 
     def push_spectrum(self, spectrum: npt.NDArray[np.float64]) -> None:
         if spectrum.ndim != 1:
