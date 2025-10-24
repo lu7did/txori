@@ -48,6 +48,7 @@ class Pipeline:
     _last_level: float | None = field(default=None, init=False, repr=False)
     _dsp_buf: npt.NDArray[np.float64] = field(init=False, repr=False)
     _direct: bool = field(init=False, repr=False)
+    _samples_per_col_eff: int = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
         cap: BaseCapture
