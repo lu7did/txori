@@ -12,6 +12,7 @@ import numpy.typing as npt
 
 from .capture import (
     AudioInputCapture,
+    BaseCapture,
     CaptureController,
     SyntheticCWToneCapture,
     SyntheticSineCapture,
@@ -42,6 +43,7 @@ class Pipeline:
     _last_level: float | None = field(default=None, init=False, repr=False)
 
     def __post_init__(self) -> None:
+        cap: BaseCapture
         if self.cfg.cw_mode:
             cap = SyntheticCWToneCapture(
                 freq_hz=float(self.cfg.cw_tone_hz), cfg=self.cfg

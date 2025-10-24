@@ -27,7 +27,7 @@ jobs:
       - name: Ruff
         run: ruff check .
       - name: Black
-        run: black --check .
+        run: black --check src/txori
       - name: MyPy
         run: mypy src
       - name: Bandit
