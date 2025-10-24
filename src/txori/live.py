@@ -1,9 +1,9 @@
 # (c) Dr. Pedro E. Colla 2020-2025 (LU7DZ)
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass, field
 from typing import Any
-from collections import deque
 
 import numpy as np
 import numpy.typing as npt
