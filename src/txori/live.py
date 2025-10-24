@@ -162,7 +162,7 @@ class TimeViewer:
     ) -> None:  # pragma: no cover - depende de matplotlib
         self._ensure_backend()
         assert (
-            self._buf is not None and self._line is not None and self._fig is not None
+            self._buf is not None and self._line is not None and self._fig is not None and self._ybuf is not None
         )
         # Insertar muestra, acumular y desplazar 1 píxel en X por muestra
         n = self._buf.shape[0]
@@ -182,7 +182,7 @@ class TimeViewer:
 
         now = _time.perf_counter()
         if now - self._last_draw_t >= 1.0 / 30.0:
-            peak = float(np.max(np.abs(self._ybuf))) if self._ybuf is not None else 0.0
+            peak = float(np.max(np.abs(self._ybuf)))
             yplot = (self._ybuf / max(peak, 1e-9)) if peak > 1e-9 else self._ybuf
             self._line.set_data(self._x, yplot)
             self._fig.canvas.draw_idle()
