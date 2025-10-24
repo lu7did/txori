@@ -132,10 +132,14 @@ class TimeViewer:
             self._fig.canvas.manager.set_window_title(self.title)
             n = max(1, int(self.sample_rate * self.span_seconds))
             self._fig.canvas.draw()  # obtener bbox/anchura
-            width_px = int(getattr(self._ax, "bbox", None).width) if hasattr(self._ax, "bbox") else 1200
+            width_px = (
+                int(getattr(self._ax, "bbox", None).width)
+                if hasattr(self._ax, "bbox")
+                else 1200
+            )
             vis = min(n, max(1000, width_px))  # ~1 píxel por muestra visible
             self._dec = max(1, n // vis)
-            speed_factor = 4  # entre 3 y 5 según pedido del usuario
+            speed_factor = 4.8  # +20% más rápido que 4x
             self._spp = max(1, int(round(self._dec / speed_factor)))
             self._px_dec = 1
             self._buf = _np.zeros(n, dtype=_np.float32)  # buffer completo
@@ -175,9 +179,12 @@ class TimeViewer:
             self._since_draw += 1
         # Redibujar a ~30 FPS para mostrar avance continuo
         import time as _time
+
         now = _time.perf_counter()
         if now - self._last_draw_t >= 1.0 / 30.0:
-            self._line.set_data(self._x, self._ybuf)
+            peak = float(np.max(np.abs(self._ybuf))) if self._ybuf is not None else 0.0
+            yplot = (self._ybuf / max(peak, 1e-9)) if peak > 1e-9 else self._ybuf
+            self._line.set_data(self._x, yplot)
             self._fig.canvas.draw_idle()
             self._last_draw_t = now
             global plt
