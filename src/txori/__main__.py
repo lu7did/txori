@@ -101,7 +101,10 @@ def main() -> None:
             device_text=getattr(pipe, "source_label", None),
         )
         time_viewer = (
-            TimeViewer(sample_rate=cfg.sample_rate, span_seconds=seconds_per_col * cfg.image_width)
+            TimeViewer(
+                sample_rate=cfg.sample_rate,
+                span_seconds=seconds_per_col * cfg.image_width,
+            )
             if args.time
             else None
         )

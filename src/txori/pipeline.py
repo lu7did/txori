@@ -39,7 +39,9 @@ class Pipeline:
         cap = (
             AudioInputCapture(self.cfg)
             if self.cfg.use_audio
-            else SyntheticSineCapture(freq_hz=float(self.cfg.test_tone_hz), cfg=self.cfg)
+            else SyntheticSineCapture(
+                freq_hz=float(self.cfg.test_tone_hz), cfg=self.cfg
+            )
         )
         self.capture = CaptureController(cap, window_size=self.cfg.window_size)
         self.lpf = OnePoleLowPass(

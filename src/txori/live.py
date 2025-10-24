@@ -43,7 +43,9 @@ class LiveViewer:
             if self.device_text:
                 self._fig.text(0.99, 0.995, self.device_text, ha="right", va="top")
 
-    def update(self, image: npt.NDArray[np.uint8], level: float | None = None) -> None:  # pragma: no cover - depende de matplotlib
+    def update(
+        self, image: npt.NDArray[np.uint8], level: float | None = None
+    ) -> None:  # pragma: no cover - depende de matplotlib
         self._ensure_backend()
         assert self._ax_spec is not None
         global plt
@@ -125,9 +127,13 @@ class TimeViewer:
             self._ax.set_ylabel("Amplitud (V)")
             self._ax.grid(True, alpha=0.2)
 
-    def push_sample(self, sample: float) -> None:  # pragma: no cover - depende de matplotlib
+    def push_sample(
+        self, sample: float
+    ) -> None:  # pragma: no cover - depende de matplotlib
         self._ensure_backend()
-        assert self._buf is not None and self._line is not None and self._fig is not None
+        assert (
+            self._buf is not None and self._line is not None and self._fig is not None
+        )
         # Desplaza buffer y agrega nueva muestra cruda
         self._buf = np.roll(self._buf, -1)
         self._buf[-1] = float(sample)
