@@ -46,10 +46,7 @@ class SpectrogramRenderer:
         # Mapear rango -80 dB .. 0 dB a 0..1
         t = (db + 80.0) / 80.0
         t = max(0.0, min(1.0, t))
-        # azul -> cian -> verde -> amarillo -> rojo (gradiente simple)
-        r = int(255 * max(0.0, 2 * t - 1.0))
-        g = int(255 * min(1.0, 2 * t))
-        b = int(255 * (1.0 - t))
+        # Mapeo por bandas de 10 dB; sin gradiente continuo
         # Escala por bandas de 10 dB (relativa al máximo):
         # <= -50 dB: light blue; -50..-40: cyan; -40..-30: verde; -30..-20: amarillo; -20..-10: rojo; > -10: blanco
         if db <= -50.0:
