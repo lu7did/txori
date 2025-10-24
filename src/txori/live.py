@@ -1,8 +1,9 @@
 # (c) Dr. Pedro E. Colla 2020-2025 (LU7DZ)
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
+from collections import deque
 
 import numpy as np
 import numpy.typing as npt
@@ -102,6 +103,7 @@ class TimeViewer:
     title: str = "Txori - Tiempo"
     speed_factor: float = 86.4
     time_color: str = "skyblue"
+    sync_spp: int | None = None
     _fig: Any | None = None
     _ax: Any | None = None
     _line: Any | None = None
@@ -115,6 +117,10 @@ class TimeViewer:
     _spp: int = 1  # samples per pixel
     _samp_accum: int = 0
     _since_draw: int = 0
+    _amp_win: deque[float] = field(default_factory=deque, init=False, repr=False)
+    _amp_mq: deque[float] = field(default_factory=deque, init=False, repr=False)
+    _amp_limit: int = 100_000
+    _amp_max: float = 1e-9
 
     def _ensure_backend(self) -> None:  # pragma: no cover
         global plt
@@ -139,7 +145,10 @@ class TimeViewer:
             vis = min(n, max(1000, width_px))  # ~1 píxel por muestra visible
             self._dec = max(1, n // vis)
             sf = float(self.speed_factor)
-            self._spp = max(1, int(round(self._dec / max(sf, 1e-9))))
+            if self.sync_spp is not None:
+                self._spp = max(1, int(self.sync_spp))
+            else:
+                self._spp = max(1, int(round(self._dec / max(sf, 1e-9))))
             self._px_dec = 1
             self._buf = _np.zeros(n, dtype=_np.float32)  # buffer completo
             self._ybuf = _np.zeros(vis, dtype=_np.float32)  # vista decimada
@@ -171,6 +180,17 @@ class TimeViewer:
         self._idx = (self._idx + 1) % n
         self._latest = float(sample)
         self._buf[self._idx] = self._latest
+        # Update rolling amplitude maxima over last 100k samples
+        vabs = abs(self._latest)
+        self._amp_win.append(vabs)
+        while self._amp_mq and self._amp_mq[-1] < vabs:
+            self._amp_mq.pop()
+        self._amp_mq.append(vabs)
+        if len(self._amp_win) > self._amp_limit:
+            old = self._amp_win.popleft()
+            if self._amp_mq and old == self._amp_mq[0]:
+                self._amp_mq.popleft()
+        self._amp_max = float(self._amp_mq[0]) if self._amp_mq else 1e-9
         # Shift 1 pixel after accumulating samples_per_pixel
         self._samp_accum += 1
         if self._samp_accum >= max(1, int(getattr(self, "_spp", 1))):
@@ -184,7 +204,7 @@ class TimeViewer:
 
         now = _time.perf_counter()
         if now - self._last_draw_t >= 1.0 / 30.0:
-            peak = float(np.max(np.abs(self._ybuf)))
+            peak = float(getattr(self, "_amp_max", 1e-9))
             yplot = (self._ybuf / max(peak, 1e-9)) if peak > 1e-9 else self._ybuf
             self._line.set_data(self._x, yplot)
             self._fig.canvas.draw_idle()

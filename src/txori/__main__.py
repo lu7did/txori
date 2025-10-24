@@ -122,6 +122,8 @@ def main() -> None:
 
         decim_rate = cfg.sample_rate // max(1, cfg.sample_rate // 6000)
         seconds_per_col = float(cfg.samples_per_col) / float(decim_rate)
+        decim_factor = cfg.sample_rate // max(1, int(decim_rate))
+        spp_target = int(decim_factor) * int(cfg.samples_per_col)
         viewer = LiveViewer(
             max_freq_hz=float(cfg.cutoff_hz),
             bin_hz=float(cfg.fft_bin_hz),
@@ -135,6 +137,7 @@ def main() -> None:
                 span_seconds=(seconds if seconds is not None else 30.0),
                 speed_factor=(args.time_speed if args.time_speed is not None else 86.4),
                 time_color=(args.time_color if args.time_color is not None else "skyblue"),
+                sync_spp=spp_target,
             )
             if args.time
             else None
