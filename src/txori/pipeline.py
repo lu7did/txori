@@ -103,15 +103,7 @@ class Pipeline:
         self._fs = float(self._decim_rate)
         self._fc = float(fmax)
         self._bin_hz = float(bin_hz_eff)
-        # Render: altura fija target_bins, ancho >= 2400 px (re-muestreo si difiere)
-        self.renderer = SpectrogramRenderer(
-            height=target_bins,
-            width=int(max(self.cfg.image_width, 2400)),
-
-            average_frames=int(1 if self.cfg.cw_mode else self.cfg.average_frames),
-            update_interval=1,
-            pixels_per_bin=int(getattr(self.cfg, "pixels_per_bin", 1)),
-        )
+        # Waterfall eliminado: no se crea renderer
         # Buffer DSP de 6000 muestras (en dominio diezmado si aplica)
         import numpy as _np
 
@@ -151,7 +143,8 @@ class Pipeline:
         import numpy as _np
         n = int(window.size)
         if n <= 0:
-            return _np.zeros(int(self.renderer.height), dtype=_np.float64)
+            n_bins = int(_np.floor(float(self._fc) / max(float(self._bin_hz), 1e-9))) + 1
+            return _np.zeros(n_bins, dtype=_np.float64)
         nfft = 1 << (max(1, n) - 1).bit_length()
         w = _np.hanning(n)
         xw = (window * w).astype(_np.float64)

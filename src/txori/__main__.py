@@ -161,55 +161,36 @@ def main() -> None:
     )
     pipe = Pipeline(cfg)
     seconds = None if (args.forever or args.seconds is None) else float(args.seconds)
-    if args.out:
-        if seconds is None:
-            raise SystemExit(
-                "--out no es compatible con --forever; use un tiempo finito"
-            )
-        pipe.run(seconds=seconds)
-        pipe.renderer.save(args.out)
+    # Waterfall eliminado: no se genera ni guarda imagen
+    from .live import TimeViewer  # import perezoso
+    # Configurar time viewer si se pide
+    if cfg.direct_mode:
+        decim_factor = 1
+        decim_rate = int(cfg.sample_rate)
     else:
-        from .live import LiveViewer, TimeViewer  # import perezoso
-
-        if cfg.direct_mode:
-            decim_rate = int(cfg.sample_rate)
-            decim_factor = 1
-            fmax = 24_000.0
-        else:
-            decim_factor = max(1, int(cfg.sample_rate // 6000))
-            decim_rate = int(cfg.sample_rate // decim_factor)
-            fmax = 3_000.0
-        # Una columna por cada FFT (una FFT por muestra diezmada); GUI 30 FPS
-        seconds_per_col = 1.0 / float(decim_rate)
-        spp_target = int(decim_factor) * 1
-        viewer = LiveViewer(
-            max_freq_hz=float(fmax),
-            bin_hz=float(cfg.fft_bin_hz),
-            seconds_per_col=seconds_per_col,
-            title_text=args.titulo,
-            device_text=getattr(pipe, "source_label", None),
-            pixels_per_bin=int(getattr(cfg, "pixels_per_bin", 1)),
+        decim_factor = max(1, int(cfg.sample_rate // 6000))
+        decim_rate = int(cfg.sample_rate // decim_factor)
+    spp_target = int(decim_factor)
+    time_viewer = (
+        TimeViewer(
+            sample_rate=cfg.sample_rate,
+            span_seconds=(seconds if seconds is not None else 30.0),
+            speed_factor=(args.time_speed if args.time_speed is not None else 86.4),
+            time_color=(args.time_color if args.time_color is not None else "skyblue"),
+            sync_spp=spp_target,
         )
-        time_viewer = (
-            TimeViewer(
-                sample_rate=cfg.sample_rate,
-                span_seconds=(seconds if seconds is not None else 30.0),
-                speed_factor=(args.time_speed if args.time_speed is not None else 86.4),
-                time_color=(args.time_color if args.time_color is not None else "skyblue"),
-                sync_spp=spp_target,
-            )
-            if args.time
-            else None
+        if args.time
+        else None
+    )
+    try:
+        pipe.run(
+            seconds=seconds,
+            on_frame=None,
+            on_time_sample=(time_viewer.push_sample if time_viewer else None),
+            raw_input=True,
         )
-        try:
-            pipe.run(
-                seconds=seconds,
-                on_frame=viewer.update,
-                on_time_sample=(time_viewer.push_sample if time_viewer else None),
-                raw_input=True,
-            )
-        except KeyboardInterrupt:
-            pass
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == "__main__":  # pragma: no cover
