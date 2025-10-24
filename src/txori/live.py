@@ -1,6 +1,7 @@
 # (c) Dr. Pedro E. Colla 2020-2025 (LU7DZ)
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Any
 
@@ -141,7 +142,14 @@ class TimeViewer:
         assert (
             self._buf is not None and self._line is not None and self._fig is not None
         )
-        # Desplaza buffer y agrega nueva muestra cruda
+        # Descartar muestras para limitar a n_points en span_seconds
+        if not hasattr(self, "_push_every"):
+            self._push_every = 1
+            self._sample_idx = 0
+        self._sample_idx += 1
+        if self._sample_idx % max(1, int(self._push_every)) != 0:
+            return
+        # Desplaza buffer y agrega nueva muestra
         self._buf = np.roll(self._buf, -1)
         self._buf[-1] = float(sample)
         # Throttle de redibujado: ~40 FPS
