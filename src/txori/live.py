@@ -43,10 +43,10 @@ class LiveViewer:
         if self._fig is None:
             plt.ion()
             self._fig, self._ax_spec = plt.subplots(1, 1)
-            # Asegurar >20 cm de ancho en pantalla (~7.9")
+            # Fijar ancho físico a 6 pulgadas
             try:
-                w_in = max(8.5, 20.0 / 2.54)  # mínimo ~21.6 cm
-                h_in = 6.0
+                w_in = 6.0
+                h_in = 4.0
                 self._fig.set_size_inches(w_in, h_in, forward=True)
             except Exception:
                 pass
