@@ -128,12 +128,9 @@ class Pipeline:
                     h = int(self.renderer.height)
                     if spectrum.size != h:
                         import numpy as _np
-
-                        spectrum = (
-                            spectrum[:h]
-                            if spectrum.size >= h
-                            else _np.pad(spectrum, (0, h - spectrum.size))
-                        )
+                        vbf = int(getattr(self.cfg, "vertical_bins_factor", 1))
+                        ups = _np.repeat(spectrum, max(1, vbf))
+                        spectrum = ups[:h] if ups.size >= h else _np.pad(ups, (0, h - ups.size))
                     self.renderer.push_spectrum(spectrum)
         else:
             # DSP: LPF -> decimación 8:1 -> AGC -> DSP -> FFT
@@ -155,7 +152,10 @@ class Pipeline:
                     spectrum = self.fft.analyze(dsp_out)
                     h = int(self.renderer.height)
                     if spectrum.size != h:
-                        spectrum = spectrum[:h]
+                        import numpy as _np
+                        vbf = int(getattr(self.cfg, "vertical_bins_factor", 1))
+                        ups = _np.repeat(spectrum, max(1, vbf))
+                        spectrum = ups[:h] if ups.size >= h else _np.pad(ups, (0, h - ups.size))
                     self.renderer.push_spectrum(spectrum)
         return window
 
