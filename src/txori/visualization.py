@@ -43,10 +43,8 @@ class SpectrogramRenderer:
         e_safe = max(e, self._norm_eps)
         emax_safe = max(emax, self._norm_eps)
         db = 20.0 * math.log10(e_safe / emax_safe)
-        # Mapear rango -120 dB .. 0 dB a 0..1
-        t = (db + 120.0) / 120.0
-        t = max(0.0, min(1.0, t))
-        # Gradiente suave segmentado: azul → sky blue → cyan → verde → amarillo → rojo → blanco
+        # Mapeo en bandas con umbrales fijos (no se usa t continuo)
+        # Gradiente suave con umbrales dB definidos para transiciones
         stops = [
             (0, 0, 255),  # blue
             (135, 206, 235),  # sky blue
@@ -56,11 +54,20 @@ class SpectrogramRenderer:
             (255, 0, 0),  # red
             (255, 255, 255),  # white
         ]
-        n = len(stops) - 1
-        pos = t * n
-        i = int(pos)
-        i = max(0, min(n - 1, i))
-        f = pos - i
+        # Umbrales en dB relativos al máximo para los stops anteriores
+        # [-120, -90] blue, [-90, -70] sky, [-70, -50] cyan, [-50, -35] green, [-35, -20] yellow, [-20, -10] red, [-10, 0] white
+        thr = [-120.0, -90.0, -70.0, -50.0, -35.0, -20.0, -10.0, 0.0]
+        if db <= thr[0]:
+            return stops[0]
+        if db >= thr[-1]:
+            return stops[-1]
+        # Buscar segmento
+        i = 0
+        while i < len(thr) - 1 and not (thr[i] <= db <= thr[i + 1]):
+            i += 1
+        # Interpolación lineal dentro del segmento i..i+1
+        span = max(1e-9, thr[i + 1] - thr[i])
+        f = (db - thr[i]) / span
         r = int(round(stops[i][0] + f * (stops[i + 1][0] - stops[i][0])))
         g = int(round(stops[i][1] + f * (stops[i + 1][1] - stops[i][1])))
         b = int(round(stops[i][2] + f * (stops[i + 1][2] - stops[i][2])))
