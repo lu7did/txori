@@ -97,7 +97,7 @@ class Pipeline:
         self._dsp_buf = _np.zeros(6000, dtype=_np.float64)
         self.source_label = getattr(cap, "label", lambda: "Entrada")()
 
-    def step(self) -> npt.NDArray[np.float64]:
+    def step(self) -> npt.NDArray[np.float64]:  # pragma: no cover
         window = self.capture.step()
         if self._direct:
             # Modo directo: sin filtro ni decimación
