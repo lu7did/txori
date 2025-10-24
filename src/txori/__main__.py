@@ -99,7 +99,20 @@ def main() -> None:
         default=None,
         help="Color de la línea de tiempo (por defecto 'skyblue')",
     )
+    parser.add_argument(
+        "--direct",
+        action="store_true",
+        help="Modo directo: FFT sobre muestras sin filtrar/decimar (default)",
+    )
+    parser.add_argument(
+        "--dsp",
+        action="store_true",
+        help="Modo DSP: LPF 3 kHz + decimación 8:1 + AGC + DSP antes de FFT",
+    )
     args = parser.parse_args()
+
+    # Resolver modo: por defecto DIRECT; si ambos, prioriza DIRECT
+    use_direct = True if (not args.dsp) or args.direct else False
 
     cfg = SystemConfig(
         use_audio=bool(args.audio) and not bool(args.test) and not bool(args.cw),
@@ -110,6 +123,7 @@ def main() -> None:
         test_tone_hz=(args.tone if args.tone is not None else 1000.0),
         cw_mode=bool(args.cw),
         cw_tone_hz=(args.cw_tone if args.cw_tone is not None else 600.0),
+        direct_mode=bool(use_direct),
     )
     pipe = Pipeline(cfg)
     seconds = None if (args.forever or args.seconds is None) else float(args.seconds)

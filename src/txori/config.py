@@ -34,3 +34,4 @@ class SystemConfig:
     test_tone_hz: float = 1000.0
     cw_mode: bool = False
     cw_tone_hz: float = 600.0
+    direct_mode: bool = True
