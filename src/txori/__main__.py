@@ -94,6 +94,12 @@ def main() -> None:
         help="Factor de velocidad del espectrograma relativo al tiempo (default 1.0)",
     )
     parser.add_argument(
+        "--ppb",
+        type=int,
+        default=None,
+        help="Píxeles verticales por bin del espectrograma (default 4)",
+    )
+    parser.add_argument(
         "--avg-samples",
         type=int,
         default=None,
@@ -138,6 +144,7 @@ def main() -> None:
         direct_mode=bool(use_direct),
         spec_speed_factor=(args.spec_speed if args.spec_speed is not None else 1.0),
         att_db=(args.att if args.att is not None else -40.0),
+        pixels_per_bin=(args.ppb if args.ppb is not None else 4),
     )
     pipe = Pipeline(cfg)
     seconds = None if (args.forever or args.seconds is None) else float(args.seconds)
@@ -167,6 +174,7 @@ def main() -> None:
             seconds_per_col=seconds_per_col,
             title_text=args.titulo,
             device_text=getattr(pipe, "source_label", None),
+            pixels_per_bin=int(getattr(cfg, "pixels_per_bin", 1)),
         )
         time_viewer = (
             TimeViewer(

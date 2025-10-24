@@ -18,10 +18,11 @@ from .exceptions import VisualizationError
 class SpectrogramRenderer:
     """Genera un espectrograma desplazable y promediado."""
 
-    height: int
+    height: int  # número de bins
     width: int
     average_frames: int = 100
     update_interval: int = 5
+    pixels_per_bin: int = 1
     _accum: deque[npt.NDArray[np.float64]] = field(default_factory=deque, init=False)
     _image: npt.NDArray[np.uint8] = field(init=False)
     _norm_eps: float = 1e-12
@@ -30,7 +31,8 @@ class SpectrogramRenderer:
     def __post_init__(self) -> None:
         if self.height <= 0 or self.width <= 0:
             raise VisualizationError("Dimensiones inválidas de imagen")
-        self._image = np.zeros((self.height, self.width, 3), dtype=np.uint8)
+        img_h = int(self.height) * max(1, int(self.pixels_per_bin))
+        self._image = np.zeros((img_h, self.width, 3), dtype=np.uint8)
         # Navy oscuro de fondo
         self._image[:, :] = (0, 0, 80)
 
@@ -77,7 +79,7 @@ class SpectrogramRenderer:
             raise VisualizationError("El espectro debe ser 1-D")
         if spectrum.size != self.height:
             raise VisualizationError(
-                "La altura de imagen debe coincidir con el espectro"
+                "La altura (bins) debe coincidir con el espectro"
             )
         self._accum.append(spectrum.astype(np.float64))
         if len(self._accum) > self.average_frames:
@@ -88,9 +90,12 @@ class SpectrogramRenderer:
             emax = float(np.max(avg) if avg.size else 1.0)
             # Desplaza todo a la izquierda y coloca nueva columna a la derecha (tiempo avanza → izquierda)
             self._image = np.roll(self._image, shift=-1, axis=1)
-            column = np.zeros((self.height, 3), dtype=np.uint8)
+            ppb = max(1, int(self.pixels_per_bin))
+            column = np.zeros((self._image.shape[0], 3), dtype=np.uint8)
             for y in range(self.height):
-                column[y] = self._energy_to_color(float(avg[y]), emax)
+                color = self._energy_to_color(float(avg[y]), emax)
+                y0 = y * ppb
+                column[y0 : y0 + ppb] = color
             self._image[:, -1, :] = column
             self._dirty = True
 

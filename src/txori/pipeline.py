@@ -102,6 +102,7 @@ class Pipeline:
             width=int(self.cfg.image_width),
             average_frames=int(1 if self.cfg.cw_mode else self.cfg.average_frames),
             update_interval=1,
+            pixels_per_bin=int(getattr(self.cfg, "pixels_per_bin", 1)),
         )
         # Buffer DSP de 6000 muestras (en dominio diezmado si aplica)
         import numpy as _np

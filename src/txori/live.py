@@ -20,6 +20,7 @@ class LiveViewer:
     title: str = "Txori - Espectrograma"
     max_freq_hz: float = 3000.0
     bin_hz: float = 3.0
+    pixels_per_bin: int = 1
     seconds_per_col: float = 0.001
     title_text: str | None = None
     device_text: str | None = None
@@ -67,7 +68,8 @@ class LiveViewer:
                 import numpy as _np
 
                 y_freqs = _np.linspace(0.0, float(self.max_freq_hz), num=6)
-                y_pos = (y_freqs / max(float(self.bin_hz), 1e-9)).astype(int)
+                ppb = max(1, int(getattr(self, "pixels_per_bin", 1)))
+                y_pos = (y_freqs / max(float(self.bin_hz), 1e-9) * ppb).astype(int)
                 y_pos = _np.clip(y_pos, 0, image.shape[0] - 1)
                 self._ax_spec.set_yticks(y_pos)
                 self._ax_spec.set_yticklabels([f"{int(f)}" for f in y_freqs])
