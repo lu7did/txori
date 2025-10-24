@@ -62,10 +62,8 @@ class SpectrogramRenderer:
             return stops[0]
         if db >= thr[-1]:
             return stops[-1]
-        # Buscar segmento
-        i = 0
-        while i < len(thr) - 1 and not (thr[i] <= db <= thr[i + 1]):
-            i += 1
+        # Buscar segmento de forma robusta con bisect
+        i = max(0, min(len(stops) - 2, bisect_right(thr, db) - 1))
         # Interpolación lineal dentro del segmento i..i+1
         span = max(1e-9, thr[i + 1] - thr[i])
         f = (db - thr[i]) / span
