@@ -70,7 +70,7 @@ def main() -> None:
         "--width",
         type=int,
         default=None,
-        help="Ancho del espectrograma en píxeles (default 1200)",
+        help="Ancho del espectrograma en píxeles (default 2400)",
     )
     parser.add_argument(
         "--cutoff",

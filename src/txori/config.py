@@ -26,7 +26,7 @@ class SystemConfig:
     window_size: int = 100
     cutoff_hz: float = 3_000.0
     fft_bin_hz: float = 10.0
-    image_width: int = 1_200
+    image_width: int = 2_400
     average_frames: int = 100
     update_interval: int = 1
     samples_per_col: int = 15
