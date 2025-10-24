@@ -121,4 +121,4 @@ class Pipeline:
                     on_frame(img, self._last_level)
             if seconds is not None and (time.perf_counter() - start) >= seconds:
                 break
-            # time.sleep(1.0 / self.cfg.sample_rate)  # opcional para uso real
+            time.sleep(1.0 / self.cfg.sample_rate)  # pace loop for UI responsiveness
