@@ -125,13 +125,13 @@ class TimeViewer:
             self._fig, self._ax = plt.subplots(1, 1)
             self._fig.canvas.manager.set_window_title(self.title)
             n = max(1, int(self.sample_rate * self.span_seconds))
-            self._fig.canvas.draw()  # necesario para obtener bbox
-            width_px = int(getattr(self._ax, 'bbox', None).width) if hasattr(self._ax, 'bbox') else 0
-            max_points = min(n, max(1000, width_px or 2000))  # ~1 px por muestra visible
-            self._dec = max(1, n // max_points)
-            self._buf = _np.zeros(n, dtype=_np.float32)  # almacena todas las muestras del span
-            self._ybuf = _np.zeros(max_points, dtype=_np.float32)  # vista decimada para dibujar
-            self._x = _np.linspace(-self.span_seconds, 0.0, max_points)
+            self._fig.canvas.draw()  # obtener bbox/anchura
+            width_px = int(getattr(self._ax, "bbox", None).width) if hasattr(self._ax, "bbox") else 1200
+            vis = min(n, max(1000, width_px))  # ~1 muestra por píxel visible
+            self._dec = max(1, n // vis)
+            self._buf = _np.zeros(n, dtype=_np.float32)  # buffer completo
+            self._ybuf = _np.zeros(vis, dtype=_np.float32)  # vista decimada
+            self._x = _np.linspace(-self.span_seconds, 0.0, vis)
             (self._line,) = self._ax.plot(self._x, self._ybuf, color="lime")
             self._ax.set_xlim(-self.span_seconds, 0.0)
             self._ax.set_ylim(-1.1, 1.1)
@@ -163,7 +163,7 @@ class TimeViewer:
             # Construir vista decimada y ordenada cronológicamente
             dec = int(getattr(self, "_dec", 1))
             m = self._ybuf.shape[0]
-            start = (self._idx + 1) % n
+            start = (self._idx + 1 - dec * m) % n  # que el último punto (derecha) sea la última muestra
             idxs = (start + dec * np.arange(m, dtype=int)) % n
             self._ybuf[:] = self._buf[idxs]
             self._line.set_data(self._x, self._ybuf)
