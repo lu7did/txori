@@ -110,6 +110,8 @@ class TimeViewer:
     _px_dec: int = 1
     _px_accum: int = 0
     _latest: float = 0.0
+    _spp: int = 1  # samples per pixel
+    _samp_accum: int = 0
 
     def _ensure_backend(self) -> None:  # pragma: no cover
         global plt
@@ -132,7 +134,8 @@ class TimeViewer:
             width_px = int(getattr(self._ax, "bbox", None).width) if hasattr(self._ax, "bbox") else 1200
             vis = min(n, max(1000, width_px))  # ~1 píxel por muestra visible
             self._dec = max(1, n // vis)
-            self._px_dec = max(1, int(round(self.sample_rate / vis * self.span_seconds)))
+            self._spp = int(self._dec)
+            self._px_dec = 1
             self._buf = _np.zeros(n, dtype=_np.float32)  # buffer completo
             self._ybuf = _np.zeros(vis, dtype=_np.float32)  # vista decimada
             self._x = _np.linspace(-self.span_seconds, 0.0, vis)
@@ -160,28 +163,19 @@ class TimeViewer:
         self._idx = (self._idx + 1) % n
         self._latest = float(sample)
         self._buf[self._idx] = self._latest
-        # Avance horizontal por píxel: cada muestra desplaza la ventana decimada 1 posición
-        self._px_accum += 1
-        if self._px_accum >= getattr(self, "_px_dec", 1):
-            self._px_accum = 0
-            # Construi vista decimada con última muestra a la derecha
-            dec = int(getattr(self, "_dec", 1))
-            m = self._ybuf.shape[0]
-            start = (self._idx + 1 - dec * m) % n
-            idxs = (start + dec * np.arange(m, dtype=int)) % n
-            self._ybuf[:] = self._buf[idxs]
+        # Shift 1 pixel after accumulating samples_per_pixel
+        self._samp_accum += 1
+        if self._samp_accum >= max(1, int(getattr(self, "_spp", 1))):
+            self._samp_accum -= max(1, int(getattr(self, "_spp", 1)))
+            # Desplazar un pixel a la izquierda e insertar última muestra al final
+            self._ybuf = np.roll(self._ybuf, -1)
+            self._ybuf[-1] = self._latest
             self._line.set_data(self._x, self._ybuf)
         # Throttle de redibujado: ~40 FPS
         import time as _time
 
         now = _time.perf_counter()
         if now - self._last_draw_t >= 1.0 / 40.0:
-            # Construir vista decimada y ordenada cronológicamente
-            dec = int(getattr(self, "_dec", 1))
-            m = self._ybuf.shape[0]
-            start = (self._idx + 1 - dec * m) % n  # que el último punto (derecha) sea la última muestra
-            idxs = (start + dec * np.arange(m, dtype=int)) % n
-            self._ybuf[:] = self._buf[idxs]
             self._line.set_data(self._x, self._ybuf)
             self._fig.canvas.draw_idle()
             self._last_draw_t = now
