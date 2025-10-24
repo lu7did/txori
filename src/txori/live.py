@@ -130,7 +130,7 @@ class TimeViewer:
             self._buf = _np.zeros(n, dtype=_np.float32)  # almacena todas las muestras del span
             self._ybuf = _np.zeros(max_points, dtype=_np.float32)  # vista decimada para dibujar
             x = _np.linspace(-self.span_seconds, 0.0, max_points)
-            (self._line,) = self._ax.plot(x, self._buf, color="lime")
+            (self._line,) = self._ax.plot(x, self._ybuf, color="lime")
             self._ax.set_xlim(-self.span_seconds, 0.0)
             self._ax.set_ylim(-1.1, 1.1)
             self._ax.set_xlabel("Tiempo (s)")
