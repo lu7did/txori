@@ -88,7 +88,7 @@ class Pipeline:
         self.renderer = SpectrogramRenderer(
             height=n_bins,
             width=int(self.cfg.image_width),
-            average_frames=int(self.cfg.average_frames),
+            average_frames=int(1 if self.cfg.cw_mode else self.cfg.average_frames),
             update_interval=1,
         )
         # Buffer DSP de 6000 muestras (en dominio diezmado si aplica)
