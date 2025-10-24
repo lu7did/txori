@@ -43,8 +43,8 @@ class SpectrogramRenderer:
         e_safe = max(e, self._norm_eps)
         emax_safe = max(emax, self._norm_eps)
         db = 20.0 * math.log10(e_safe / emax_safe)
-        # Mapear rango -80 dB .. 0 dB a 0..1
-        t = (db + 80.0) / 80.0
+        # Mapear rango -120 dB .. 0 dB a 0..1
+        t = (db + 120.0) / 120.0
         t = max(0.0, min(1.0, t))
         # Gradiente suave segmentado: azul → sky blue → cyan → verde → amarillo → rojo → blanco
         stops = [
