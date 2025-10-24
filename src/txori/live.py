@@ -129,13 +129,14 @@ class TimeViewer:
             self._dec = max(1, n // max_points)
             self._buf = _np.zeros(n, dtype=_np.float32)  # almacena todas las muestras del span
             self._ybuf = _np.zeros(max_points, dtype=_np.float32)  # vista decimada para dibujar
-            x = _np.linspace(-self.span_seconds, 0.0, max_points)
-            (self._line,) = self._ax.plot(x, self._ybuf, color="lime")
+            self._x = _np.linspace(-self.span_seconds, 0.0, max_points)
+            (self._line,) = self._ax.plot(self._x, self._ybuf, color="lime")
             self._ax.set_xlim(-self.span_seconds, 0.0)
             self._ax.set_ylim(-1.1, 1.1)
             self._ax.set_xlabel("Tiempo (s)")
             self._ax.set_ylabel("Amplitud (V)")
             self._ax.grid(True, alpha=0.2)
+            plt.show(block=False)  # asegurar visualización inmediata
 
     def push_sample(
         self, sample: float
@@ -144,22 +145,22 @@ class TimeViewer:
         assert (
             self._buf is not None and self._line is not None and self._fig is not None
         )
-        # Descartar muestras para limitar a n_points en span_seconds
-        if not hasattr(self, "_push_every"):
-            self._push_every = 1
-            self._sample_idx = 0
-        self._sample_idx += 1
-        if self._sample_idx % max(1, int(self._push_every)) != 0:
-            return
-        # Desplaza buffer y agrega nueva muestra
-        self._buf = np.roll(self._buf, -1)
-        self._buf[-1] = float(sample)
+        # Insertar muestra en buffer circular completo
+        n = self._buf.shape[0]
+        self._idx = (self._idx + 1) % n
+        self._buf[self._idx] = float(sample)
         # Throttle de redibujado: ~40 FPS
         import time as _time
 
         now = _time.perf_counter()
         if now - self._last_draw_t >= 1.0 / 40.0:
-            self._line.set_ydata(self._buf)
+            # Construir vista decimada y ordenada cronológicamente
+            dec = int(getattr(self, "_dec", 1))
+            m = self._ybuf.shape[0]
+            start = (self._idx + 1) % n
+            idxs = (start + dec * np.arange(m, dtype=int)) % n
+            self._ybuf[:] = self._buf[idxs]
+            self._line.set_data(self._x, self._ybuf)
             self._fig.canvas.draw_idle()
             self._last_draw_t = now
             global plt
