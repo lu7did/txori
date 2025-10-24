@@ -79,8 +79,8 @@ class Pipeline:
         # Diezmado: directo=1; DSP=48 kHz -> 6 kHz (1 de cada 8)
         self._decim_factor = 1 if self._direct else max(1, int(self.cfg.sample_rate // 6000))
         self._decim_rate = int(self.cfg.sample_rate // self._decim_factor)
-        # Triplicar velocidad de columnas: usar un tercio de muestras por columna
-        self._samples_per_col_eff = max(1, int(self.cfg.samples_per_col) // 3)
+        # Velocidad de columnas controlada por spec_speed_factor
+        self._samples_per_col_eff = max(1, int(round(self.cfg.samples_per_col / max(self.cfg.spec_speed_factor, 1e-9))))
         # Atenuación previa a FFT en ganancia lineal (10^(dB/10))
         att = float(getattr(self.cfg, "att_db", -40.0))
         self._att_gain = 1.0 if abs(att) < 1e-12 else float(10.0 ** (att / 10.0))
@@ -99,7 +99,8 @@ class Pipeline:
         # Render: una columna por actualización
         self.renderer = SpectrogramRenderer(
             height=n_bins,
-            width=int(self.cfg.image_width),
+            width=int(max(self.cfg.image_width, 1200)),
+
             average_frames=int(1 if self.cfg.cw_mode else self.cfg.average_frames),
             update_interval=1,
             pixels_per_bin=int(getattr(self.cfg, "pixels_per_bin", 1)),

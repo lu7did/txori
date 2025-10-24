@@ -91,7 +91,7 @@ def main() -> None:
         "--spec-speed",
         type=float,
         default=None,
-        help="Factor de velocidad del espectrograma relativo al tiempo (default 1.0)",
+        help="Factor de velocidad del espectrograma relativo al tiempo (default 4.0)",
     )
     parser.add_argument(
         "--ppb",
@@ -155,7 +155,7 @@ def main() -> None:
         cw_mode=bool(args.cw),
         cw_tone_hz=(args.cw_tone if args.cw_tone is not None else 600.0),
         direct_mode=bool(use_direct),
-        spec_speed_factor=(args.spec_speed if args.spec_speed is not None else 1.0),
+        spec_speed_factor=(args.spec_speed if args.spec_speed is not None else 4.0),
         att_db=(args.att if args.att is not None else -40.0),
         pixels_per_bin=int(_pixels_per_bin),
     )

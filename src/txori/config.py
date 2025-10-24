@@ -35,6 +35,6 @@ class SystemConfig:
     cw_mode: bool = False
     cw_tone_hz: float = 600.0
     direct_mode: bool = False
-    spec_speed_factor: float = 1.0
+    spec_speed_factor: float = 4.0
     att_db: float = -40.0
     pixels_per_bin: int = 4
