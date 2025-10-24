@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import math
-from bisect import bisect_right
 from collections import deque
 from dataclasses import dataclass, field
 
@@ -47,13 +46,13 @@ class SpectrogramRenderer:
         # Mapeo en bandas con umbrales fijos (no se usa t continuo)
         # Gradiente suave con umbrales dB definidos para transiciones
         stops = [
-            (0, 0, 128),   # navy (fondo)
-            (0, 0, 255),   # blue
+            (0, 0, 128),  # navy (fondo)
+            (0, 0, 255),  # blue
             (135, 206, 235),  # sky blue
-            (0, 255, 255),   # cyan
-            (0, 255, 0),   # green
-            (255, 255, 0),   # yellow
-            (255, 0, 0),   # red
+            (0, 255, 255),  # cyan
+            (0, 255, 0),  # green
+            (255, 255, 0),  # yellow
+            (255, 0, 0),  # red
             (255, 255, 255),  # white
         ]
         # Umbrales en dB relativos al máximo para los stops anteriores
@@ -64,7 +63,7 @@ class SpectrogramRenderer:
         if db >= thr[-1]:
             return stops[-1]
         # Buscar segmento de forma robusta con bisect
-        i = max(0, min(len(stops) - 2, bisect_right(thr, db) - 1))
+        i = max(0, min(len(stops) - 2, int(np.searchsorted(thr, db, side="right")) - 1))
         # Interpolación lineal dentro del segmento i..i+1
         span = max(1e-9, thr[i + 1] - thr[i])
         f = (db - thr[i]) / span
