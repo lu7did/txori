@@ -174,15 +174,16 @@ def main() -> None:
         if cfg.direct_mode:
             decim_rate = int(cfg.sample_rate)
             decim_factor = 1
+            fmax = 24_000.0
         else:
             decim_factor = max(1, int(cfg.sample_rate // 6000))
             decim_rate = int(cfg.sample_rate // decim_factor)
-        speed = float(getattr(cfg, "spec_speed_factor", 1.0))
-        eff_spc = max(1, int(round(cfg.samples_per_col / max(speed, 1e-9))))
-        seconds_per_col = float(eff_spc) / float(decim_rate)
-        spp_target = int(decim_factor) * int(eff_spc)
+            fmax = 3_000.0
+        # Una columna visible cada 3 FFT (una FFT por muestra diezmada)
+        seconds_per_col = 3.0 / float(decim_rate)
+        spp_target = int(decim_factor) * 3
         viewer = LiveViewer(
-            max_freq_hz=float(cfg.cutoff_hz),
+            max_freq_hz=float(fmax),
             bin_hz=float(cfg.fft_bin_hz),
             seconds_per_col=seconds_per_col,
             title_text=args.titulo,
