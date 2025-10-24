@@ -139,7 +139,7 @@ class TimeViewer:
             )
             vis = min(n, max(1000, width_px))  # ~1 píxel por muestra visible
             self._dec = max(1, n // vis)
-            speed_factor = 14.4  # triple de píxeles por segundo respecto al ajuste anterior
+            speed_factor = 43.2  # triplicar nuevamente los píxeles/segundo (3x sobre 14.4)
             self._spp = max(1, int(round(self._dec / speed_factor)))
             self._px_dec = 1
             self._buf = _np.zeros(n, dtype=_np.float32)  # buffer completo
