@@ -110,7 +110,7 @@ class Pipeline:
         raw_input: si True, on_time_sample recibe la muestra de ENTRADA sin filtrar.
         """
         start = time.perf_counter()
-        chunk = max(256, int(self.cfg.sample_rate // 40))  # ~40 FPS
+        chunk = 1 if self.cfg.use_audio else max(256, int(self.cfg.sample_rate // 40))  # audio: 1 muestra/iteración
         while True:
             # Procesar un bloque de muestras
             for _ in range(chunk):

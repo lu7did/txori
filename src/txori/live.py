@@ -101,7 +101,7 @@ class TimeViewer:
     span_seconds: float
     title: str = "Txori - Tiempo"
     speed_factor: float = 86.4
-    time_color: str = "navy"
+    time_color: str = "skyblue"
     _fig: Any | None = None
     _ax: Any | None = None
     _line: Any | None = None

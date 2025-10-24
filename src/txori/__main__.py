@@ -94,7 +94,7 @@ def main() -> None:
         "--time-color",
         type=str,
         default=None,
-        help="Color de la línea de tiempo (por defecto 'navy')",
+        help="Color de la línea de tiempo (por defecto 'skyblue')",
     )
     args = parser.parse_args()
 
@@ -134,7 +134,7 @@ def main() -> None:
                 sample_rate=cfg.sample_rate,
                 span_seconds=(seconds if seconds is not None else 30.0),
                 speed_factor=(args.time_speed if args.time_speed is not None else 86.4),
-                time_color=(args.time_color if args.time_color is not None else "navy"),
+                time_color=(args.time_color if args.time_color is not None else "skyblue"),
             )
             if args.time
             else None
