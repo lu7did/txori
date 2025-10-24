@@ -49,6 +49,9 @@ class Pipeline:
     _direct: bool = field(init=False, repr=False)
     _samples_per_col_eff: int = field(init=False, repr=False)
     _att_gain: float = field(init=False, repr=False)
+    _fs: float = field(init=False, repr=False)
+    _fc: float = field(init=False, repr=False)
+    _bin_hz: float = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
         cap: BaseCapture
