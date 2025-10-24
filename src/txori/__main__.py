@@ -193,7 +193,7 @@ def main() -> None:
     if not cfg.direct_mode:
         spectro_viewer = SpectrometerViewer(
             title_text=(args.text or "Espectrómetro"),
-            device_text=f"{getattr(pipe, 'source_label', 'Entrada')} @ {cfg.sample_rate} Hz",
+            device_text=f"{getattr(pipe, 'source_label', 'Entrada')} @ {cfg.sample_rate} Hz, proc {decim_rate} SPS",
         )
         spectro_viewer.show()
     try:
