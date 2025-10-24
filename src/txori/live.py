@@ -105,6 +105,8 @@ class TimeViewer:
     _line: Any | None = None
     _buf: npt.NDArray[np.float64] | None = None
     _last_draw_t: float = 0.0
+    _push_every: int = 1
+    _sample_idx: int = 0
 
     def _ensure_backend(self) -> None:  # pragma: no cover
         global plt
