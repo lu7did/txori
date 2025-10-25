@@ -32,6 +32,7 @@ class DSPLibrosaSpectrogram:
     device_name: str | None = None
     decim_factor: int = 1
     user_text: str | None = None
+    device_sr: int | None = None
 
     _fig: Any | None = None
     _ax: Any | None = None
@@ -150,7 +151,8 @@ class DSPLibrosaSpectrogram:
         except Exception:
             pass
         # Texto informativo: texto usuario | dispositivo | fs | n_fft
-        info = f"{(self.user_text or '').strip()} | {(self.device_name or '').strip()} | fs={int(self.sr)} Hz | stft_in={int(self.n_fft)}"
+        fs_show = int(self.device_sr) if self.device_sr is not None else int(self.sr)
+        info = f"{(self.user_text or '').strip()} | {(self.device_name or '').strip()} | fs={fs_show} Hz | stft_in={int(self.n_fft)}"
         self._ax.set_title(info, fontsize=9)
         # Redibujar
         if self._fig is not None:

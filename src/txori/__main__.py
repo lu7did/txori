@@ -210,6 +210,7 @@ def main() -> None:
                     device_name=getattr(pipe, 'source_label', 'Entrada'),
                     decim_factor=int(decim_factor),
                     user_text=(args.text or ''),
+                    device_sr=int(cfg.sample_rate),
                 )
                 dsp_spec.show()
             except Exception:

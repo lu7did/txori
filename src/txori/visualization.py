@@ -35,7 +35,7 @@ class SpectrogramRenderer:
     def __post_init__(self) -> None:
         if self.height <= 0 or self.width <= 0:
             raise VisualizationError("Dimensiones inválidas de imagen")
-                img_h = int(self.height) * max(1, int(self.pixels_per_bin))
+        img_h = int(self.height) * max(1, int(self.pixels_per_bin))
         self._image = np.zeros((img_h, self.width, 3), dtype=np.uint8)
         # Navy oscuro de fondo
         self._image[:, :] = (0, 0, 80)
