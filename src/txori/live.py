@@ -58,6 +58,11 @@ class SpectrometerViewer:
     def show(self) -> None:  # pragma: no cover
         self._ensure_backend()
 
+    @property
+    def ax(self) -> Any:  # pragma: no cover
+        self._ensure_backend()
+        return self._ax
+
 
 @dataclass
 class LiveViewer:
@@ -102,6 +107,10 @@ class LiveViewer:
                 self._fig.text(0.01, 0.995, self.title_text, ha="left", va="top")
             if self.device_text:
                 self._fig.text(0.99, 0.995, self.device_text, ha="right", va="top")
+            # Asegurar que la ventana se muestre
+            plt.show(block=False)
+            self._fig.canvas.draw_idle()
+            plt.pause(0.01)
 
     def update(
         self, image: npt.NDArray[np.uint8], level: float | None = None

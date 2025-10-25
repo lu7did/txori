@@ -52,6 +52,8 @@ class Pipeline:
     _fs: float = field(init=False, repr=False)
     _fc: float = field(init=False, repr=False)
     _bin_hz: float = field(init=False, repr=False)
+    _last_dsp_sample: float | None = field(default=None, init=False, repr=False)
+    _new_dsp_sample: bool = field(default=False, init=False, repr=False)
 
     def __post_init__(self) -> None:
         cap: BaseCapture
@@ -124,15 +126,21 @@ class Pipeline:
         else:
             # DSP: LPF -> decimación 8:1 -> AGC -> DSP -> FFT
             filtered = self.lpf.process_window(window)
-            self._last_level = float(abs(filtered[0]))
+            # Pasar por AGC y DSP antes de exponer la muestra a la FFT
+            proc_agc = self.agc.process(filtered)
+            proc_dsp = self.dsp.process(proc_agc)
+            self._last_level = float(abs(proc_dsp[0]))
             self._step_count += 1
             if self._step_count % self._decim_factor == 0:
                 # Nueva muestra diezmada: tomar la más reciente
                 import numpy as _np
 
-                decim_sample = float(filtered[0])
+                decim_sample = float(proc_dsp[0])
                 self._dsp_buf = _np.roll(self._dsp_buf, 1)
                 self._dsp_buf[0] = decim_sample
+                # Exponer muestra diezmada para consumidores (espectrómetro en vivo)
+                self._last_dsp_sample = float(decim_sample)
+                self._new_dsp_sample = True
                 self._col_count += 1
                 if self._col_count >= int(self.cfg.samples_per_col):
                     self._col_count = 0
@@ -167,6 +175,7 @@ class Pipeline:
         seconds: float | None = None,
         on_frame: Callable[[npt.NDArray[np.uint8], float | None], None] | None = None,
         on_time_sample: Callable[[float], None] | None = None,
+        on_dsp_sample: Callable[[float], None] | None = None,
         raw_input: bool = False,
     ) -> None:
         """Ejecuta; llama on_frame(img, nivel) con nuevas columnas y on_time_sample(sample) por muestra.
@@ -179,6 +188,9 @@ class Pipeline:
             # Procesar un bloque de muestras
             for _ in range(chunk):
                 window = self.step()
+                if on_dsp_sample is not None and getattr(self, "_new_dsp_sample", False):
+                    on_dsp_sample(float(getattr(self, "_last_dsp_sample", 0.0)))
+                    self._new_dsp_sample = False
                 if on_time_sample is not None:
                     sample = float(window[0] if raw_input else self._last_level or 0.0)
                     on_time_sample(sample)

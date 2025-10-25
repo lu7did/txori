@@ -169,6 +169,7 @@ def main() -> None:
     seconds = None if (args.forever or args.seconds is None) else float(args.seconds)
     # Waterfall eliminado: no se genera ni guarda imagen
     from .live import TimeViewer, SpectrometerViewer  # import perezoso
+
     # Configurar time viewer si se pide
     if cfg.direct_mode:
         decim_factor = 1
@@ -176,6 +177,8 @@ def main() -> None:
     else:
         decim_factor = max(1, int(cfg.sample_rate // 6000))
         decim_rate = int(cfg.sample_rate // decim_factor)
+    # Espectrograma con librosa a 6000 SPS en modo --dsp
+    dsp_spec = None
     spp_target = int(decim_factor)
     time_viewer = (
         TimeViewer(
@@ -196,11 +199,24 @@ def main() -> None:
             device_text=f"{getattr(pipe, 'source_label', 'Entrada')} @ {cfg.sample_rate} Hz, proc {decim_rate} SPS",
         )
         spectro_viewer.show()
+        # Conectar DSP librosa para dibujar en el espectrómetro existente
+        if bool(args.forever):
+            try:
+                from .fft_live import DSPLibrosaSpectrogram
+                dsp_spec = DSPLibrosaSpectrogram(
+                    sr=decim_rate,
+                    span_seconds=4.0,
+                    ext_ax=spectro_viewer.ax,
+                )
+                dsp_spec.show()
+            except Exception:
+                dsp_spec = None
     try:
         pipe.run(
             seconds=seconds,
             on_frame=None,
             on_time_sample=(time_viewer.push_sample if time_viewer else None),
+            on_dsp_sample=(dsp_spec.push_sample if dsp_spec else None),
             raw_input=True,
         )
     except KeyboardInterrupt:
