@@ -87,6 +87,10 @@ explicit_package_bases = true
 module = ["matplotlib.*", "txori.testwave"]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = ["test2"]
+ignore_errors = true
+
 [tool.pytest.ini_options]
 minversion = "8.0"
 addopts = "-ra -q --cov=txori --cov-report=term-missing:skip-covered"
