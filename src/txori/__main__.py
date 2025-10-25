@@ -232,7 +232,7 @@ def main() -> None:
                 decim_factor=int(decim_factor),
                 user_text=(args.text or ''),
                 device_sr=int(cfg.sample_rate),
-                n_fft=2048,
+                n_fft=(256 if bool(args.cw) else 2048),
                 hop_length=(64 if bool(args.cw) else None),
                 cw_mode=bool(args.cw),
                 cw_center_hz=float(cfg.cw_tone_hz),
