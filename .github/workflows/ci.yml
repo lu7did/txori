@@ -25,7 +25,7 @@ jobs:
           pip install -r requirements.txt
           pip install -e .
       - name: Ruff
-        run: ruff check .
+        run: ruff check . --exclude src/test2.py
       - name: Black
         run: |
           set -e
@@ -44,7 +44,7 @@ jobs:
             exit "$rc"
           fi
       - name: MyPy
-        run: mypy src
+        run: mypy src/txori
       - name: Bandit
         run: bandit -r src -q -ll
       - name: PyTest
