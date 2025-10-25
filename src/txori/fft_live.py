@@ -120,8 +120,8 @@ class DSPLibrosaSpectrogram:
         win = (np.blackman(xw.size) if self.cw_mode else np.hanning(xw.size)).astype(np.float32)
         X = np.fft.rfft(xw * win, n=self.n_fft)
         A = np.abs(X)
-        # En CW, suprimir fuera de banda (±bw alrededor de centro)
-        if self.cw_mode:
+        # En CW, suprimir fuera de banda (±bw alrededor de centro), salvo si hay ruido global activo
+        if self.cw_mode and not self.noise_mode:
             freqs_all = np.fft.rfftfreq(self.n_fft, d=1.0 / float(self.sr))
             centers = [float(self.cw_center_hz)] + (list(self.cw_extra_centers) if self.cw_extra_centers else [])
             bin_w = float(self.sr) / float(self.n_fft)
