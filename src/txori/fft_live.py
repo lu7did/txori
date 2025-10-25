@@ -142,11 +142,14 @@ class DSPLibrosaSpectrogram:
                     outside = ~mask
                     nf = float(np.median(A_raw[outside])) if np.any(outside) else (float(np.median(A_raw)) if A_raw.size else 0.0)
                     A = A * mask.astype(A.dtype) + (nf + 1e-12) * outside.astype(A.dtype)
-        # Normalización global (no por columna) para respetar cortes ON/OFF
+        # Normalización: si noise_mode, usar referencia fija para piso estable; si no, referencia dinámica con decaimiento
         amax = float(np.max(A)) if A.size else 0.0
-        # Decaimiento suave para no saturar indefinidamente
-        self._ref_amp = max(self._ref_amp * 0.995, amax, 1e-9)
-        col_db = 20.0 * np.log10(np.maximum(A, 1e-12) / self._ref_amp)
+        if self.noise_mode:
+            ref = 1.0
+        else:
+            self._ref_amp = max(self._ref_amp * 0.995, amax, 1e-9)
+            ref = self._ref_amp
+        col_db = 20.0 * np.log10(np.maximum(A, 1e-12) / ref)
         # Limitar frecuencia máxima visible
         freqs = np.fft.rfftfreq(self.n_fft, d=1.0 / float(self.sr))
         k = int(np.searchsorted(freqs, float(self.y_max_hz), side="right") - 1)
