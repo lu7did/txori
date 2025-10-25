@@ -79,8 +79,6 @@ class Pipeline:
                 cap = SyntheticCWToneGroupCapture(
                     freqs_hz=freqs,
                     cfg=self.cfg,
-                    noise_db=float(getattr(self.cfg, "noise_level_db", 20.0)),
-                    with_noise=bool(getattr(self.cfg, "noise_mode", False)),
                 )
             else:
                 cap = SyntheticCWToneCapture(
