@@ -178,6 +178,11 @@ def main() -> None:
         pixels_per_bin=int(_pixels_per_bin),
     )
 
+    # Propagar QRN dinámicamente
+    try:
+        setattr(cfg, "qrn_mode", bool(args.qrn))
+    except Exception:
+        pass
     pipe = Pipeline(cfg)
     seconds = None if (args.forever or args.seconds is None) else float(args.seconds)
     # Waterfall eliminado: no se genera ni guarda imagen
@@ -228,6 +233,7 @@ def main() -> None:
                 cw_mode=bool(args.cw),
                 cw_center_hz=float(cfg.cw_tone_hz),
                 cw_bw_hz=(float(args.cwbw) if args.cwbw is not None else 20.0),
+                cw_extra_centers=([1000.0] if bool(getattr(args, "qrn", False)) else None),
             )
             dsp_spec.show()
         except Exception:
