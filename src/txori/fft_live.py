@@ -4,6 +4,7 @@ Computes STFT over a rolling buffer and updates the view at ~30 FPS.
 Imports are lazy to avoid hard deps in CI.
 """
 # ruff: noqa: I001
+# fmt: off
 from __future__ import annotations
 
 from collections import deque
