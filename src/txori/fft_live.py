@@ -149,8 +149,8 @@ class DSPLibrosaSpectrogram:
             self._ax.set_xlim(0.0, float(self.span_seconds))
         except Exception:
             pass
-        # Texto informativo
-        info = f"{(self.user_text or '').strip()} | {(self.device_name or '').strip()} | dev_samples={int(self._dev_samples)} | stft_in={int(self.n_fft)}"
+        # Texto informativo: texto usuario | dispositivo | fs | n_fft
+        info = f"{(self.user_text or '').strip()} | {(self.device_name or '').strip()} | fs={int(self.sr)} Hz | stft_in={int(self.n_fft)}"
         self._ax.set_title(info, fontsize=9)
         # Redibujar
         if self._fig is not None:
