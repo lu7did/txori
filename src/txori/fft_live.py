@@ -118,8 +118,12 @@ class DSPLibrosaSpectrogram:
             return
         # Ventana: usar Kaiser beta=14 en CW para >-90 dB lóbulos laterales
         win = (np.kaiser(xw.size, 14.0) if self.cw_mode else np.hanning(xw.size)).astype(np.float32)
-        X = np.fft.rfft(xw * win, n=self.n_fft)
-        A = np.abs(X)
+        # Gating: si ventana casi silenciosa en modo CW, evitar 'smear' temporal
+        if self.cw_mode and float(np.max(np.abs(xw))) < 1e-3:
+            A = np.full(self.n_fft // 2 + 1, 1e-12, dtype=np.float32)
+        else:
+            X = np.fft.rfft(xw * win, n=self.n_fft)
+            A = np.abs(X)
         # En CW, confinar tonos a ±bw alrededor de los centros
         if self.cw_mode:
             freqs_all = np.fft.rfftfreq(self.n_fft, d=1.0 / float(self.sr))
