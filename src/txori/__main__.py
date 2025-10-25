@@ -52,9 +52,9 @@ def main() -> None:
         help="Semiancho de banda CW en Hz (default 20)",
     )
     parser.add_argument(
-        "--qrm",
+        "--qrn",
         action="store_true",
-        help="Añade interferencias CW intermitentes en 200/400/800/1000/1200 Hz (solo con --cw)",
+        help="Añade segunda portadora CW a 1000 Hz (solo con --cw)",
     )
     parser.add_argument(
         "--time",
@@ -179,10 +179,7 @@ def main() -> None:
     )
 
     # Propagar QRN dinámicamente
-    try:
-        setattr(cfg, "qrn_mode", bool(args.qrn))
-    except Exception:
-        pass
+    cfg.qrn_mode = bool(getattr(args, "qrn", False))
     pipe = Pipeline(cfg)
     seconds = None if (args.forever or args.seconds is None) else float(args.seconds)
     # Waterfall eliminado: no se genera ni guarda imagen

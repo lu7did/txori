@@ -34,6 +34,7 @@ class SystemConfig:
     test_tone_hz: float = 1000.0
     cw_mode: bool = False
     cw_tone_hz: float = 600.0
+    qrn_mode: bool = False
     direct_mode: bool = False
     spec_speed_factor: float = 4.0
     att_db: float | None = None
