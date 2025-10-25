@@ -122,11 +122,15 @@ class DSPLibrosaSpectrogram:
         # En CW, suprimir fuera de banda (±bw alrededor de centro)
         if self.cw_mode:
             freqs_all = np.fft.rfftfreq(self.n_fft, d=1.0 / float(self.sr))
-            bw = float(self.cw_bw_hz)
             centers = [float(self.cw_center_hz)] + (list(self.cw_extra_centers) if self.cw_extra_centers else [])
+            bin_w = float(self.sr) / float(self.n_fft)
+            half_bins = max(1, int(np.ceil(float(self.cw_bw_hz) / max(bin_w, 1e-9))))
             mask = np.zeros_like(freqs_all, dtype=bool)
             for c in centers:
-                mask |= (freqs_all >= (c - bw)) & (freqs_all <= (c + bw))
+                ic = int(np.argmin(np.abs(freqs_all - float(c))))
+                lo = max(0, ic - half_bins)
+                hi = min(mask.size - 1, ic + half_bins)
+                mask[lo : hi + 1] = True
             if A.size == mask.size:
                 A = A * mask.astype(A.dtype) + (1e-12 * (~mask).astype(A.dtype))
         # Normalización global (no por columna) para respetar cortes ON/OFF
