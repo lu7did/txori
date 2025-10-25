@@ -45,6 +45,13 @@ def main() -> None:
         help="Frecuencia del tono CW (default 600 Hz)",
     )
     parser.add_argument(
+        "--cwbw",
+        dest="cwbw",
+        type=float,
+        default=None,
+        help="Semiancho de banda CW en Hz (default 20)",
+    )
+    parser.add_argument(
         "--time",
         action="store_true",
         help="Mostrar ventana separada con la señal temporal sin procesar",
@@ -214,7 +221,7 @@ def main() -> None:
                 hop_length=(64 if bool(args.cw) else None),
                 cw_mode=bool(args.cw),
                 cw_center_hz=float(cfg.cw_tone_hz),
-                cw_bw_hz=(float(args.cw_bw) if args.cw_bw is not None else 20.0),
+                cw_bw_hz=(float(args.cwbw) if args.cwbw is not None else 20.0),
             )
             dsp_spec.show()
         except Exception:
