@@ -122,10 +122,8 @@ class DSPLibrosaSpectrogram:
         if self.cw_mode:
             freqs_all = np.fft.rfftfreq(self.n_fft, d=1.0 / float(self.sr))
             bw = float(self.cw_bw_hz)
-            centers = [float(self.cw_center_hz)] + (list(self.cw_extra_centers) if self.cw_extra_centers else [])
-            mask = np.zeros_like(freqs_all, dtype=bool)
-            for c in centers:
-                mask |= (freqs_all >= (c - bw)) & (freqs_all <= (c + bw))
+            center = float(self.cw_center_hz)
+            mask = (freqs_all >= (center - bw)) & (freqs_all <= (center + bw))
             if A.size == mask.size:
                 A = A * mask.astype(A.dtype) + (1e-12 * (~mask).astype(A.dtype))
         # Normalización global (no por columna) para respetar cortes ON/OFF

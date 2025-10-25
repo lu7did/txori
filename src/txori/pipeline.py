@@ -58,17 +58,9 @@ class Pipeline:
     def __post_init__(self) -> None:
         cap: BaseCapture
         if self.cfg.cw_mode:
-            if getattr(self.cfg, "qrm_mode", False):
-                from .capture import SyntheticCWToneGroupCapture
-
-                cap = SyntheticCWToneGroupCapture(
-                    freqs_hz=[float(self.cfg.cw_tone_hz), 200.0, 400.0, 800.0, 1000.0, 1200.0],
-                    cfg=self.cfg,
-                )
-            else:
-                cap = SyntheticCWToneCapture(
-                    freq_hz=float(self.cfg.cw_tone_hz), cfg=self.cfg
-                )
+            cap = SyntheticCWToneCapture(
+                freq_hz=float(self.cfg.cw_tone_hz), cfg=self.cfg
+            )
         else:
             cap = (
                 AudioInputCapture(self.cfg)

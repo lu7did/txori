@@ -152,9 +152,7 @@ def main() -> None:
         action="store_true",
         help="Modo DSP: LPF 3 kHz + decimación 8:1 + AGC + DSP antes de FFT",
     )
-    args, _unknown = parser.parse_known_args()
-    if "--qrm" in _unknown:
-        setattr(args, "qrm", True)
+    args = parser.parse_args()
 
     # Resolver modo: por defecto DSP; si ambos, prioriza DIRECT
     use_direct = True if args.direct else False
@@ -180,11 +178,7 @@ def main() -> None:
         att_db=(args.att if args.att is not None else None),
         pixels_per_bin=int(_pixels_per_bin),
     )
-    # Propagar QRM a cfg dinámicamente para Pipeline
-    try:
-        setattr(cfg, "qrm_mode", bool(args.qrm))
-    except Exception:
-        pass
+
     pipe = Pipeline(cfg)
     seconds = None if (args.forever or args.seconds is None) else float(args.seconds)
     # Waterfall eliminado: no se genera ni guarda imagen
@@ -235,8 +229,6 @@ def main() -> None:
                 cw_mode=bool(args.cw),
                 cw_center_hz=float(cfg.cw_tone_hz),
                 cw_bw_hz=(float(args.cwbw) if args.cwbw is not None else 20.0),
-                cw_extra_centers=([200.0, 400.0, 800.0, 1000.0, 1200.0] if bool(args.qrm) else None),
-                qrm=bool(args.qrm),
             )
             dsp_spec.show()
         except Exception:
