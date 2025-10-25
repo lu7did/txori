@@ -5,13 +5,12 @@ Imports are lazy to avoid hard deps in CI.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any
-import time
 from collections import deque
+from dataclasses import dataclass, field
+import time
+from typing import Any
 
 import numpy as np
-import numpy.typing as npt
 
 plt: Any = None
 librosa = None  # type: ignore[assignment]
@@ -20,6 +19,7 @@ libdisp = None  # type: ignore[assignment]
 
 @dataclass
 class DSPLibrosaSpectrogram:
+    """Espectrómetro en vivo con STFT (librosa) sobre ventana deslizante."""
     sr: int
     span_seconds: float = 30.0
     fps: float = 30.0

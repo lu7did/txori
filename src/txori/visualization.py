@@ -6,10 +6,10 @@ from __future__ import annotations
 import math
 from collections import deque
 from dataclasses import dataclass, field
+import time
 
 import numpy as np
 import numpy.typing as npt
-import time
 from PIL import Image
 
 from .exceptions import VisualizationError

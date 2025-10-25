@@ -6,9 +6,9 @@ Orquestación de la canalización de procesamiento.
 
 from __future__ import annotations
 
-import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
+import time
 
 import numpy as np
 import numpy.typing as npt
@@ -21,7 +21,6 @@ from .capture import (
     SyntheticSineCapture,
 )
 from .config import SystemConfig
-
 from .filtering import OnePoleLowPass
 from .processing import AGCProcessor, DSPProcessor, IdentityProcessor
 
@@ -94,12 +93,12 @@ class Pipeline:
             self._att_gain = 1.0 if abs(att) < 1e-12 else float(10.0 ** (att / 10.0))
         # Aplicar atenuación por muestra en captura
         try:
-            setattr(self.capture, "gain", float(self._att_gain))
+            self.capture.gain = float(self._att_gain)  # type: ignore[attr-defined]
         except Exception:
             pass
         # Especificación de bins/altura
         fmax = 24_000.0 if self._direct else 3_000.0
-        target_bins = int(getattr(self.cfg, "spec_height_px", 800))
+        # target_bins removed (unused)
         # FFT con tamaño de bin fijo: 30 Hz (direct) o 3.75 Hz (dsp)
         bin_hz_eff = 30.0 if self._direct else 3.75
         self._fs = float(self._decim_rate)

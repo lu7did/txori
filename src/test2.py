@@ -1,8 +1,8 @@
-import sounddevice as sd
 import librosa
 import librosa.display
 import matplotlib.pyplot as plt
 import numpy as np
+import sounddevice as sd
 
    # Configuration for audio capture
 samplerate = 44100  # samples per second

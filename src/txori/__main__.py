@@ -168,7 +168,7 @@ def main() -> None:
     pipe = Pipeline(cfg)
     seconds = None if (args.forever or args.seconds is None) else float(args.seconds)
     # Waterfall eliminado: no se genera ni guarda imagen
-    from .live import TimeViewer, SpectrometerViewer  # import perezoso
+    from .live import TimeViewer, SpectrometerViewer  # import perezoso  # noqa: E402, I001
 
     # Configurar time viewer si se pide
     if cfg.direct_mode:

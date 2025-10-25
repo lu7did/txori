@@ -1,8 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-import librosa # O podrías usar scipy.io.wavfile para leer archivos .wav
-import sounddevice as sd # Para la entrada de audio en tiempo real
+from scipy import signal
 
 # --- Parámetros ---
 frame_rate = 30  # Hz
