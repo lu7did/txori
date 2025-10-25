@@ -7,7 +7,6 @@ CLI mínima para ejecutar la canalización.
 from __future__ import annotations
 
 import argparse
-import sys
 
 from .config import SystemConfig
 from .pipeline import Pipeline

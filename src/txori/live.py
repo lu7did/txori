@@ -25,8 +25,9 @@ class SpectrometerViewer:
     def _ensure_backend(self) -> None:  # pragma: no cover
         global plt
         try:
-            import matplotlib as mpl
             import importlib
+
+            import matplotlib as mpl
             # Forzar backend interactivo si es posible
             if mpl.get_backend().lower() in ("agg", "pdf", "svg"):
                 for bk in ("MacOSX", "Qt5Agg", "TkAgg"):
@@ -92,8 +93,9 @@ class LiveViewer:
         # Importa perezosamente matplotlib para no requerirlo en CI/tests
         global plt
         try:
-            import matplotlib as mpl
             import importlib
+
+            import matplotlib as mpl
             if mpl.get_backend().lower() in ("agg", "pdf", "svg"):
                 for bk in ("MacOSX", "Qt5Agg", "TkAgg"):
                     try:
