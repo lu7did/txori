@@ -52,6 +52,11 @@ def main() -> None:
         help="Semiancho de banda CW en Hz (default 20)",
     )
     parser.add_argument(
+        "--qrm",
+        action="store_true",
+        help="Añade interferencias CW intermitentes en 200/400/800/1000/1200 Hz (solo con --cw)",
+    )
+    parser.add_argument(
         "--time",
         action="store_true",
         help="Mostrar ventana separada con la señal temporal sin procesar",
