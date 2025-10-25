@@ -109,12 +109,8 @@ class SyntheticCWToneGroupCapture(BaseCapture):
         v = float(sum(g.next_sample() for g in self._gens))
         if self._noise_amp is not None:
             v += float(np.random.randn() * self._noise_amp)
-        # Limitador suave preserva relaciones de nivel sin generar armónicos de clipping
-        try:
-            import numpy as _np
-            v = float(_np.tanh(v))
-        except Exception:
-            v = float(max(-1.0, min(1.0, v)))
+        # Recorte suave para evitar saturación excesiva, preservando niveles relativos
+        v = float(max(-1.0, min(1.0, v)))
         return v
 
     def label(self) -> str:
