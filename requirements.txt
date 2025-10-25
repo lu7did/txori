@@ -6,3 +6,4 @@ hypothesis
 pytest-cov
 bandit
 pdoc
+pyaudio
