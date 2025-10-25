@@ -37,6 +37,7 @@ class DSPLibrosaSpectrogram:
     cw_mode: bool = False
     cw_center_hz: float = 600.0
     cw_bw_hz: float = 20.0
+    cw_extra_centers: list[float] | None = None
 
     _fig: Any | None = None
     _ax: Any | None = None

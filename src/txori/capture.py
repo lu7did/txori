@@ -77,6 +77,21 @@ class SyntheticCWToneCapture(BaseCapture):
         return f"CW {int(self._freq)} Hz (57 ms on/off)"
 
 
+class SyntheticCWPairCapture(BaseCapture):
+    """Mezcla dos generadores CW: principal y QRN a 1000 Hz."""
+
+    def __init__(self, freq_main: float = 600.0, freq_qrn: float = 1000.0, cfg: SystemConfig | None = None) -> None:
+        self._g1 = SyntheticCWToneCapture(freq_main, cfg)
+        self._g2 = SyntheticCWToneCapture(freq_qrn, cfg)
+
+    def next_sample(self) -> float:
+        v = float(self._g1.next_sample() + self._g2.next_sample())
+        return float(max(-2.0, min(2.0, v)))
+
+    def label(self) -> str:
+        return "CW+QRN"
+
+
 class AudioInputCapture(BaseCapture):
     """Captura desde el dispositivo de audio usando sounddevice."""
 
