@@ -15,7 +15,7 @@ from typing import Any
 import numpy as np
 
 plt: Any = None
-librosa = None  # type: ignore[assignment]
+librosa: Any | None = None
 
 
 @dataclass
