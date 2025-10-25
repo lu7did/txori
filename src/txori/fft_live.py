@@ -20,6 +20,7 @@ libdisp = None  # type: ignore[assignment]
 @dataclass
 class DSPLibrosaSpectrogram:
     """Espectrómetro en vivo con STFT (librosa) sobre ventana deslizante."""
+
     sr: int
     span_seconds: float = 30.0
     fps: float = 30.0
