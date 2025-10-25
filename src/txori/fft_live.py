@@ -29,6 +29,9 @@ class DSPLibrosaSpectrogram:
     title: str = "Txori - Espectrograma (DSP)"
     y_max_hz: float = 3000.0
     ext_ax: Any | None = None
+    device_name: str | None = None
+    decim_factor: int = 1
+    user_text: str | None = None
 
     _fig: Any | None = None
     _ax: Any | None = None
@@ -36,9 +39,13 @@ class DSPLibrosaSpectrogram:
     _cb: Any | None = None
     _buf: deque[float] = field(default_factory=deque, init=False)
     _last_draw: float = 0.0
+    _img_db: np.ndarray | None = None
+    _ncols: int = 0
+    _txt_info: Any | None = None
+    _dev_samples: int = 0
 
     def _ensure_backend(self) -> None:  # pragma: no cover
-        global plt, librosa, libdisp
+        global plt, librosa
         if plt is None:
             import importlib
 
@@ -47,7 +54,6 @@ class DSPLibrosaSpectrogram:
             import importlib
 
             librosa = importlib.import_module("librosa")
-            libdisp = importlib.import_module("librosa.display")
         # Usar eje externo si fue provisto
         if self._ax is None and getattr(self, "ext_ax", None) is not None:
             self._ax = self.ext_ax
@@ -96,41 +102,59 @@ class DSPLibrosaSpectrogram:
             self._draw()
 
     def _draw(self) -> None:  # pragma: no cover
-        assert self._ax is not None and self._fig is not None
+        assert self._ax is not None
         if len(self._buf) < max(self.n_fft, 64):
             return
         x = np.asarray(self._buf, dtype=np.float32)
-        # Plantilla estilo test2.py: STFT sobre todo el buffer
-        S = librosa.stft(x, n_fft=self.n_fft, hop_length=self.hop_length)
-        A = np.abs(S)
-        D_db = librosa.amplitude_to_db(A, ref=np.max)
+        # Construir nueva columna a partir de la última ventana n_fft
+        xw = x[-self.n_fft :]
+        if xw.size < 2:
+            return
+        win = np.hanning(xw.size).astype(np.float32)
+        X = np.fft.rfft(xw * win, n=self.n_fft)
+        A = np.abs(X)
+        ref = float(np.max(A)) if A.size else 1.0
+        ref = ref if ref > 0 else 1.0
+        col_db = 20.0 * np.log10(np.maximum(A, 1e-12) / ref)
         # Limitar frecuencia máxima visible
-        freqs = librosa.fft_frequencies(sr=self.sr, n_fft=self.n_fft)
+        freqs = np.fft.rfftfreq(self.n_fft, d=1.0 / float(self.sr))
         k = int(np.searchsorted(freqs, float(self.y_max_hz), side="right") - 1)
         if k >= 0:
-            D_db = D_db[: k + 1, :]
-        self._ax.clear()
-        im = libdisp.specshow(D_db, sr=self.sr, x_axis="time", y_axis="hz", ax=self._ax)
-        self._ax.set_ylim(0.0, self.y_max_hz)
-        self._ax.set_xlabel("Tiempo (s)")
-        self._ax.set_ylabel("Frecuencia (Hz)")
-        # Mantener eje temporal constante de 0 a span_seconds
+            col_db = col_db[: k + 1]
+        # Inicializar imagen fija en tiempo
+        eff_hop = int(self.hop_length or max(1, int(self.sr // max(1, int(self.fps)))))
+        if self._img_db is None:
+            self._ncols = max(1, int(round(float(self.span_seconds) * (float(self.sr) / float(eff_hop)))))
+            self._img_db = np.full((col_db.size, self._ncols), -120.0, dtype=np.float32)
+            self._im = self._ax.imshow(
+                self._img_db,
+                origin="lower",
+                aspect="auto",
+                extent=[0.0, float(self.span_seconds), 0.0, float(self.y_max_hz)],
+                vmin=-120.0,
+                vmax=0.0,
+            )
+            self._ax.set_ylim(0.0, self.y_max_hz)
+            self._ax.set_xlabel("Tiempo (s)")
+            self._ax.set_ylabel("Frecuencia (Hz)")
+            if self._fig is not None:
+                self._cb = self._fig.colorbar(self._im, ax=self._ax, format="%+2.0f dB")
+        # Desplazar a la derecha y colocar nueva columna en la izquierda
+        assert self._img_db is not None and self._im is not None
+        self._img_db = np.roll(self._img_db, 1, axis=1)
+        self._img_db[:, 0] = col_db[: self._img_db.shape[0]]
+        self._im.set_data(self._img_db)
+        # Mantener eje temporal constante
         try:
             self._ax.set_xlim(0.0, float(self.span_seconds))
         except Exception:
             pass
+        # Texto informativo
+        info = f"{(self.user_text or '').strip()} | {(self.device_name or '').strip()} | dev_samples={int(self._dev_samples)} | stft_in={int(self.n_fft)}"
+        self._ax.set_title(info, fontsize=9)
+        # Redibujar
         if self._fig is not None:
-            if self._cb is None:
-                self._cb = self._fig.colorbar(im, ax=self._ax, format="%+2.0f dB")
-            else:
-                self._cb.update_normal(im)
             self._fig.canvas.draw_idle()
-        else:
-            # Redibujar canvas del eje externo si existe
-            try:
-                self._ax.figure.canvas.draw_idle()
-            except Exception:
-                pass
         try:
             import matplotlib.pyplot as _plt
             _plt.pause(0.001)
