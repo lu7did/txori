@@ -70,7 +70,7 @@ def main() -> None:
         "--noiselevel",
         type=float,
         default=None,
-        help="Nivel de ruido blanco en dBFS (default -60)",
+        help="Nivel relativo del ruido (dB por debajo del pico CW, default 20)",
     )
     parser.add_argument(
         "--time",
@@ -198,7 +198,7 @@ def main() -> None:
     cfg.qrn_mode = bool(getattr(args, "qrn", False))
     cfg.qrm_mode = bool(getattr(args, "qrm", False))
     cfg.noise_mode = bool(getattr(args, "noise", False))
-    cfg.noise_level_db = float(args.noiselevel) if args.noiselevel is not None else -60.0
+    cfg.noise_level_db = float(args.noiselevel) if args.noiselevel is not None else 20.0
     pipe = Pipeline(cfg)
     seconds = None if (args.forever or args.seconds is None) else float(args.seconds)
     # Waterfall eliminado: no se genera ni guarda imagen

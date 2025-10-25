@@ -37,7 +37,7 @@ class SystemConfig:
     qrn_mode: bool = False
     qrm_mode: bool = False
     noise_mode: bool = False
-    noise_level_db: float = -60.0
+    noise_level_db: float = 20.0
     direct_mode: bool = False
     spec_speed_factor: float = 4.0
     att_db: float | None = None
