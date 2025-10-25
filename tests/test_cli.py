@@ -7,7 +7,7 @@ from txori.__main__ import main  # pragma: no cover
 
 
 def test_cli_main_runs(tmp_path, monkeypatch) -> None:
-    monkeypatch.setattr(sys, "argv", ["txori", "--seconds", "0.01"])  # sin waterfall
+    monkeypatch.setattr(sys, "argv", ["txori", "--direct", "--seconds", "0.01"])  # evitar matplotlib en CI
     main()
 
 
