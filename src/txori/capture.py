@@ -92,6 +92,26 @@ class SyntheticCWPairCapture(BaseCapture):
         return "CW+QRN"
 
 
+class SyntheticCWToneGroupCapture(BaseCapture):
+    """Mezcla varios generadores CW y ruido opcional."""
+
+    def __init__(self, freqs_hz: list[float], cfg: SystemConfig | None = None, noise_db: float | None = None, with_noise: bool = False) -> None:
+        self._gens = [SyntheticCWToneCapture(float(f), cfg) for f in freqs_hz]
+        self._noise_amp = None
+        if with_noise:
+            db = float(noise_db if noise_db is not None else -60.0)
+            # dBFS de amplitud: 20*log10(A)
+            self._noise_amp = float(10.0 ** (db / 20.0))
+
+    def next_sample(self) -> float:
+        v = float(sum(g.next_sample() for g in self._gens))
+        if self._noise_amp is not None:
+            v += float(np.random.randn() * self._noise_amp)
+        return float(max(-2.0, min(2.0, v)))
+
+    def label(self) -> str:
+        return "CW+QRM+Noise"
+
 class AudioInputCapture(BaseCapture):
     """Captura desde el dispositivo de audio usando sounddevice."""
 

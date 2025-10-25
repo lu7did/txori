@@ -57,6 +57,22 @@ def main() -> None:
         help="Añade segunda portadora CW a 1000 Hz (solo con --cw)",
     )
     parser.add_argument(
+        "--qrm",
+        action="store_true",
+        help="Añade QRM: portadoras CW en 200/400/800/1200 Hz (solo con --cw)",
+    )
+    parser.add_argument(
+        "--noise",
+        action="store_true",
+        help="Añade ruido blanco en modo CW (default -60 dBFS; ver --noiselevel)",
+    )
+    parser.add_argument(
+        "--noiselevel",
+        type=float,
+        default=None,
+        help="Nivel de ruido blanco en dBFS (default -60)",
+    )
+    parser.add_argument(
         "--time",
         action="store_true",
         help="Mostrar ventana separada con la señal temporal sin procesar",
@@ -180,6 +196,9 @@ def main() -> None:
 
     # Propagar QRN dinámicamente
     cfg.qrn_mode = bool(getattr(args, "qrn", False))
+    cfg.qrm_mode = bool(getattr(args, "qrm", False))
+    cfg.noise_mode = bool(getattr(args, "noise", False))
+    cfg.noise_level_db = float(args.noiselevel) if args.noiselevel is not None else -60.0
     pipe = Pipeline(cfg)
     seconds = None if (args.forever or args.seconds is None) else float(args.seconds)
     # Waterfall eliminado: no se genera ni guarda imagen
@@ -230,7 +249,11 @@ def main() -> None:
                 cw_mode=bool(args.cw),
                 cw_center_hz=float(cfg.cw_tone_hz),
                 cw_bw_hz=(float(args.cwbw) if args.cwbw is not None else 20.0),
-                cw_extra_centers=([1000.0] if bool(getattr(args, "qrn", False)) else None),
+                cw_extra_centers=(
+                    ([1000.0] if bool(getattr(args, "qrn", False)) else [])
+                    + ([200.0, 400.0, 800.0, 1200.0] if bool(getattr(args, "qrm", False)) else [])
+                    or None
+                ),
             )
             dsp_spec.show()
         except Exception:

@@ -19,6 +19,8 @@ from .capture import (
     BaseCapture,
     CaptureController,
     SyntheticCWToneCapture,
+    SyntheticCWToneGroupCapture,
+    SyntheticCWPairCapture,
     SyntheticSineCapture,
 )
 from .config import SystemConfig

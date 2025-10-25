@@ -35,6 +35,9 @@ class SystemConfig:
     cw_mode: bool = False
     cw_tone_hz: float = 600.0
     qrn_mode: bool = False
+    qrm_mode: bool = False
+    noise_mode: bool = False
+    noise_level_db: float = -60.0
     direct_mode: bool = False
     spec_speed_factor: float = 4.0
     att_db: float | None = None
