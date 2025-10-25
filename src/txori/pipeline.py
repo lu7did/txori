@@ -58,6 +58,11 @@ class Pipeline:
     _cw_peak: float = field(default=1e-3, init=False, repr=False)
     _noise_level_db: float = field(default=20.0, init=False, repr=False)
     _noise_sigma: float = field(default=0.0, init=False, repr=False)
+    _noise_cal_nfft: int = field(default=2048, init=False, repr=False)
+    _noise_cal_beta: float = field(default=14.0, init=False, repr=False)
+    _noise_wsum: float = field(default=1.0, init=False, repr=False)
+    _noise_wsum2: float = field(default=1.0, init=False, repr=False)
+    _noise_rayleigh_k: float = field(default=1.0, init=False, repr=False)
     _cw_peak: float = field(default=1e-3, init=False, repr=False)
     _noise_level_db: float = field(default=20.0, init=False, repr=False)
 
