@@ -254,6 +254,7 @@ def main() -> None:
                     + ([200.0, 400.0, 800.0, 1200.0] if bool(getattr(args, "qrm", False)) else [])
                     or None
                 ),
+                noise_mode=bool(getattr(args, "noise", False)),
             )
             dsp_spec.show()
         except Exception:
