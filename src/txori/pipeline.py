@@ -151,9 +151,13 @@ class Pipeline:
                 import numpy as _np
 
                 decim_sample = float(proc_dsp[0])
-                # Inyectar ruido blanco post-DSP a 6000 SPS
-                if bool(getattr(self.cfg, "noise_mode", False)) and float(getattr(self, "_noise_sigma", 0.0)) > 0.0:
-                    decim_sample = float(decim_sample + _np.random.randn() * float(self._noise_sigma))
+                # Actualizar pico CW cuando hay señal y calcular sigma del ruido
+                if bool(getattr(self.cfg, "cw_mode", False)):
+                    # Seguimiento de pico con leve margen
+                    self._cw_peak = max(self._cw_peak * 0.999, abs(decim_sample) * 1.05)
+                if bool(getattr(self.cfg, "noise_mode", False)):
+                    sigma = float(self._cw_peak) * float(10.0 ** (-float(self._noise_level_db) / 20.0))
+                    decim_sample = float(decim_sample + _np.random.randn() * sigma)
                 self._dsp_buf = _np.roll(self._dsp_buf, 1)
                 self._dsp_buf[0] = decim_sample
                 # Exponer muestra diezmada para consumidores (espectrómetro en vivo)
