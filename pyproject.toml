@@ -105,7 +105,7 @@ omit = [
   "tests/*",
 ]
 precision = 2
-fail_under = 79
+fail_under = 80
 
 [tool.bandit]
 skips = ["B101"]
