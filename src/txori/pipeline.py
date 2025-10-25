@@ -55,6 +55,8 @@ class Pipeline:
     _bin_hz: float = field(init=False, repr=False)
     _last_dsp_sample: float | None = field(default=None, init=False, repr=False)
     _new_dsp_sample: bool = field(default=False, init=False, repr=False)
+    _cw_peak: float = field(default=1e-3, init=False, repr=False)
+    _noise_level_db: float = field(default=20.0, init=False, repr=False)
 
     def __post_init__(self) -> None:
         cap: BaseCapture
