@@ -57,9 +57,7 @@ class DSPLibrosaSpectrogram:
 
             plt = importlib.import_module("matplotlib.pyplot")
         if librosa is None:
-            import importlib
-
-            librosa = importlib.import_module("librosa")
+            librosa = None
         # Usar eje externo si fue provisto
         if self._ax is None and getattr(self, "ext_ax", None) is not None:
             self._ax = self.ext_ax
