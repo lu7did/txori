@@ -104,10 +104,17 @@ class SyntheticCWToneGroupCapture(BaseCapture):
             self._noise_amp = float(10.0 ** (db / 20.0))
 
     def next_sample(self) -> float:
+        # Sumar portadoras a igual nivel que --cw/--qrn; aplicar limitador suave para evitar clipping
         v = float(sum(g.next_sample() for g in self._gens))
         if self._noise_amp is not None:
             v += float(np.random.randn() * self._noise_amp)
-        return float(max(-2.0, min(2.0, v)))
+        # Limitador suave preserva relaciones de nivel sin generar armónicos de clipping
+        try:
+            import numpy as _np
+            v = float(_np.tanh(v))
+        except Exception:
+            v = float(max(-1.0, min(1.0, v)))
+        return v
 
     def label(self) -> str:
         return "CW+QRM+Noise"
