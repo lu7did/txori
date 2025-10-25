@@ -109,7 +109,7 @@ class DSPLibrosaSpectrogram:
             return
         x = np.asarray(self._buf, dtype=np.float32)
         # Construir nueva columna a partir de la última ventana n_fft
-        xw = x[-self.n_fft :]
+        xw = x[-self.n_fft:]
         if xw.size < 2:
             return
         win = np.hanning(xw.size).astype(np.float32)
