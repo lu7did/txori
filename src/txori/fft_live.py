@@ -105,7 +105,7 @@ class DSPLibrosaSpectrogram:
             self._last_draw = now
             self._draw()
 
-    def _draw(self) -> None:  # pragma: no cover
+    def _draw(self) -> None:  # noqa: C901, pragma: no cover
         assert self._ax is not None
         if len(self._buf) < max(self.n_fft, 64):
             return
