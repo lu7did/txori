@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from txori.pipeline import Pipeline
 from txori.config import SystemConfig
+from txori.pipeline import Pipeline
 
 
 def test_pipeline_analyze_bins_shape() -> None:
