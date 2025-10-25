@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "txori"
+version = "1.0.0"
+description = "Txori Python package"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.12"
+authors = [{ name = "Your Name" }]
+
+[tool.black]
+line-length = 88
+target-version = ["py312"]
+exclude = "script|ejemplos|docs|build|dist"
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "I", "D"]
+ignore = ["D203", "D213"]
+exclude = ["script", "ejemplos", "docs", "build", "dist"]
+
+[tool.ruff.pydocstyle]
+convention = "google"

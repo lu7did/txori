@@ -1,0 +1,8 @@
+black
+ruff
+mypy
+pytest
+hypothesis
+pytest-cov
+bandit
+pdoc

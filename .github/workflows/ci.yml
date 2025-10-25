@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Ruff (lint + PEP8/PEP257)
+        run: ruff check .
+      - name: Black (format check)
+        run: black --check .
+      - name: MyPy (typing)
+        run: mypy src/txori
+      - name: Pytest (>=80% cobertura)
+        run: pytest
+      - name: Bandit (seguridad)
+        run: bandit -r src/txori -x tests,script,ejemplos
+      - name: Generar documentación (pdoc)
+        run: bash script/generate_docs.sh
+      - name: Subir documentación
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs
+          path: docs
+      - name: Empaquetar proyecto
+        run: zip -r project.zip . -x ".git/*" "docs/*" "*.zip"
+      - name: Subir artefacto comprimido
+        uses: actions/upload-artifact@v4
+        with:
+          name: project-archive
+          path: project.zip
+
+  bump:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Instalar dependencias mínimas
+        run: python -m pip install --upgrade pip
+      - name: Bump build y actualizar archivos
+        run: |
+          python script/bump_build.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add BUILD README.md CHANGELOG.md src/txori/__init__.py
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: bump build [skip ci]"
+            git push
+          fi
