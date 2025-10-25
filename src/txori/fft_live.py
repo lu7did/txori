@@ -34,6 +34,9 @@ class DSPLibrosaSpectrogram:
     decim_factor: int = 1
     user_text: str | None = None
     device_sr: int | None = None
+    cw_mode: bool = False
+    cw_center_hz: float = 600.0
+    cw_bw_hz: float = 20.0
 
     _fig: Any | None = None
     _ax: Any | None = None
@@ -45,6 +48,7 @@ class DSPLibrosaSpectrogram:
     _ncols: int = 0
     _txt_info: Any | None = None
     _dev_samples: int = 0
+    _ref_amp: float = 1e-9
 
     def _ensure_backend(self) -> None:  # pragma: no cover
         global plt, librosa
@@ -112,12 +116,23 @@ class DSPLibrosaSpectrogram:
         xw = x[-self.n_fft:]
         if xw.size < 2:
             return
-        win = np.hanning(xw.size).astype(np.float32)
+        # Ventana: usar Blackman en modo CW para reducir lóbulos laterales
+        win = (np.blackman(xw.size) if self.cw_mode else np.hanning(xw.size)).astype(np.float32)
         X = np.fft.rfft(xw * win, n=self.n_fft)
         A = np.abs(X)
-        ref = float(np.max(A)) if A.size else 1.0
-        ref = ref if ref > 0 else 1.0
-        col_db = 20.0 * np.log10(np.maximum(A, 1e-12) / ref)
+        # En CW, suprimir fuera de banda (±bw alrededor de centro)
+        if self.cw_mode:
+            freqs_all = np.fft.rfftfreq(self.n_fft, d=1.0 / float(self.sr))
+            bw = float(self.cw_bw_hz)
+            center = float(self.cw_center_hz)
+            mask = (freqs_all >= (center - bw)) & (freqs_all <= (center + bw))
+            if A.size == mask.size:
+                A = A * mask.astype(A.dtype) + (1e-12 * (~mask).astype(A.dtype))
+        # Normalización global (no por columna) para respetar cortes ON/OFF
+        amax = float(np.max(A)) if A.size else 0.0
+        # Decaimiento suave para no saturar indefinidamente
+        self._ref_amp = max(self._ref_amp * 0.995, amax, 1e-9)
+        col_db = 20.0 * np.log10(np.maximum(A, 1e-12) / self._ref_amp)
         # Limitar frecuencia máxima visible
         freqs = np.fft.rfftfreq(self.n_fft, d=1.0 / float(self.sr))
         k = int(np.searchsorted(freqs, float(self.y_max_hz), side="right") - 1)

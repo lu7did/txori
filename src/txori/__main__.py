@@ -200,21 +200,25 @@ def main() -> None:
         )
         spectro_viewer.show()
         # Conectar DSP librosa para dibujar en el espectrómetro existente
-        if bool(args.forever):
-            try:
-                from .fft_live import DSPLibrosaSpectrogram
-                dsp_spec = DSPLibrosaSpectrogram(
-                    sr=decim_rate,
-                    span_seconds=4.0,
-                    ext_ax=spectro_viewer.ax,
-                    device_name=getattr(pipe, 'source_label', 'Entrada'),
-                    decim_factor=int(decim_factor),
-                    user_text=(args.text or ''),
-                    device_sr=int(cfg.sample_rate),
-                )
-                dsp_spec.show()
-            except Exception:
-                dsp_spec = None
+        try:
+            from .fft_live import DSPLibrosaSpectrogram
+            dsp_spec = DSPLibrosaSpectrogram(
+                sr=decim_rate,
+                span_seconds=4.0,
+                ext_ax=spectro_viewer.ax,
+                device_name=getattr(pipe, 'source_label', 'Entrada'),
+                decim_factor=int(decim_factor),
+                user_text=(args.text or ''),
+                device_sr=int(cfg.sample_rate),
+                n_fft=(256 if bool(args.cw) else 2048),
+                hop_length=(64 if bool(args.cw) else None),
+                cw_mode=bool(args.cw),
+                cw_center_hz=float(cfg.cw_tone_hz),
+                cw_bw_hz=(float(args.cw_bw) if args.cw_bw is not None else 20.0),
+            )
+            dsp_spec.show()
+        except Exception:
+            dsp_spec = None
     try:
         pipe.run(
             seconds=seconds,
