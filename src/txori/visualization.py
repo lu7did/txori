@@ -2,6 +2,7 @@
 """Visualización de espectro como imagen desplazable."""
 
 # ruff: noqa: I001
+# fmt: off
 from __future__ import annotations
 
 from collections import deque
