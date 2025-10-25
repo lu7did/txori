@@ -3,9 +3,9 @@
 
 from __future__ import annotations
 
-import math
 from collections import deque
 from dataclasses import dataclass, field
+import math
 import time
 
 import numpy as np
