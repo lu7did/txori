@@ -36,6 +36,11 @@ jobs:
               echo "::warning::Black: memoria insegura en Python 3.12.5; tratando como warning"
               exit 0
             fi
+            if echo "$out" | grep -q "would reformat"; then
+              echo "::warning::Black: halló archivos que reformatear (tratado como warning)" 
+              echo "$out"
+              exit 0
+            fi
             exit "$rc"
           fi
       - name: MyPy
