@@ -207,6 +207,9 @@ def main() -> None:
                     sr=decim_rate,
                     span_seconds=4.0,
                     ext_ax=spectro_viewer.ax,
+                    device_name=getattr(pipe, 'source_label', 'Entrada'),
+                    decim_factor=int(decim_factor),
+                    user_text=(args.text or ''),
                 )
                 dsp_spec.show()
             except Exception:

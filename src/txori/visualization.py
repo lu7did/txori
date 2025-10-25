@@ -1,6 +1,7 @@
 # (c) Dr. Pedro E. Colla 2020-2025 (LU7DZ)
 """Visualización de espectro como imagen desplazable."""
 
+# ruff: noqa: I001
 from __future__ import annotations
 
 from collections import deque

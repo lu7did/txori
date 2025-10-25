@@ -4,6 +4,7 @@ Orquestación de la canalización de procesamiento.
 (c) Dr. Pedro E. Colla 2020-2025 (LU7DZ).
 """
 
+# ruff: noqa: I001
 from __future__ import annotations
 
 from collections.abc import Callable

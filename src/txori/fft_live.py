@@ -3,6 +3,7 @@
 Computes STFT over a rolling buffer and updates the view at ~30 FPS.
 Imports are lazy to avoid hard deps in CI.
 """
+# ruff: noqa: I001
 from __future__ import annotations
 
 from collections import deque
@@ -14,7 +15,6 @@ import numpy as np
 
 plt: Any = None
 librosa = None  # type: ignore[assignment]
-libdisp = None  # type: ignore[assignment]
 
 
 @dataclass
@@ -85,6 +85,11 @@ class DSPLibrosaSpectrogram:
         self._buf.append(float(x))
         while len(self._buf) > self._buf_len:
             self._buf.popleft()
+        # Contar muestras de dispositivo estimadas (decimación)
+        try:
+            self._dev_samples += int(max(1, self.decim_factor))
+        except Exception:
+            self._dev_samples += 1
         now = time.perf_counter()
         if now - self._last_draw >= 1.0 / max(self.fps, 1e-3):
             self._last_draw = now
