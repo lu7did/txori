@@ -57,6 +57,9 @@ class Pipeline:
     _new_dsp_sample: bool = field(default=False, init=False, repr=False)
     _cw_peak: float = field(default=1e-3, init=False, repr=False)
     _noise_level_db: float = field(default=20.0, init=False, repr=False)
+    _noise_sigma: float = field(default=0.0, init=False, repr=False)
+    _cw_peak: float = field(default=1e-3, init=False, repr=False)
+    _noise_level_db: float = field(default=20.0, init=False, repr=False)
 
     def __post_init__(self) -> None:
         cap: BaseCapture
@@ -161,13 +164,17 @@ class Pipeline:
                 if not hasattr(self, "_noise_level_db"):
                     self._noise_level_db = float(getattr(self.cfg, "noise_level_db", 20.0))
                 decim_sample = float(proc_dsp[0])
-                # Actualizar pico CW cuando hay señal y calcular sigma del ruido
+                # Actualizar pico CW con máximo histórico; fijar sigma de ruido una vez hacia arriba
                 if bool(getattr(self.cfg, "cw_mode", False)):
-                    # Seguimiento de pico con leve margen
-                    self._cw_peak = max(self._cw_peak * 0.999, abs(decim_sample) * 1.05)
+                    amp = abs(decim_sample)
+                    if amp > float(self._cw_peak):
+                        self._cw_peak = float(amp)
+                        if bool(getattr(self.cfg, "noise_mode", False)):
+                            self._noise_sigma = float(self._cw_peak) * float(10.0 ** (-float(self._noise_level_db) / 20.0))
                 if bool(getattr(self.cfg, "noise_mode", False)):
-                    sigma = float(self._cw_peak) * float(10.0 ** (-float(self._noise_level_db) / 20.0))
-                    decim_sample = float(decim_sample + _np.random.randn() * sigma)
+                    sigma = float(getattr(self, "_noise_sigma", 0.0))
+                    if sigma > 0.0:
+                        decim_sample = float(decim_sample + _np.random.randn() * sigma)
                 self._dsp_buf = _np.roll(self._dsp_buf, 1)
                 self._dsp_buf[0] = decim_sample
                 # Exponer muestra diezmada para consumidores (espectrómetro en vivo)
