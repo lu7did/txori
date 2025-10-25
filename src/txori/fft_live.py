@@ -38,7 +38,7 @@ class DSPLibrosaSpectrogram:
     cw_center_hz: float = 600.0
     cw_bw_hz: float = 20.0
     cw_extra_centers: list[float] | None = None
-    noise_mode: bool = False
+
 
     _fig: Any | None = None
     _ax: Any | None = None
@@ -120,8 +120,8 @@ class DSPLibrosaSpectrogram:
         win = (np.kaiser(xw.size, 14.0) if self.cw_mode else np.hanning(xw.size)).astype(np.float32)
         X = np.fft.rfft(xw * win, n=self.n_fft)
         A = np.abs(X)
-        # En CW, confinar tonos si no hay ruido global; con --noise no se aplica máscara para mantener ruido uniforme
-        if self.cw_mode and not self.noise_mode:
+        # En CW, confinar tonos a ±bw alrededor de los centros
+        if self.cw_mode:
             freqs_all = np.fft.rfftfreq(self.n_fft, d=1.0 / float(self.sr))
             centers = [float(self.cw_center_hz)] + (list(self.cw_extra_centers) if self.cw_extra_centers else [])
             bin_w = float(self.sr) / float(self.n_fft)
@@ -134,13 +134,10 @@ class DSPLibrosaSpectrogram:
                 mask[lo : hi + 1] = True
             if A.size == mask.size:
                 A = A * mask.astype(A.dtype) + (1e-12 * (~mask).astype(A.dtype))
-        # Normalización: si noise_mode, usar referencia fija para piso estable; si no, referencia dinámica con decaimiento
+        # Normalización con referencia dinámica de decaimiento
         amax = float(np.max(A)) if A.size else 0.0
-        if self.noise_mode:
-            ref = 1.0
-        else:
-            self._ref_amp = max(self._ref_amp * 0.995, amax, 1e-9)
-            ref = self._ref_amp
+        self._ref_amp = max(self._ref_amp * 0.995, amax, 1e-9)
+        ref = self._ref_amp
         col_db = 20.0 * np.log10(np.maximum(A, 1e-12) / ref)
         # Limitar frecuencia máxima visible
         freqs = np.fft.rfftfreq(self.n_fft, d=1.0 / float(self.sr))

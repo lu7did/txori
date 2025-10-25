@@ -178,17 +178,11 @@ class Pipeline:
                 if not hasattr(self, "_noise_level_db"):
                     self._noise_level_db = float(getattr(self.cfg, "noise_level_db", 20.0))
                 decim_sample = float(proc_dsp[0])
-                # Actualizar pico CW con máximo histórico; fijar sigma de ruido una vez hacia arriba
+                # Seguimiento opcional de pico CW (sin ruido añadido)
                 if bool(getattr(self.cfg, "cw_mode", False)):
                     amp = abs(decim_sample)
-                    if amp > float(self._cw_peak):
+                    if amp > float(getattr(self, "_cw_peak", 1e-3)):
                         self._cw_peak = float(amp)
-                        if bool(getattr(self.cfg, "noise_mode", False)):
-                            self._noise_sigma = float(self._cw_peak) * float(10.0 ** (-float(self._noise_level_db) / 20.0))
-                if bool(getattr(self.cfg, "noise_mode", False)):
-                    sigma = float(getattr(self, "_noise_sigma", 0.0))
-                    if sigma > 0.0:
-                        decim_sample = float(decim_sample + _np.random.randn() * sigma)
                 self._dsp_buf = _np.roll(self._dsp_buf, 1)
                 self._dsp_buf[0] = decim_sample
                 # Exponer muestra diezmada para consumidores (espectrómetro en vivo)

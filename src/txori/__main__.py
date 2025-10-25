@@ -61,17 +61,7 @@ def main() -> None:
         action="store_true",
         help="Añade QRM: portadoras CW en 200/400/800/1200 Hz (solo con --cw)",
     )
-    parser.add_argument(
-        "--noise",
-        action="store_true",
-        help="Añade ruido blanco en modo CW (default -60 dBFS; ver --noiselevel)",
-    )
-    parser.add_argument(
-        "--noiselevel",
-        type=float,
-        default=None,
-        help="Nivel relativo del ruido (dB por debajo del pico CW, default 20)",
-    )
+
     parser.add_argument(
         "--time",
         action="store_true",
@@ -197,8 +187,6 @@ def main() -> None:
     # Propagar QRN dinámicamente
     cfg.qrn_mode = bool(getattr(args, "qrn", False))
     cfg.qrm_mode = bool(getattr(args, "qrm", False))
-    cfg.noise_mode = bool(getattr(args, "noise", False))
-    cfg.noise_level_db = float(args.noiselevel) if args.noiselevel is not None else 20.0
     pipe = Pipeline(cfg)
     seconds = None if (args.forever or args.seconds is None) else float(args.seconds)
     # Waterfall eliminado: no se genera ni guarda imagen
@@ -253,8 +241,7 @@ def main() -> None:
                     ([1000.0] if bool(getattr(args, "qrn", False)) else [])
                     + ([200.0, 400.0, 800.0, 1200.0] if bool(getattr(args, "qrm", False)) else [])
                     or None
-                ),
-                noise_mode=bool(getattr(args, "noise", False)),
+),
             )
             dsp_spec.show()
         except Exception:
