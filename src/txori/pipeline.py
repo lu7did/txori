@@ -121,6 +121,9 @@ class Pipeline:
         self._fc = float(fmax)
         self._bin_hz = float(bin_hz_eff)
         # Waterfall eliminado: no se crea renderer
+        # Inicializar tracking de pico CW y nivel de ruido relativo
+        self._cw_peak = 1e-3
+        self._noise_level_db = float(getattr(self.cfg, "noise_level_db", 20.0))
         # Buffer DSP de 6000 muestras (en dominio diezmado si aplica)
         import numpy as _np
 
