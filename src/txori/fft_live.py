@@ -120,8 +120,8 @@ class DSPLibrosaSpectrogram:
         win = (np.kaiser(xw.size, 14.0) if self.cw_mode else np.hanning(xw.size)).astype(np.float32)
         X = np.fft.rfft(xw * win, n=self.n_fft)
         A = np.abs(X)
-        # En CW, limitar tonos a bandas, manteniendo ruido fuera de bandas si noise_mode activo
-        if self.cw_mode:
+        # En CW, confinar tonos si no hay ruido global; con --noise no se aplica máscara para mantener ruido uniforme
+        if self.cw_mode and not self.noise_mode:
             freqs_all = np.fft.rfftfreq(self.n_fft, d=1.0 / float(self.sr))
             centers = [float(self.cw_center_hz)] + (list(self.cw_extra_centers) if self.cw_extra_centers else [])
             bin_w = float(self.sr) / float(self.n_fft)
@@ -133,15 +133,7 @@ class DSPLibrosaSpectrogram:
                 hi = min(mask.size - 1, ic + half_bins)
                 mask[lo : hi + 1] = True
             if A.size == mask.size:
-                A_raw = A.copy()
-                if not self.noise_mode:
-                    # Sin ruido global: suprimir fuera de banda
-                    A = A * mask.astype(A.dtype) + (1e-12 * (~mask).astype(A.dtype))
-                else:
-                    # Con ruido global: mantener ruido de banda ancha y suprimir picos fuera de banda
-                    outside = ~mask
-                    nf = float(np.median(A_raw[outside])) if np.any(outside) else (float(np.median(A_raw)) if A_raw.size else 0.0)
-                    A = A * mask.astype(A.dtype) + (nf + 1e-12) * outside.astype(A.dtype)
+                A = A * mask.astype(A.dtype) + (1e-12 * (~mask).astype(A.dtype))
         # Normalización: si noise_mode, usar referencia fija para piso estable; si no, referencia dinámica con decaimiento
         amax = float(np.max(A)) if A.size else 0.0
         if self.noise_mode:
