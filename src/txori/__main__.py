@@ -222,6 +222,7 @@ def main() -> None:
                 cw_mode=bool(args.cw),
                 cw_center_hz=float(cfg.cw_tone_hz),
                 cw_bw_hz=(float(args.cwbw) if args.cwbw is not None else 20.0),
+                cw_extra_centers=([200.0, 400.0, 800.0, 1000.0, 1200.0] if bool(args.qrm) else None),
             )
             dsp_spec.show()
         except Exception:
