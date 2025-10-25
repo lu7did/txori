@@ -20,7 +20,6 @@ from .capture import (
     CaptureController,
     SyntheticCWToneCapture,
     SyntheticCWToneGroupCapture,
-    SyntheticCWPairCapture,
     SyntheticSineCapture,
 )
 from .config import SystemConfig
@@ -60,10 +59,19 @@ class Pipeline:
     def __post_init__(self) -> None:
         cap: BaseCapture
         if self.cfg.cw_mode:
+            # Construir lista de portadoras y decidir si usar grupo
+            freqs: list[float] = [float(self.cfg.cw_tone_hz)]
             if getattr(self.cfg, "qrn_mode", False):
-                from .capture import SyntheticCWPairCapture
-
-                cap = SyntheticCWPairCapture(freq_main=float(self.cfg.cw_tone_hz), freq_qrn=1000.0, cfg=self.cfg)
+                freqs.append(1000.0)
+            if getattr(self.cfg, "qrm_mode", False):
+                freqs.extend([200.0, 400.0, 800.0, 1200.0])
+            if len(freqs) > 1 or getattr(self.cfg, "noise_mode", False):
+                cap = SyntheticCWToneGroupCapture(
+                    freqs_hz=freqs,
+                    cfg=self.cfg,
+                    noise_db=float(getattr(self.cfg, "noise_level_db", 20.0)),
+                    with_noise=bool(getattr(self.cfg, "noise_mode", False)),
+                )
             else:
                 cap = SyntheticCWToneCapture(
                     freq_hz=float(self.cfg.cw_tone_hz), cfg=self.cfg

@@ -26,7 +26,7 @@ class SpectrometerViewer:
         global plt
         try:
             import importlib
-            import matplotlib as mpl
+            mpl = importlib.import_module("matplotlib")
             # Forzar backend interactivo si es posible
             if mpl.get_backend().lower() in ("agg", "pdf", "svg"):
                 for bk in ("MacOSX", "Qt5Agg", "TkAgg"):
@@ -93,7 +93,7 @@ class LiveViewer:
         global plt
         try:
             import importlib
-            import matplotlib as mpl
+            mpl = importlib.import_module("matplotlib")
             if mpl.get_backend().lower() in ("agg", "pdf", "svg"):
                 for bk in ("MacOSX", "Qt5Agg", "TkAgg"):
                     try:
