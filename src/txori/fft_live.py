@@ -120,8 +120,8 @@ class DSPLibrosaSpectrogram:
         win = (np.blackman(xw.size) if self.cw_mode else np.hanning(xw.size)).astype(np.float32)
         X = np.fft.rfft(xw * win, n=self.n_fft)
         A = np.abs(X)
-        # En CW, suprimir fuera de banda (±bw alrededor de centro), salvo si hay ruido global activo
-        if self.cw_mode and not self.noise_mode:
+        # En CW, limitar tonos a bandas, manteniendo ruido fuera de bandas si noise_mode activo
+        if self.cw_mode:
             freqs_all = np.fft.rfftfreq(self.n_fft, d=1.0 / float(self.sr))
             centers = [float(self.cw_center_hz)] + (list(self.cw_extra_centers) if self.cw_extra_centers else [])
             bin_w = float(self.sr) / float(self.n_fft)
@@ -133,7 +133,16 @@ class DSPLibrosaSpectrogram:
                 hi = min(mask.size - 1, ic + half_bins)
                 mask[lo : hi + 1] = True
             if A.size == mask.size:
-                A = A * mask.astype(A.dtype) + (1e-12 * (~mask).astype(A.dtype))
+                if not self.noise_mode:
+                    # Sin ruido global: suprimir fuera de banda
+                    A = A * mask.astype(A.dtype) + (1e-12 * (~mask).astype(A.dtype))
+                else:
+                    # Con ruido global: atenuar picos fuera de banda, conservar piso de ruido
+                    noise_floor = np.median(A) if A.size else 0.0
+                    outside = ~mask
+                    # Limitar amplitud fuera de banda al piso de ruido (con pequeño margen)
+                    A = A.copy()
+                    A[outside] = np.minimum(A[outside], float(noise_floor) * 1.2 + 1e-12)
         # Normalización global (no por columna) para respetar cortes ON/OFF
         amax = float(np.max(A)) if A.size else 0.0
         # Decaimiento suave para no saturar indefinidamente
