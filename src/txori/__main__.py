@@ -7,6 +7,7 @@ CLI mínima para ejecutar la canalización.
 from __future__ import annotations
 
 import argparse
+import sys
 
 from .config import SystemConfig
 from .pipeline import Pipeline
@@ -151,7 +152,9 @@ def main() -> None:
         action="store_true",
         help="Modo DSP: LPF 3 kHz + decimación 8:1 + AGC + DSP antes de FFT",
     )
-    args = parser.parse_args()
+    args, _unknown = parser.parse_known_args()
+    if "--qrm" in _unknown:
+        setattr(args, "qrm", True)
 
     # Resolver modo: por defecto DSP; si ambos, prioriza DIRECT
     use_direct = True if args.direct else False
