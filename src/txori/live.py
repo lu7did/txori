@@ -26,7 +26,15 @@ class SpectrometerViewer:
         global plt
         try:
             import importlib
-
+            import matplotlib as mpl
+            # Forzar backend interactivo si es posible
+            if mpl.get_backend().lower() in ("agg", "pdf", "svg"):
+                for bk in ("MacOSX", "Qt5Agg", "TkAgg"):
+                    try:
+                        mpl.use(bk, force=True)
+                        break
+                    except Exception:
+                        continue
             plt = importlib.import_module("matplotlib.pyplot")
         except Exception as e:  # pragma: no cover
             raise RuntimeError(
@@ -85,7 +93,14 @@ class LiveViewer:
         global plt
         try:
             import importlib
-
+            import matplotlib as mpl
+            if mpl.get_backend().lower() in ("agg", "pdf", "svg"):
+                for bk in ("MacOSX", "Qt5Agg", "TkAgg"):
+                    try:
+                        mpl.use(bk, force=True)
+                        break
+                    except Exception:
+                        continue
             plt = importlib.import_module("matplotlib.pyplot")
         except Exception as e:  # pragma: no cover - dependiente del entorno
             raise RuntimeError(
