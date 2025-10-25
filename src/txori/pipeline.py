@@ -153,6 +153,11 @@ class Pipeline:
                 # Nueva muestra diezmada: tomar la más reciente
                 import numpy as _np
 
+                # Guardar inicialización por si __post_init__ fue alterado
+                if not hasattr(self, "_cw_peak"):
+                    self._cw_peak = 1e-3
+                if not hasattr(self, "_noise_level_db"):
+                    self._noise_level_db = float(getattr(self.cfg, "noise_level_db", 20.0))
                 decim_sample = float(proc_dsp[0])
                 # Actualizar pico CW cuando hay señal y calcular sigma del ruido
                 if bool(getattr(self.cfg, "cw_mode", False)):
