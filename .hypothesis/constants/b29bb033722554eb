@@ -1,0 +1,4 @@
+# file: /Users/PCOLLA/Documents/GitHub/txori/src/txori/cli.py
+# hypothesis_version: 6.142.3
+
+[0.5, 5.0, 1024, 48000, '--cmap', '--dur', '--nfft', '--overlap', '--rate', 'Tamaño de la FFT.', 'viridis']

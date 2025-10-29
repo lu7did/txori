@@ -1,0 +1,1 @@
+- 2025-10-29T16:09:34.002Z Construir programa que tome la entrada predeterminada de audio y represente la misma en un gráfico waterfall.

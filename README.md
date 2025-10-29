@@ -1,2 +1,16 @@
 # txori
-Prototipo para filtro de CW utilizando vibe coding
+Programa en Python 3.12 que captura audio de la entrada predeterminada y lo representa en un gráfico waterfall (espectrograma).
+
+Versión 1.0 build 000
+
+Características:
+- Paquete instalable con separación de lógica (OOP) y manejo de excepciones.
+- CI: ruff, black, PEP8, PEP257, mypy, pyright, pytest (>=80%), bandit, trufflehog.
+- Documentación automática con pdoc.
+
+Instalación y uso rápido:
+- Crear entorno y ejecutar:
+  python -m venv .venv && source .venv/bin/activate
+  pip install -r requirements.txt
+  python -m pip install -e .
+  txori-waterfall --dur 5
