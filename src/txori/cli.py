@@ -39,9 +39,9 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--source",
-        choices=["stream", "tone"],
+        choices=["stream", "tone", "cw"],
         default="stream",
-        help="Fuente de datos: stream=entrada de audio, tone=generador 600 Hz.",
+        help="Fuente de datos: stream=entrada de audio, tone=generador 600 Hz, cw=Morse 600 Hz.",
     )
     parser.add_argument(
         "--spkr",
@@ -91,7 +91,7 @@ def main() -> None:
                 else:
                     stream = StreamAudioSource(sample_rate=args.rate, channels=1, blocksize=step)
                     blocks = stream.blocks()
-            else:
+            elif args.source == "tone":
                 from .audio import ToneAudioSource
                 tone = ToneAudioSource(sample_rate=args.rate, blocksize=step)
                 out = None
@@ -114,6 +114,28 @@ def main() -> None:
                     )
                     out.start()
                 blocks = tone.blocks()
+            elif args.source == "cw":
+                from .audio import MorseAudioSource
+                cw = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=20.0, message="LU7DZ TEST", blocksize=step)
+                out = None
+                if args.spkr:
+                    phase = 0.0
+                    def _cb(outdata, frames, t, status):  # noqa: ANN001
+                        nonlocal phase
+                        idx = np.arange(frames, dtype=np.float32)
+                        tt = (phase + idx) / float(args.rate)
+                        # Parlante recibe mismo CW: modular con puerta generada por la fuente
+                        outdata[:, 0] = cw.record(frames / float(args.rate))[:frames]
+                        phase += frames
+                    out = sd.OutputStream(
+                        samplerate=args.rate,
+                        channels=1,
+                        dtype="float32",
+                        blocksize=step,
+                        callback=_cb,
+                    )
+                    out.start()
+                blocks = cw.blocks()
             live = WaterfallLive(
                 nfft=args.nfft,
                 overlap=args.overlap,
@@ -137,9 +159,14 @@ def main() -> None:
                 data = source.record(args.dur)
                 if args.spkr:
                     sd.play(data.reshape(-1, 1), samplerate=args.rate, blocking=False)
-            else:
+            elif args.source == "tone":
                 from .audio import ToneAudioSource
                 data = ToneAudioSource(sample_rate=args.rate).record(args.dur)
+                if args.spkr:
+                    sd.play(data.reshape(-1, 1), samplerate=args.rate, blocking=False)
+            elif args.source == "cw":
+                from .audio import MorseAudioSource
+                data = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=20.0, message="LU7DZ TEST").record(args.dur)
                 if args.spkr:
                     sd.play(data.reshape(-1, 1), samplerate=args.rate, blocking=False)
             spec = comp.compute(data)

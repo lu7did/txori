@@ -178,3 +178,113 @@ class ToneAudioSource:
                 yield x
         except Exception as exc:  # noqa: BLE001
             raise AudioError("Fallo en generador de tono") from exc
+
+
+@dataclass(slots=True)
+class MorseAudioSource:
+    """Generador de CW (Morse) con tono senoidal keyeado.
+
+    Transmite el mensaje en loop a una velocidad fija de WPM.
+    """
+
+    sample_rate: int = 48_000
+    frequency: float = 600.0
+    wpm: float = 20.0
+    message: str = "LU7DZ TEST"
+    blocksize: int = 1024
+    _phase: float = field(default=0.0, init=False, repr=False)
+    _gate_idx: int = field(default=0, init=False, repr=False)
+    _gate: np.ndarray | None = field(default=None, init=False, repr=False)
+
+    def _build_gate(self) -> None:
+        unit = max(1, int(round(self.sample_rate * 1.2 / float(self.wpm))))
+        m = self.message.upper()
+        morse = {
+            "L": ".-..",
+            "U": "..-",
+            "7": "--...",
+            "D": "-..",
+            "Z": "--..",
+            "T": "-",
+            "E": ".",
+            "S": "...",
+            " ": " ",
+        }
+        gate: list[int] = []
+        words = m.split(" ")
+        for wi, word in enumerate(words):
+            for ci, ch in enumerate(word):
+                code = morse.get(ch)
+                if not code:
+                    continue
+                for si, sym in enumerate(code):
+                    on_len = unit if sym == "." else 3 * unit
+                    gate.extend([1] * on_len)
+                    if si < len(code) - 1:
+                        gate.extend([0] * unit)
+                if ci < len(word) - 1:
+                    gate.extend([0] * (3 * unit))
+            if wi < len(words) - 1:
+                gate.extend([0] * (7 * unit))
+        self._gate = np.array(gate, dtype=np.float32)
+
+    def _ensure_gate(self) -> None:
+        if self._gate is None or self._gate.size == 0:
+            self._build_gate()
+
+    def record(self, duration_s: float) -> np.ndarray:
+        if duration_s <= 0:
+            raise ValueError("duration_s debe ser > 0")
+        self._ensure_gate()
+        n = int(duration_s * self.sample_rate)
+        idx = np.arange(n, dtype=np.float32)
+        t = (self._phase + idx) / float(self.sample_rate)
+        sig = np.sin(2 * np.pi * self.frequency * t)
+        gate = self._gate  # type: ignore
+        glen = int(gate.size)
+        g = np.empty(n, dtype=np.float32)
+        start = self._gate_idx % glen
+        n1 = min(n, glen - start)
+        g[:n1] = gate[start : start + n1]
+        if n1 < n:
+            rem = n - n1
+            if rem >= glen:
+                reps = rem // glen
+                g[n1 : n1 + reps * glen] = np.tile(gate, reps)
+                n1 += reps * glen
+                rem -= reps * glen
+            if rem:
+                g[n1:] = gate[:rem]
+        self._gate_idx = (self._gate_idx + n) % glen
+        self._phase += n
+        return (sig * g).astype(np.float32)
+
+    def blocks(self) -> Iterator[np.ndarray]:
+        if self.blocksize <= 0:
+            raise ValueError("blocksize debe ser > 0")
+        self._ensure_gate()
+        gate = self._gate  # type: ignore
+        glen = int(gate.size)
+        try:
+            while True:
+                idx = np.arange(self.blocksize, dtype=np.float32)
+                t = (self._phase + idx) / float(self.sample_rate)
+                sig = np.sin(2 * np.pi * self.frequency * t)
+                start = self._gate_idx % glen
+                g = np.empty(self.blocksize, dtype=np.float32)
+                n1 = min(self.blocksize, glen - start)
+                g[:n1] = gate[start : start + n1]
+                if n1 < self.blocksize:
+                    rem = self.blocksize - n1
+                    if rem >= glen:
+                        reps = rem // glen
+                        g[n1 : n1 + reps * glen] = np.tile(gate, reps)
+                        rem -= reps * glen
+                        n1 += reps * glen
+                    if rem:
+                        g[n1:] = gate[:rem]
+                self._gate_idx = (self._gate_idx + self.blocksize) % glen
+                self._phase += self.blocksize
+                yield (sig * g).astype(np.float32)
+        except Exception as exc:  # noqa: BLE001
+            raise AudioError("Fallo en generador CW") from exc
