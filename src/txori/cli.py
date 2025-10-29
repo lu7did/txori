@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import sys
 
+import numpy as np
 import sounddevice as sd
 
 from . import __build__, __version__
@@ -63,27 +64,40 @@ def main() -> None:
             else:
                 from .audio import ToneAudioSource
                 tone = ToneAudioSource(sample_rate=args.rate, blocksize=step)
+                out = None
                 if args.spkr:
-                    def _speaker_blocks():
-                        with sd.OutputStream(
-                            samplerate=args.rate,
-                            channels=1,
-                            dtype="float32",
-                            blocksize=step,
-                        ) as out:
-                            for b in tone.blocks():
-                                out.write(b.reshape(-1, 1))
-                                yield b
-                    blocks = _speaker_blocks()
-                else:
-                    blocks = tone.blocks()
+                    phase = 0.0
+
+                    def _cb(outdata, frames, t, status):  # noqa: ANN001
+                        nonlocal phase
+                        idx = np.arange(frames, dtype=np.float32)
+                        tt = (phase + idx) / float(args.rate)
+                        outdata[:, 0] = np.sin(2 * np.pi * 600.0 * tt).astype(np.float32)
+                        phase += frames
+
+                    out = sd.OutputStream(
+                        samplerate=args.rate,
+                        channels=1,
+                        dtype="float32",
+                        blocksize=step,
+                        callback=_cb,
+                    )
+                    out.start()
+                blocks = tone.blocks()
             live = WaterfallLive(
                 nfft=args.nfft,
                 overlap=args.overlap,
                 cmap=args.cmap,
                 max_frames=args.max_frames,
             )
-            live.run(blocks, sample_rate=args.rate)
+            try:
+                live.run(blocks, sample_rate=args.rate)
+            finally:
+                try:
+                    if 'out' in locals() and out is not None:
+                        out.stop(); out.close()
+                except Exception:
+                    pass
         else:
             comp = WaterfallComputer(nfft=args.nfft, overlap=args.overlap)
             if args.source == "stream":
