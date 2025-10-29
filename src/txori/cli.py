@@ -115,48 +115,75 @@ def main() -> None:
             elif args.source == "tone":
                 from .audio import ToneAudioSource
                 tone = ToneAudioSource(sample_rate=args.rate, blocksize=step)
+                amp = max(0.0, min(1.0, float(getattr(args, "vol", 60.0)) / 100.0))
                 out = None
-                if args.spkr:
-                    phase = 0.0
-                    amp = max(0.0, min(1.0, float(getattr(args, "vol", 60.0)) / 100.0))
+                ring = deque(maxlen=50)
 
+                def _blocks_and_spkr(src_iter):
+                    for b in src_iter:
+                        bb = (amp * b).astype(np.float32, copy=False)
+                        if args.spkr:
+                            ring.append(bb.copy())
+                        yield bb
+
+                if args.spkr:
                     def _cb(outdata, frames, t, status):  # noqa: ANN001
-                        nonlocal phase
-                        idx = np.arange(frames, dtype=np.float32)
-                        tt = (phase + idx) / float(args.rate)
-                        outdata[:, 0] = (amp * np.sin(2 * np.pi * 600.0 * tt)).astype(np.float32)
-                        phase += frames
+                        try:
+                            blk = ring.popleft()
+                        except Exception:
+                            blk = np.zeros(frames, dtype=np.float32)
+                        if blk.shape[0] < frames:
+                            tmp = np.zeros(frames, dtype=np.float32)
+                            tmp[: blk.shape[0]] = blk
+                            blk = tmp
+                        outdata[:, 0] = blk[:frames]
 
                     out = sd.OutputStream(
                         samplerate=args.rate,
                         channels=1,
                         dtype="float32",
                         blocksize=step,
+                        latency="high",
                         callback=_cb,
                     )
                     out.start()
-                blocks = (amp * b for b in tone.blocks())
+                blocks = _blocks_and_spkr(tone.blocks())
             elif args.source == "cw":
                 from .audio import MorseAudioSource
                 cw = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=20.0, message="LU7DZ TEST     ", blocksize=step)
+                amp = max(0.0, min(1.0, float(getattr(args, "vol", 60.0)) / 100.0))
                 out = None
+                ring = deque(maxlen=50)
+
+                def _blocks_and_spkr(src_iter):
+                    for b in src_iter:
+                        bb = (amp * b).astype(np.float32, copy=False)
+                        if args.spkr:
+                            ring.append(bb.copy())
+                        yield bb
+
                 if args.spkr:
-                    phase = 0.0
-                    amp = max(0.0, min(1.0, float(getattr(args, "vol", 60.0)) / 100.0))
                     def _cb(outdata, frames, t, status):  # noqa: ANN001
-                        nonlocal phase
-                        # Parlante recibe mismo CW: modular con puerta generada por la fuente
-                        outdata[:, 0] = (amp * cw.record(frames / float(args.rate))[:frames]).astype(np.float32)
-                        phase += frames
+                        try:
+                            blk = ring.popleft()
+                        except Exception:
+                            blk = np.zeros(frames, dtype=np.float32)
+                        if blk.shape[0] < frames:
+                            tmp = np.zeros(frames, dtype=np.float32)
+                            tmp[: blk.shape[0]] = blk
+                            blk = tmp
+                        outdata[:, 0] = blk[:frames]
+
                     out = sd.OutputStream(
                         samplerate=args.rate,
                         channels=1,
                         dtype="float32",
                         blocksize=step,
+                        latency="high",
                         callback=_cb,
                     )
                     out.start()
-                blocks = (amp * b for b in cw.blocks())
+                blocks = _blocks_and_spkr(cw.blocks())
             # Construcción compatible hacia atrás: setear atributos opcionales si existen
             live = WaterfallLive(
                 nfft=args.nfft,
