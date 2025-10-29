@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from collections import deque
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -51,13 +50,14 @@ class WaterfallRenderer:
 
     cmap: str = "viridis"
 
-    def show(self, spec: np.ndarray, sample_rate: int, nfft: int) -> None:
-        """Muestra el gráfico waterfall interactivo con F en vertical y tiempo horizontal (R→L)."""
+    def show(self, spec: np.ndarray, sample_rate: int, nfft: int, overlap: float) -> None:
+        """Muestra el gráfico waterfall con F vertical y tiempo horizontal (R→L) en segundos."""
         plt.figure(figsize=(10, 6))
-        # Transponer para que filas=frecuencia (eje Y) y columnas=tiempo (eje X)
-        data = spec.T
+        data = spec.T  # filas=frecuencia, columnas=tiempo
         n_frames = data.shape[1]
-        extent = (float(n_frames), 0.0, 0.0, float(sample_rate) / 2.0)  # tiempo derecha→izquierda
+        hop = int(nfft * (1 - overlap)) or 1
+        t_max = float(max(0, n_frames - 1) * hop) / float(sample_rate)
+        extent = (t_max, 0.0, 0.0, float(sample_rate) / 2.0)  # tiempo (s) derecha→izquierda
         plt.imshow(
             data,
             aspect="auto",
@@ -66,7 +66,7 @@ class WaterfallRenderer:
             cmap=self.cmap,
         )
         plt.colorbar(label="dBFS")
-        plt.xlabel("Tiempo [frames]")
+        plt.xlabel("Tiempo [s]")
         plt.ylabel("Frecuencia [Hz]")
         plt.title("Waterfall (Espectrograma)")
         plt.tight_layout()
@@ -100,15 +100,17 @@ class WaterfallLive:
         fig, ax = plt.subplots(figsize=(10, 6))
         bins = self.nfft // 2 + 1
         img_data = np.zeros((bins, self.max_frames), dtype=np.float32)
+        hop = int(self.nfft * (1 - self.overlap)) or 1
+        window_secs = float(max(1, self.max_frames - 1) * hop) / float(sample_rate)
         img = ax.imshow(
             img_data,
             aspect="auto",
             origin="lower",
-            extent=(float(self.max_frames), 0.0, 0.0, float(sample_rate) / 2.0),  # R→L
+            extent=(window_secs, 0.0, 0.0, float(sample_rate) / 2.0),  # tiempo (s) R→L
             cmap=self.cmap,
         )
         plt.colorbar(img, label="dBFS")
-        ax.set_xlabel("Tiempo [frames]")
+        ax.set_xlabel("Tiempo [s]")
         ax.set_ylabel("Frecuencia [Hz]")
         ax.set_title("Waterfall en vivo")
         plt.tight_layout()

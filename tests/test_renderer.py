@@ -15,5 +15,5 @@ def test_renderer_show(monkeypatch):
         called["v"] = True
 
     monkeypatch.setattr(plt, "show", _no_show)
-    renderer.show(spec, sample_rate=48000, nfft=32)
+    renderer.show(spec, sample_rate=48000, nfft=32, overlap=0.5)
     assert called["v"]

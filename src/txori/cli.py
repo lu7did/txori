@@ -31,6 +31,12 @@ def _parse_args() -> argparse.Namespace:
         default=400,
         help="Cantidad de filas visibles en vivo (buffer rodante).",
     )
+    parser.add_argument(
+        "--source",
+        choices=["stream", "tone"],
+        default="stream",
+        help="Fuente de datos: stream=entrada de audio, tone=generador 600 Hz.",
+    )
     return parser.parse_args()
 
 
@@ -42,20 +48,29 @@ def main() -> None:
         if args.continuous:
             # tamaño de bloque acorde al paso para actualizar por frame
             step = int(args.nfft * (1 - args.overlap)) or 1
-            stream = StreamAudioSource(sample_rate=args.rate, channels=1, blocksize=step)
+            if args.source == "stream":
+                stream = StreamAudioSource(sample_rate=args.rate, channels=1, blocksize=step)
+                blocks = stream.blocks()
+            else:
+                from .audio import ToneAudioSource
+                blocks = ToneAudioSource(sample_rate=args.rate, blocksize=step).blocks()
             live = WaterfallLive(
                 nfft=args.nfft,
                 overlap=args.overlap,
                 cmap=args.cmap,
                 max_frames=args.max_frames,
             )
-            live.run(stream.blocks(), sample_rate=args.rate)
+            live.run(blocks, sample_rate=args.rate)
         else:
-            source = DefaultAudioSource(sample_rate=args.rate, channels=1)
-            data = source.record(args.dur)
             comp = WaterfallComputer(nfft=args.nfft, overlap=args.overlap)
+            if args.source == "stream":
+                source = DefaultAudioSource(sample_rate=args.rate, channels=1)
+                data = source.record(args.dur)
+            else:
+                from .audio import ToneAudioSource
+                data = ToneAudioSource(sample_rate=args.rate).record(args.dur)
             spec = comp.compute(data)
-            WaterfallRenderer(cmap=args.cmap).show(spec, args.rate, args.nfft)
+            WaterfallRenderer(cmap=args.cmap).show(spec, args.rate, args.nfft, args.overlap)
     except (AudioError, ValueError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         sys.exit(1)

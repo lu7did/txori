@@ -2,3 +2,6 @@
 - 2025-10-29T16:28:10.553Z La visualización en el waterfall debe ser continua hasta que se interrumpa.
 - 2025-10-29T16:34:34.394Z Corrección: evitar queue.Full en callback de audio (drop del bloque más antiguo).
 - 2025-10-29T16:38:12.636Z Orientar waterfall con frecuencia vertical y tiempo horizontal de derecha a izquierda.
+- 2025-10-29T16:47:51.670Z Push: basic work.
+- 2025-10-29T16:51:39.369Z Agregar --source stream|tone (tone=generador 600 Hz).
+- 2025-10-29T16:54:13.007Z Eje tiempo en segundos en estático y vivo.

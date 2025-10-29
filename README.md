@@ -18,6 +18,10 @@ Instalación y uso rápido:
 Modo continuo (hasta Ctrl+C):
   txori-waterfall --continuous --rate 48000 --nfft 1024 --overlap 0.5
 
+Fuentes disponibles:
+- Micrófono/stream: --source stream (por defecto)
+- Tono 600 Hz: --source tone
+
 Orientación del gráfico:
 - Frecuencia en eje vertical (Y)
-- Tiempo en eje horizontal (X) de derecha a izquierda; ventana fija con desplazamiento
+- Tiempo en eje horizontal (X) de derecha a izquierda en segundos; ventana fija con desplazamiento
