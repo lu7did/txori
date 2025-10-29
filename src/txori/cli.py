@@ -122,8 +122,6 @@ def main() -> None:
                     phase = 0.0
                     def _cb(outdata, frames, t, status):  # noqa: ANN001
                         nonlocal phase
-                        idx = np.arange(frames, dtype=np.float32)
-                        tt = (phase + idx) / float(args.rate)
                         # Parlante recibe mismo CW: modular con puerta generada por la fuente
                         outdata[:, 0] = cw.record(frames / float(args.rate))[:frames]
                         phase += frames

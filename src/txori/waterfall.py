@@ -2,8 +2,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import time
-from collections import deque
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -12,6 +10,7 @@ class TimePlotLive:
     """Visualizador simple de señal en tiempo."""
 
     def __init__(self) -> None:
+        """Inicializa la figura y ejes del timeplot en vivo."""
         self.fig, self.ax = plt.subplots(figsize=(10, 3))
         self.line, = self.ax.plot(np.zeros(1, dtype=np.float32))
         self.ax.set_ylim([-1.0, 1.0])
@@ -22,6 +21,7 @@ class TimePlotLive:
         self.ax.set_ylabel("Amplitud")
 
     def update(self, block: np.ndarray) -> None:
+        """Actualiza los datos del timeplot con un bloque mono."""
         y = np.asarray(block, dtype=np.float32).reshape(-1)
         # Muestra más reciente a la derecha (x=0), más antigua a la izquierda (x=max)
         x = np.arange(y.size - 1, -1, -1, dtype=np.float32)
@@ -29,6 +29,7 @@ class TimePlotLive:
         self.ax.set_xlim([0, max(1, y.size)])
 
     def redraw(self) -> None:
+        """Redibuja asincrónicamente el timeplot en la figura activa."""
         self.fig.canvas.draw_idle()
 
 
