@@ -8,6 +8,29 @@ from collections import deque
 import numpy as np
 from matplotlib import pyplot as plt
 
+class TimePlotLive:
+    """Visualizador simple de señal en tiempo."""
+
+    def __init__(self) -> None:
+        self.fig, self.ax = plt.subplots(figsize=(10, 3))
+        self.line, = self.ax.plot(np.zeros(1, dtype=np.float32))
+        self.ax.set_ylim([-1.0, 1.0])
+        self.ax.set_xlim([0, 1])
+        self.ax.invert_xaxis()  # Tiempo derecha→izquierda, igual que waterfall
+        self.ax.set_title("Timeplot en vivo")
+        self.ax.set_xlabel("Muestras")
+        self.ax.set_ylabel("Amplitud")
+
+    def update(self, block: np.ndarray) -> None:
+        y = np.asarray(block, dtype=np.float32).reshape(-1)
+        # Muestra más reciente a la derecha (x=0), más antigua a la izquierda (x=max)
+        x = np.arange(y.size - 1, -1, -1, dtype=np.float32)
+        self.line.set_data(x, y)
+        self.ax.set_xlim([0, max(1, y.size)])
+
+    def redraw(self) -> None:
+        self.fig.canvas.draw_idle()
+
 
 @dataclass(slots=True)
 class WaterfallComputer:
@@ -83,6 +106,7 @@ class WaterfallLive:
     overlap: float = 0.5
     cmap: str = "viridis"
     max_frames: int = 400
+    enable_timeplot: bool = False
 
     def run(self, blocks_iter, sample_rate: int) -> None:  # noqa: ANN001
         """Ejecuta render en vivo con ventana de tiempo fija (buffer rodante) hasta Ctrl+C.
@@ -112,6 +136,7 @@ class WaterfallLive:
             cmap=self.cmap,
         )
         plt.colorbar(img, label="dBFS")
+        tplot = TimePlotLive() if self.enable_timeplot else None
         ax.set_xlabel("Tiempo [s]")
         ax.set_ylabel("Frecuencia [Hz]")
         ax.set_title("Waterfall en vivo")
@@ -119,6 +144,11 @@ class WaterfallLive:
 
         try:
             for block in blocks_iter:
+                if self.enable_timeplot and 'tplot' in locals() and tplot is not None:
+                    try:
+                        tplot.update(block)
+                    except Exception:
+                        pass
                 buf = np.concatenate((buf, block.astype(np.float32, copy=False)))
                 updated = False
                 while len(buf) >= self.nfft:
@@ -132,6 +162,8 @@ class WaterfallLive:
                     updated = True
                 if updated:
                     img.set_data(img_data)
+                    if self.enable_timeplot and 'tplot' in locals() and tplot is not None:
+                        tplot.redraw()
                     plt.pause(0.001)
         except KeyboardInterrupt:
             pass

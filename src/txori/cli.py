@@ -48,6 +48,11 @@ def _parse_args() -> argparse.Namespace:
         action="store_true",
         help="Emitir tonos por parlante (solo con --source tone).",
     )
+    parser.add_argument(
+        "--time",
+        action="store_true",
+        help="Mostrar timeplot en vivo.",
+    )
     return parser.parse_args()
 
 
@@ -114,6 +119,7 @@ def main() -> None:
                 overlap=args.overlap,
                 cmap=args.cmap,
                 max_frames=args.max_frames,
+                enable_timeplot=getattr(args, "time", False),
             )
             try:
                 live.run(blocks, sample_rate=args.rate)
