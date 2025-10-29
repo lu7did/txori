@@ -88,6 +88,9 @@ class WaterfallComputer:
             fft = np.fft.rfft(frame, n=self.nfft)
             mag = np.abs(fft)
             spec[i] = 20.0 * np.log10(mag + 1e-12)
+        if getattr(self, "row_median", False):
+            med = np.median(spec, axis=1, keepdims=True)
+            spec = spec - med
         return spec
 
 
@@ -102,15 +105,19 @@ class WaterfallRenderer:
         plt.figure(figsize=(10, 6))
         data = spec.T  # filas=frecuencia, columnas=tiempo
         n_frames = data.shape[1]
-        hop = int(nfft * (1 - overlap)) or 1
-        t_max = float(max(0, n_frames - 1) * hop) / float(sample_rate)
+        hop_val = int(hop) if (hop or 0) > 0 else (int(nfft * (1 - overlap)) or 1)
+        t_max = float(max(0, n_frames - 1) * hop_val) / float(sample_rate)
         extent = (t_max, 0.0, 0.0, float(sample_rate) / 2.0)  # tiempo (s) derecha→izquierda
+        vmax = np.max(data)
+        vmin = vmax - float(self.db_range) if self.db_range else None
         plt.imshow(
             data,
             aspect="auto",
             origin="lower",
             extent=extent,
             cmap=self.cmap,
+            vmin=vmin,
+            vmax=vmax if self.db_range else None,
         )
         plt.colorbar(label="dBFS")
         plt.xlabel("Tiempo [s]")
@@ -140,7 +147,7 @@ class WaterfallLive:
         """
         if not (0 <= self.overlap < 1):
             raise ValueError("overlap debe estar en [0, 1)")
-        step = int(self.nfft * (1 - self.overlap)) or 1
+        step = int(self.hop) if (self.hop or 0) > 0 else (int(self.nfft * (1 - self.overlap)) or 1)
         win = _make_window(self.window, self.nfft)
         eps = 1e-12
         buf = np.empty(0, dtype=np.float32)
