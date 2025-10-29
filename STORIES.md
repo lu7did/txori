@@ -5,3 +5,4 @@
 - 2025-10-29T16:47:51.670Z Push: basic work.
 - 2025-10-29T16:51:39.369Z Agregar --source stream|tone (tone=generador 600 Hz).
 - 2025-10-29T16:54:13.007Z Eje tiempo en segundos en estático y vivo.
+- 2025-10-29T16:59:51.330Z Agregar --spkr para emitir tonos en salida de audio.

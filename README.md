@@ -20,7 +20,7 @@ Modo continuo (hasta Ctrl+C):
 
 Fuentes disponibles:
 - Micrófono/stream: --source stream (por defecto)
-- Tono 600 Hz: --source tone
+- Tono 600 Hz: --source tone (opcionalmente emitir por parlante con --spkr)
 
 Orientación del gráfico:
 - Frecuencia en eje vertical (Y)

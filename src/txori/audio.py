@@ -90,7 +90,7 @@ class StreamAudioSource:
                 pass
             # Intento no bloqueante compatible con colas stub de tests
             try:
-                q.put_nowait(indata.copy())  # type: ignore[attr-defined]
+                q.put_nowait(indata.copy())
             except AttributeError:
                 try:
                     q.put(indata.copy(), block=False)

@@ -4,6 +4,8 @@ from __future__ import annotations
 import argparse
 import sys
 
+import sounddevice as sd
+
 from . import __build__, __version__
 from .audio import AudioError, DefaultAudioSource, StreamAudioSource
 from .waterfall import WaterfallComputer, WaterfallRenderer, WaterfallLive
@@ -37,6 +39,11 @@ def _parse_args() -> argparse.Namespace:
         default="stream",
         help="Fuente de datos: stream=entrada de audio, tone=generador 600 Hz.",
     )
+    parser.add_argument(
+        "--spkr",
+        action="store_true",
+        help="Emitir tonos por parlante (solo con --source tone).",
+    )
     return parser.parse_args()
 
 
@@ -53,7 +60,21 @@ def main() -> None:
                 blocks = stream.blocks()
             else:
                 from .audio import ToneAudioSource
-                blocks = ToneAudioSource(sample_rate=args.rate, blocksize=step).blocks()
+                tone = ToneAudioSource(sample_rate=args.rate, blocksize=step)
+                if args.spkr:
+                    def _speaker_blocks():
+                        with sd.OutputStream(
+                            samplerate=args.rate,
+                            channels=1,
+                            dtype="float32",
+                            blocksize=step,
+                        ) as out:
+                            for b in tone.blocks():
+                                out.write(b.reshape(-1, 1))
+                                yield b
+                    blocks = _speaker_blocks()
+                else:
+                    blocks = tone.blocks()
             live = WaterfallLive(
                 nfft=args.nfft,
                 overlap=args.overlap,
@@ -69,8 +90,12 @@ def main() -> None:
             else:
                 from .audio import ToneAudioSource
                 data = ToneAudioSource(sample_rate=args.rate).record(args.dur)
+                if args.spkr:
+                    sd.play(data.reshape(-1, 1), samplerate=args.rate, blocking=False)
             spec = comp.compute(data)
-            WaterfallRenderer(cmap=args.cmap).show(spec, args.rate, args.nfft, args.overlap)
+            WaterfallRenderer(cmap=args.cmap).show(
+                spec, args.rate, args.nfft, args.overlap
+            )
     except (AudioError, ValueError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         sys.exit(1)
