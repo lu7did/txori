@@ -31,7 +31,7 @@ Orientación del gráfico:
 Argumentos:
 - --dur float: Duración en segundos; si se especifica, desactiva el modo continuo.
 - --rate int: Frecuencia de muestreo (Hz). Por defecto 48000.
-- --nfft int: Tamaño de la FFT. Por defecto 4096 (mejor supresión de fuga espectral).
+- --nfft int: Tamaño de la FFT. Por defecto 4096; 2048 reduce costo computacional.
 - --overlap float: Traslape entre ventanas en [0,1). Por defecto 0.5.
 - --cmap str: Colormap de Matplotlib. Por defecto "viridis".
 - --continuous: Visualización continua hasta interrupción; se ignora si se indica --dur.
@@ -39,7 +39,7 @@ Argumentos:
 - --source [stream|tone|cw]: Fuente de datos. Por defecto stream.
 - --spkr: Emitir señal por parlante (stream copia entrada a salida; tone/cw reproducen la señal generada).
 - --time: Mostrar timeplot en vivo junto al waterfall.
-- --window [hann|blackman|blackmanharris]: Ventana de análisis. Por defecto blackmanharris para menor fuga espectral.
+- --window [hann|blackman|blackmanharris]: Ventana de análisis. Por defecto blackman.
 
 Ejemplos:
 - txori-waterfall --source stream --time

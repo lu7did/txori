@@ -26,6 +26,13 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--cmap", type=str, default="viridis", help="Colormap de Matplotlib.")
     parser.add_argument(
+        "--window",
+        type=str,
+        choices=["hann", "blackman", "blackmanharris"],
+        default="blackman",
+        help="Ventana de análisis del espectrograma (por defecto blackman).",
+    )
+    parser.add_argument(
         "--continuous",
         action="store_true",
         default=True,
