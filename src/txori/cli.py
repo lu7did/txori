@@ -116,7 +116,7 @@ def main() -> None:
                 blocks = tone.blocks()
             elif args.source == "cw":
                 from .audio import MorseAudioSource
-                cw = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=20.0, message="LU7DZ TEST", blocksize=step)
+                cw = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=20.0, message="LU7DZ TEST     ", blocksize=step)
                 out = None
                 if args.spkr:
                     phase = 0.0
@@ -166,7 +166,7 @@ def main() -> None:
                     sd.play(data.reshape(-1, 1), samplerate=args.rate, blocking=False)
             elif args.source == "cw":
                 from .audio import MorseAudioSource
-                data = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=20.0, message="LU7DZ TEST").record(args.dur)
+                data = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=20.0, message="LU7DZ TEST     ").record(args.dur)
                 if args.spkr:
                     sd.play(data.reshape(-1, 1), samplerate=args.rate, blocking=False)
             spec = comp.compute(data)
