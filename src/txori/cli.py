@@ -32,6 +32,7 @@ def _parse_args() -> argparse.Namespace:
         default="blackman",
         help="Ventana de análisis del espectrograma (por defecto blackman).",
     )
+    parser.add_argument("--vol", type=float, default=60.0, help="Volumen de salida 0-100% (tone/cw). Por defecto 60%.")
     parser.add_argument(
         "--continuous",
         action="store_true",
@@ -104,12 +105,13 @@ def main() -> None:
                 out = None
                 if args.spkr:
                     phase = 0.0
+                    amp = max(0.0, min(1.0, float(getattr(args, "vol", 60.0)) / 100.0))
 
                     def _cb(outdata, frames, t, status):  # noqa: ANN001
                         nonlocal phase
                         idx = np.arange(frames, dtype=np.float32)
                         tt = (phase + idx) / float(args.rate)
-                        outdata[:, 0] = np.sin(2 * np.pi * 600.0 * tt).astype(np.float32)
+                        outdata[:, 0] = (amp * np.sin(2 * np.pi * 600.0 * tt)).astype(np.float32)
                         phase += frames
 
                     out = sd.OutputStream(
@@ -127,10 +129,11 @@ def main() -> None:
                 out = None
                 if args.spkr:
                     phase = 0.0
+                    amp = max(0.0, min(1.0, float(getattr(args, "vol", 60.0)) / 100.0))
                     def _cb(outdata, frames, t, status):  # noqa: ANN001
                         nonlocal phase
                         # Parlante recibe mismo CW: modular con puerta generada por la fuente
-                        outdata[:, 0] = cw.record(frames / float(args.rate))[:frames]
+                        outdata[:, 0] = (amp * cw.record(frames / float(args.rate))[:frames]).astype(np.float32)
                         phase += frames
                     out = sd.OutputStream(
                         samplerate=args.rate,
@@ -169,12 +172,14 @@ def main() -> None:
                 from .audio import ToneAudioSource
                 data = ToneAudioSource(sample_rate=args.rate).record(args.dur)
                 if args.spkr:
-                    sd.play(data.reshape(-1, 1), samplerate=args.rate, blocking=False)
+                    amp = max(0.0, min(1.0, float(getattr(args, "vol", 60.0)) / 100.0))
+                    sd.play((amp * data).reshape(-1, 1), samplerate=args.rate, blocking=False)
             elif args.source == "cw":
                 from .audio import MorseAudioSource
                 data = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=20.0, message="LU7DZ TEST     ").record(args.dur)
                 if args.spkr:
-                    sd.play(data.reshape(-1, 1), samplerate=args.rate, blocking=False)
+                    amp = max(0.0, min(1.0, float(getattr(args, "vol", 60.0)) / 100.0))
+                    sd.play((amp * data).reshape(-1, 1), samplerate=args.rate, blocking=False)
             spec = comp.compute(data)
             WaterfallRenderer(cmap=args.cmap).show(
                 spec, args.rate, args.nfft, args.overlap
