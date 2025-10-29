@@ -58,7 +58,7 @@ class WaterfallComputer:
         if len(x) < self.nfft:
             raise ValueError("Señal demasiado corta para el nfft indicado")
         n_frames = 1 + (len(x) - self.nfft) // step
-        win = np.hanning(self.nfft).astype(np.float32)
+        win = _make_window(self.window, self.nfft)
         spec = np.empty((n_frames, self.nfft // 2 + 1), dtype=np.float32)
         for i in range(n_frames):
             start = i * step
@@ -119,7 +119,7 @@ class WaterfallLive:
         if not (0 <= self.overlap < 1):
             raise ValueError("overlap debe estar en [0, 1)")
         step = int(self.nfft * (1 - self.overlap)) or 1
-        win = np.hanning(self.nfft).astype(np.float32)
+        win = _make_window(self.window, self.nfft)
         eps = 1e-12
         buf = np.empty(0, dtype=np.float32)
 

@@ -20,7 +20,7 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--dur", type=float, default=None, help="Duración en segundos (si se especifica, desactiva el modo continuo).")
     parser.add_argument("--rate", type=int, default=48_000, help="Frecuencia de muestreo (Hz).")
-    parser.add_argument("--nfft", type=int, default=1024, help="Tamaño de la FFT.")
+    parser.add_argument("--nfft", type=int, default=4096, help="Tamaño de la FFT (por defecto 4096 para mitigar fuga espectral).")
     parser.add_argument(
         "--overlap", type=float, default=0.5, help="Traslape entre ventanas en [0,1)."
     )
@@ -140,6 +140,7 @@ def main() -> None:
                 cmap=args.cmap,
                 max_frames=args.max_frames,
                 enable_timeplot=getattr(args, "time", False),
+                window=args.window,
             )
             try:
                 live.run(blocks, sample_rate=args.rate)
@@ -151,7 +152,7 @@ def main() -> None:
                 except Exception:
                     pass
         else:
-            comp = WaterfallComputer(nfft=args.nfft, overlap=args.overlap)
+            comp = WaterfallComputer(nfft=args.nfft, overlap=args.overlap, window=args.window)
             if args.source == "stream":
                 source = DefaultAudioSource(sample_rate=args.rate, channels=1)
                 data = source.record(args.dur)
