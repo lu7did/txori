@@ -60,6 +60,8 @@ class WaterfallComputer:
     nfft: int = 1024
     overlap: float = 0.5  # en [0, 1)
     window: str = "blackman"
+    hop: int | None = None
+    row_median: bool = False
 
     def compute(self, signal: np.ndarray) -> np.ndarray:
         """Devuelve matriz (frames x (nfft/2+1)) con magnitudes en dB.
@@ -75,7 +77,7 @@ class WaterfallComputer:
         x = np.asarray(signal, dtype=np.float32)
         if x.ndim != 1:
             raise ValueError("La señal debe ser mono (1D)")
-        step = int(self.nfft * (1 - self.overlap)) or 1
+        step = int(self.hop) if (getattr(self, "hop", None) or 0) > 0 else (int(self.nfft * (1 - self.overlap)) or 1)
         if len(x) < self.nfft:
             raise ValueError("Señal demasiado corta para el nfft indicado")
         n_frames = 1 + (len(x) - self.nfft) // step
@@ -158,12 +160,16 @@ class WaterfallLive:
         img_data = np.zeros((bins, self.max_frames), dtype=np.float32)
         # Ventana de tiempo constante basada en hop=step
         window_s = float((self.max_frames - 1) * step) / float(sample_rate)
+        vmax0 = 0.0
+        vmin0 = vmax0 - float(self.db_range) if self.db_range else None
         img = ax.imshow(
             img_data,
             aspect="auto",
             origin="lower",
             extent=(window_s, 0.0, 0.0, float(sample_rate) / 2.0),  # ventana de tiempo constante
             cmap=self.cmap,
+            vmin=vmin0,
+            vmax=vmax0 if self.db_range else None,
         )
         plt.colorbar(img, label="dBFS")
         tplot = TimePlotLive() if self.enable_timeplot else None
@@ -185,6 +191,8 @@ class WaterfallLive:
                     frame = buf[: self.nfft] * win
                     mag = np.abs(np.fft.rfft(frame, n=self.nfft))
                     row = (20.0 * np.log10(mag + eps)).astype(np.float32, copy=False)
+                    if self.row_median:
+                        row = row - float(np.median(row))
                     # Desplaza a la izquierda y coloca la fila nueva a la derecha
                     img_data[:, :-1] = img_data[:, 1:]
                     img_data[:, -1] = row
@@ -192,6 +200,9 @@ class WaterfallLive:
                     updated = True
                 if updated:
                     img.set_data(img_data)
+                    if self.db_range:
+                        vmax = float(np.max(img_data))
+                        img.set_clim(vmin=vmax - float(self.db_range), vmax=vmax)
                     if self.enable_timeplot and 'tplot' in locals() and tplot is not None:
                         tplot.redraw()
                     plt.pause(0.001)
