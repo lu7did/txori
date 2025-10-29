@@ -20,9 +20,27 @@ Modo continuo (hasta Ctrl+C):
   txori-waterfall --continuous --rate 48000 --nfft 1024 --overlap 0.5
 
 Fuentes disponibles:
-- Micrófono/stream: --source stream (por defecto)
-- Tono 600 Hz: --source tone (opcionalmente emitir por parlante con --spkr)
+- Micrófono/stream: --source stream (por defecto). En modo continuo procesa bloques; con --dur graba una vez y muestra estático.
+- Tono 600 Hz: --source tone (opcionalmente emitir por parlante con --spkr).
+- CW Morse 600 Hz: --source cw (mensaje por defecto "LU7DZ TEST     ", wpm=20). Puede emitirse por parlante con --spkr.
 
 Orientación del gráfico:
 - Frecuencia en eje vertical (Y)
 - Tiempo en eje horizontal (X) de derecha a izquierda en segundos; ventana fija con desplazamiento
+
+Argumentos:
+- --dur float: Duración en segundos; si se especifica, desactiva el modo continuo.
+- --rate int: Frecuencia de muestreo (Hz). Por defecto 48000.
+- --nfft int: Tamaño de la FFT. Por defecto 1024.
+- --overlap float: Traslape entre ventanas en [0,1). Por defecto 0.5.
+- --cmap str: Colormap de Matplotlib. Por defecto "viridis".
+- --continuous: Visualización continua hasta interrupción; se ignora si se indica --dur.
+- --max-frames int: Filas visibles en vivo (buffer rodante). Por defecto 400.
+- --source [stream|tone|cw]: Fuente de datos. Por defecto stream.
+- --spkr: Emitir señal por parlante (stream copia entrada a salida; tone/cw reproducen la señal generada).
+- --time: Mostrar timeplot en vivo junto al waterfall.
+
+Ejemplos:
+- txori-waterfall --source stream --time
+- txori-waterfall --source tone --spkr
+- txori-waterfall --source cw --time --spkr
