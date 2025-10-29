@@ -40,7 +40,7 @@ Argumentos:
 - --spkr: Emitir señal por parlante (stream copia entrada a salida; tone/cw reproducen la señal generada).
 - --time: Mostrar timeplot en vivo junto al waterfall.
 - --window [hann|blackman|blackmanharris]: Ventana de análisis. Por defecto blackman.
-- --vol int: Volumen de salida 0-100% para tone/cw (spkr y reproducción). Por defecto 60.
+- --vol int: Nivel máx. 0-100% de la señal (afecta stream/tone/cw y speaker/timeplot/waterfall). Por defecto 60.
 
 Ejemplos:
 - txori-waterfall --source stream --time

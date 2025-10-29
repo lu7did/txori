@@ -68,6 +68,7 @@ def main() -> None:
     """Punto de entrada del ejecutable ``txori-waterfall``."""
     args = _parse_args()
     print(f"txori {__version__} build {__build__}")
+    amp = max(0.0, min(1.0, float(getattr(args, "vol", 60.0)) / 100.0))
     try:
         # Modo continuo por defecto salvo que se especifique --dur
         if args.dur is None and args.continuous:
@@ -98,7 +99,7 @@ def main() -> None:
                     blocks = _speaker_stream_blocks()
                 else:
                     stream = StreamAudioSource(sample_rate=args.rate, channels=1, blocksize=step)
-                    blocks = stream.blocks()
+                    blocks = (amp * b for b in stream.blocks())
             elif args.source == "tone":
                 from .audio import ToneAudioSource
                 tone = ToneAudioSource(sample_rate=args.rate, blocksize=step)
@@ -122,7 +123,7 @@ def main() -> None:
                         callback=_cb,
                     )
                     out.start()
-                blocks = tone.blocks()
+                blocks = (amp * b for b in tone.blocks())
             elif args.source == "cw":
                 from .audio import MorseAudioSource
                 cw = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=20.0, message="LU7DZ TEST     ", blocksize=step)
@@ -143,7 +144,7 @@ def main() -> None:
                         callback=_cb,
                     )
                     out.start()
-                blocks = cw.blocks()
+                blocks = (amp * b for b in cw.blocks())
             live = WaterfallLive(
                 nfft=args.nfft,
                 overlap=args.overlap,

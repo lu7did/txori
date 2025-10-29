@@ -59,6 +59,7 @@ class WaterfallComputer:
 
     nfft: int = 1024
     overlap: float = 0.5  # en [0, 1)
+    window: str = "blackman"
 
     def compute(self, signal: np.ndarray) -> np.ndarray:
         """Devuelve matriz (frames x (nfft/2+1)) con magnitudes en dB.
@@ -128,6 +129,7 @@ class WaterfallLive:
     cmap: str = "viridis"
     max_frames: int = 400
     enable_timeplot: bool = False
+    window: str = "blackman"
 
     def run(self, blocks_iter, sample_rate: int) -> None:  # noqa: ANN001
         """Ejecuta render en vivo con ventana de tiempo fija (buffer rodante) hasta Ctrl+C.
