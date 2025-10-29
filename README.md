@@ -17,3 +17,7 @@ Instalación y uso rápido:
 
 Modo continuo (hasta Ctrl+C):
   txori-waterfall --continuous --rate 48000 --nfft 1024 --overlap 0.5
+
+Orientación del gráfico:
+- Frecuencia en eje vertical (Y)
+- Tiempo en eje horizontal (X) de derecha a izquierda; ventana fija con desplazamiento

@@ -83,12 +83,46 @@ class StreamAudioSource:
         """
         if self.blocksize <= 0:
             raise ValueError("blocksize debe ser > 0")
-        q: queue.Queue[np.ndarray] = queue.Queue(maxsize=10)
+        q: queue.Queue[np.ndarray] = queue.Queue(maxsize=50)
 
         def _cb(indata: np.ndarray, frames: int, time, status) -> None:  # noqa: ANN001
             if status:  # status puede reportar xruns; no elevamos excepción aquí
                 pass
-            q.put(indata.copy(), block=False)
+            # Intento no bloqueante compatible con colas stub de tests
+            try:
+                q.put_nowait(indata.copy())  # type: ignore[attr-defined]
+            except AttributeError:
+                try:
+                    q.put(indata.copy(), block=False)
+                except queue.Full:
+                    # Descarta más antiguo y reintenta
+                    try:
+                        try:
+                            q.get_nowait()  # type: ignore[attr-defined]
+                        except AttributeError:
+                            try:
+                                q.get(block=False)
+                            except TypeError:
+                                q.get()
+                        q.put(indata.copy(), block=False)
+                    except Exception:
+                        pass
+            except queue.Full:
+                # Cola llena: descartar el bloque más antiguo y reintentar; si vuelve a fallar, soltar este bloque
+                try:
+                    try:
+                        q.get_nowait()  # type: ignore[attr-defined]
+                    except AttributeError:
+                        try:
+                            q.get(block=False)
+                        except TypeError:
+                            q.get()
+                    try:
+                        q.put_nowait(indata.copy())  # type: ignore[attr-defined]
+                    except AttributeError:
+                        q.put(indata.copy(), block=False)
+                except Exception:
+                    pass
 
         try:
             with sd.InputStream(

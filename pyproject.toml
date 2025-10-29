@@ -63,7 +63,7 @@ warn_unused_ignores = true
 ignore_missing_imports = true
 pretty = true
 show_error_context = true
-exclude = '(^scripts/|^script/|^ejemplos/|^examples/|^docs/|^tests/_data/|^src/txori/audio.py$)'
+exclude = '(^scripts/|^script/|^ejemplos/|^examples/|^docs/|^tests/_data/)'
 
 [tool.flake8]
 max-line-length = 100

@@ -52,19 +52,22 @@ class WaterfallRenderer:
     cmap: str = "viridis"
 
     def show(self, spec: np.ndarray, sample_rate: int, nfft: int) -> None:
-        """Muestra el gráfico waterfall interactivo."""
+        """Muestra el gráfico waterfall interactivo con F en vertical y tiempo horizontal (R→L)."""
         plt.figure(figsize=(10, 6))
-        extent = (0.0, float(sample_rate) / 2.0, float(spec.shape[0]), 0.0)
+        # Transponer para que filas=frecuencia (eje Y) y columnas=tiempo (eje X)
+        data = spec.T
+        n_frames = data.shape[1]
+        extent = (float(n_frames), 0.0, 0.0, float(sample_rate) / 2.0)  # tiempo derecha→izquierda
         plt.imshow(
-            spec,
+            data,
             aspect="auto",
-            origin="upper",
+            origin="lower",
             extent=extent,
             cmap=self.cmap,
         )
         plt.colorbar(label="dBFS")
-        plt.xlabel("Frecuencia [Hz]")
-        plt.ylabel("Tiempo [frames]")
+        plt.xlabel("Tiempo [frames]")
+        plt.ylabel("Frecuencia [Hz]")
         plt.title("Waterfall (Espectrograma)")
         plt.tight_layout()
         plt.show()
@@ -80,28 +83,33 @@ class WaterfallLive:
     max_frames: int = 400
 
     def run(self, blocks_iter, sample_rate: int) -> None:  # noqa: ANN001
-        """Ejecuta el render en vivo hasta interrupción con Ctrl+C."""
+        """Ejecuta render en vivo con ventana de tiempo fija (buffer rodante) hasta Ctrl+C.
+
+        Args:
+            blocks_iter: Iterador de bloques mono float32.
+            sample_rate: Frecuencia de muestreo (Hz).
+        """
         if not (0 <= self.overlap < 1):
             raise ValueError("overlap debe estar en [0, 1)")
         step = int(self.nfft * (1 - self.overlap)) or 1
         win = np.hanning(self.nfft).astype(np.float32)
         eps = 1e-12
         buf = np.empty(0, dtype=np.float32)
-        rows: deque[np.ndarray] = deque(maxlen=self.max_frames)
 
         plt.ion()
         fig, ax = plt.subplots(figsize=(10, 6))
         bins = self.nfft // 2 + 1
+        img_data = np.zeros((bins, self.max_frames), dtype=np.float32)
         img = ax.imshow(
-            np.zeros((1, bins), dtype=np.float32),
+            img_data,
             aspect="auto",
-            origin="upper",
-            extent=(0.0, float(sample_rate) / 2.0, 1.0, 0.0),
+            origin="lower",
+            extent=(float(self.max_frames), 0.0, 0.0, float(sample_rate) / 2.0),  # R→L
             cmap=self.cmap,
         )
         plt.colorbar(img, label="dBFS")
-        ax.set_xlabel("Frecuencia [Hz]")
-        ax.set_ylabel("Tiempo [frames]")
+        ax.set_xlabel("Tiempo [frames]")
+        ax.set_ylabel("Frecuencia [Hz]")
         ax.set_title("Waterfall en vivo")
         plt.tight_layout()
 
@@ -112,14 +120,14 @@ class WaterfallLive:
                 while len(buf) >= self.nfft:
                     frame = buf[: self.nfft] * win
                     mag = np.abs(np.fft.rfft(frame, n=self.nfft))
-                    row = 20.0 * np.log10(mag + eps)
-                    rows.append(row.astype(np.float32, copy=False))
+                    row = (20.0 * np.log10(mag + eps)).astype(np.float32, copy=False)
+                    # Desplaza a la izquierda y coloca la fila nueva a la derecha
+                    img_data[:, :-1] = img_data[:, 1:]
+                    img_data[:, -1] = row
                     buf = buf[step:]
                     updated = True
-                if updated and rows:
-                    data = np.vstack(rows)
-                    img.set_data(data)
-                    img.set_extent((0.0, float(sample_rate) / 2.0, float(len(rows)), 0.0))
+                if updated:
+                    img.set_data(img_data)
                     plt.pause(0.001)
         except KeyboardInterrupt:
             pass
