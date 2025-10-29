@@ -102,16 +102,13 @@ class WaterfallLive:
         fig, ax = plt.subplots(figsize=(10, 6))
         bins = self.nfft // 2 + 1
         img_data = np.zeros((bins, self.max_frames), dtype=np.float32)
-        times: deque[float] = deque(maxlen=self.max_frames)
-        # inicializar con el tiempo actual para una extensión coherente
-        now = time.monotonic()
-        for _ in range(self.max_frames):
-            times.append(now)
+        # Ventana de tiempo constante basada en hop=step
+        window_s = float((self.max_frames - 1) * step) / float(sample_rate)
         img = ax.imshow(
             img_data,
             aspect="auto",
             origin="lower",
-            extent=(1.0, 0.0, 0.0, float(sample_rate) / 2.0),  # se ajustará dinámicamente
+            extent=(window_s, 0.0, 0.0, float(sample_rate) / 2.0),  # ventana de tiempo constante
             cmap=self.cmap,
         )
         plt.colorbar(img, label="dBFS")
@@ -135,11 +132,6 @@ class WaterfallLive:
                     updated = True
                 if updated:
                     img.set_data(img_data)
-                    # actualizar eje de tiempo usando reloj de pared
-                    t_now = time.monotonic()
-                    times.append(t_now)
-                    window = max(1e-6, times[-1] - times[0])
-                    img.set_extent((window, 0.0, 0.0, float(sample_rate) / 2.0))
                     plt.pause(0.001)
         except KeyboardInterrupt:
             pass
