@@ -20,7 +20,7 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--dur", type=float, default=None, help="Duración en segundos (si se especifica, desactiva el modo continuo).")
     parser.add_argument("--rate", type=int, default=48_000, help="Frecuencia de muestreo (Hz).")
-    parser.add_argument("--nfft", type=int, default=4096, help="Tamaño de la FFT (por defecto 4096 para mitigar fuga espectral).")
+    parser.add_argument("--nfft", type=int, default=4096, help="Tamaño de la FFT (por defecto 4096; 2048 reduce costo computacional).")
     parser.add_argument(
         "--overlap", type=float, default=0.5, help="Traslape entre ventanas en [0,1)."
     )
