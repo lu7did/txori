@@ -67,6 +67,15 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def _filter_kwargs(callable_obj, kwargs: dict) -> dict:
+    try:
+        sig = inspect.signature(callable_obj)
+        params = sig.parameters
+        return {k: v for k, v in kwargs.items() if k in params}
+    except Exception:
+        return kwargs
+
+
 def main() -> None:
     """Punto de entrada del ejecutable ``txori-waterfall``."""
     args = _parse_args()
@@ -148,17 +157,18 @@ def main() -> None:
                     )
                     out.start()
                 blocks = (amp * b for b in cw.blocks())
-            live = WaterfallLive(
+            live_kwargs = dict(
                 nfft=args.nfft,
                 overlap=args.overlap,
                 cmap=args.cmap,
                 max_frames=args.max_frames,
                 enable_timeplot=getattr(args, "time", False),
                 window=args.window,
-                hop=args.hop,
+                hop=getattr(args, "hop", None),
                 row_median=getattr(args, "row_median", False),
                 db_range=getattr(args, "db_range", None),
             )
+            live = WaterfallLive(**_filter_kwargs(WaterfallLive, live_kwargs))
             try:
                 live.run(blocks, sample_rate=args.rate)
             finally:
@@ -169,7 +179,8 @@ def main() -> None:
                 except Exception:
                     pass
         else:
-            comp = WaterfallComputer(nfft=args.nfft, overlap=args.overlap, window=args.window, hop=args.hop, row_median=getattr(args, "row_median", False))
+            comp_kwargs = dict(nfft=args.nfft, overlap=args.overlap, window=args.window, hop=getattr(args, "hop", None), row_median=getattr(args, "row_median", False))
+            comp = WaterfallComputer(**_filter_kwargs(WaterfallComputer, comp_kwargs))
             if args.source == "stream":
                 source = DefaultAudioSource(sample_rate=args.rate, channels=1)
                 data = source.record(args.dur)
