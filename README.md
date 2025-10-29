@@ -13,7 +13,8 @@ Instalación y uso rápido:
   python -m venv .venv && source .venv/bin/activate
   pip install -r requirements.txt
   python -m pip install -e .
-  txori-waterfall --dur 5
+  txori-waterfall  # por defecto corre continuo hasta Ctrl+C
+  txori-waterfall --dur 5  # duración fija
 
 Modo continuo (hasta Ctrl+C):
   txori-waterfall --continuous --rate 48000 --nfft 1024 --overlap 0.5

@@ -15,7 +15,7 @@ def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Captura audio desde la entrada predeterminada y muestra un waterfall.",
     )
-    parser.add_argument("--dur", type=float, default=5.0, help="Duración de captura en segundos.")
+    parser.add_argument("--dur", type=float, default=None, help="Duración en segundos (si se especifica, desactiva el modo continuo).")
     parser.add_argument("--rate", type=int, default=48_000, help="Frecuencia de muestreo (Hz).")
     parser.add_argument("--nfft", type=int, default=1024, help="Tamaño de la FFT.")
     parser.add_argument(
@@ -25,7 +25,8 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--continuous",
         action="store_true",
-        help="Visualización continua hasta interrupción (Ctrl+C).",
+        default=True,
+        help="Visualización continua hasta interrupción (Ctrl+C). Por defecto es continuo salvo que se indique --dur.",
     )
     parser.add_argument(
         "--max-frames",
@@ -52,7 +53,8 @@ def main() -> None:
     args = _parse_args()
     print(f"txori {__version__} build {__build__}")
     try:
-        if args.continuous:
+        # Modo continuo por defecto salvo que se especifique --dur
+        if args.dur is None and args.continuous:
             # tamaño de bloque acorde al paso para actualizar por frame
             step = int(args.nfft * (1 - args.overlap)) or 1
             if args.source == "stream":
