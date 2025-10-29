@@ -60,7 +60,20 @@ def main() -> None:
             step = int(args.nfft * (1 - args.overlap)) or 1
             if args.source == "stream":
                 stream = StreamAudioSource(sample_rate=args.rate, channels=1, blocksize=step)
-                blocks = stream.blocks()
+                if args.spkr:
+                    def _speaker_blocks():
+                        with sd.OutputStream(
+                            samplerate=args.rate,
+                            channels=1,
+                            dtype="float32",
+                            blocksize=step,
+                        ) as out:
+                            for b in stream.blocks():
+                                out.write(b.reshape(-1, 1))
+                                yield b
+                    blocks = _speaker_blocks()
+                else:
+                    blocks = stream.blocks()
             else:
                 from .audio import ToneAudioSource
                 tone = ToneAudioSource(sample_rate=args.rate, blocksize=step)
@@ -103,6 +116,8 @@ def main() -> None:
             if args.source == "stream":
                 source = DefaultAudioSource(sample_rate=args.rate, channels=1)
                 data = source.record(args.dur)
+                if args.spkr:
+                    sd.play(data.reshape(-1, 1), samplerate=args.rate, blocking=False)
             else:
                 from .audio import ToneAudioSource
                 data = ToneAudioSource(sample_rate=args.rate).record(args.dur)
