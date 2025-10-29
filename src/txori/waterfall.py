@@ -6,6 +6,26 @@ from dataclasses import dataclass
 import numpy as np
 from matplotlib import pyplot as plt
 
+
+def _make_window(name: str, n: int) -> np.ndarray:
+    """Crea ventana de análisis ('hann', 'blackman', 'blackmanharris')."""
+    name = name.lower()
+    if name == "hann":
+        return np.hanning(n).astype(np.float32)
+    if name == "blackman":
+        return np.blackman(n).astype(np.float32)
+    if name == "blackmanharris":
+        a0, a1, a2, a3 = 0.35875, 0.48829, 0.14128, 0.01168
+        k = np.arange(n, dtype=np.float32)
+        w = (
+            a0
+            - a1 * np.cos(2.0 * np.pi * k / (n - 1))
+            + a2 * np.cos(4.0 * np.pi * k / (n - 1))
+            - a3 * np.cos(6.0 * np.pi * k / (n - 1))
+        )
+        return w.astype(np.float32)
+    raise ValueError(f"Ventana no soportada: {name}")
+
 class TimePlotLive:
     """Visualizador simple de señal en tiempo."""
 
