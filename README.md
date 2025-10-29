@@ -14,3 +14,6 @@ Instalación y uso rápido:
   pip install -r requirements.txt
   python -m pip install -e .
   txori-waterfall --dur 5
+
+Modo continuo (hasta Ctrl+C):
+  txori-waterfall --continuous --rate 48000 --nfft 1024 --overlap 0.5

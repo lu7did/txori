@@ -18,6 +18,7 @@ class _FakeSource:
 def test_cli_main(monkeypatch):
     monkeypatch.setattr(cli_mod, "DefaultAudioSource", _FakeSource)
     monkeypatch.setattr(cli_mod.WaterfallRenderer, "show", lambda *a, **k: None)
+    monkeypatch.setattr(cli_mod, "WaterfallLive", lambda *a, **k: type("_L", (), {"run": lambda *_a, **_k: None})())
     argv = [
         "txori-waterfall",
         "--dur",

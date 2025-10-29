@@ -7,7 +7,8 @@ visualización para favorecer testeo y mantenibilidad.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Final
+from typing import Final, Iterator
+import queue
 
 import numpy as np
 import sounddevice as sd
@@ -61,3 +62,49 @@ class DefaultAudioSource:
         else:
             data = data.reshape(-1)
         return data
+
+
+@dataclass(slots=True)
+class StreamAudioSource:
+    """Fuente de audio continua basada en InputStream de sounddevice.
+
+    Entrega bloques mono de tamaño fijo vía un iterador infinito hasta interrupción.
+    """
+
+    sample_rate: int = 48_000
+    channels: int = 1
+    blocksize: int = 1024
+
+    def blocks(self) -> Iterator[np.ndarray]:
+        """Itera bloques mono de tamaño fijo hasta Ctrl+C.
+
+        Yields:
+            np.ndarray: bloque mono float32 en [-1, 1] de longitud ``blocksize``.
+        """
+        if self.blocksize <= 0:
+            raise ValueError("blocksize debe ser > 0")
+        q: queue.Queue[np.ndarray] = queue.Queue(maxsize=10)
+
+        def _cb(indata: np.ndarray, frames: int, time, status) -> None:  # noqa: ANN001
+            if status:  # status puede reportar xruns; no elevamos excepción aquí
+                pass
+            q.put(indata.copy(), block=False)
+
+        try:
+            with sd.InputStream(
+                samplerate=self.sample_rate,
+                channels=self.channels,
+                dtype="float32",
+                blocksize=self.blocksize,
+                callback=_cb,
+            ):
+                while True:
+                    data = q.get()
+                    x = data.astype(np.float32, copy=False)
+                    if self.channels > 1:
+                        x = np.mean(x, axis=1)
+                    else:
+                        x = x.reshape(-1)
+                    yield x
+        except Exception as exc:  # noqa: BLE001
+            raise AudioError("Fallo en el stream de audio") from exc
