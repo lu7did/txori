@@ -6,6 +6,8 @@ import sys
 
 import numpy as np
 import sounddevice as sd
+import time
+from collections import deque
 
 from . import __build__, __version__
 from .audio import AudioError, DefaultAudioSource, StreamAudioSource

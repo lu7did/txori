@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import time
+from collections import deque
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -100,13 +102,16 @@ class WaterfallLive:
         fig, ax = plt.subplots(figsize=(10, 6))
         bins = self.nfft // 2 + 1
         img_data = np.zeros((bins, self.max_frames), dtype=np.float32)
-        hop = int(self.nfft * (1 - self.overlap)) or 1
-        window_secs = float(max(1, self.max_frames - 1) * hop) / float(sample_rate)
+        times: deque[float] = deque(maxlen=self.max_frames)
+        # inicializar con el tiempo actual para una extensión coherente
+        now = time.monotonic()
+        for _ in range(self.max_frames):
+            times.append(now)
         img = ax.imshow(
             img_data,
             aspect="auto",
             origin="lower",
-            extent=(window_secs, 0.0, 0.0, float(sample_rate) / 2.0),  # tiempo (s) R→L
+            extent=(1.0, 0.0, 0.0, float(sample_rate) / 2.0),  # se ajustará dinámicamente
             cmap=self.cmap,
         )
         plt.colorbar(img, label="dBFS")
@@ -130,6 +135,11 @@ class WaterfallLive:
                     updated = True
                 if updated:
                     img.set_data(img_data)
+                    # actualizar eje de tiempo usando reloj de pared
+                    t_now = time.monotonic()
+                    times.append(t_now)
+                    window = max(1e-6, times[-1] - times[0])
+                    img.set_extent((window, 0.0, 0.0, float(sample_rate) / 2.0))
                     plt.pause(0.001)
         except KeyboardInterrupt:
             pass
