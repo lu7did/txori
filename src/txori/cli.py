@@ -61,20 +61,30 @@ def main() -> None:
             # tamaño de bloque acorde al paso para actualizar por frame
             step = int(args.nfft * (1 - args.overlap)) or 1
             if args.source == "stream":
-                stream = StreamAudioSource(sample_rate=args.rate, channels=1, blocksize=step)
                 if args.spkr:
-                    def _speaker_blocks():
-                        with sd.OutputStream(
+                    def _speaker_stream_blocks():
+                        buf = deque(maxlen=200)
+                        def _cb(indata, outdata, frames, t, status):  # noqa: ANN001
+                            outdata[:, 0] = indata[:, 0]
+                            try:
+                                buf.append(indata.copy().reshape(-1))
+                            except Exception:
+                                pass
+                        with sd.Stream(
                             samplerate=args.rate,
                             channels=1,
                             dtype="float32",
                             blocksize=step,
-                        ) as out:
-                            for b in stream.blocks():
-                                out.write(b.reshape(-1, 1))
-                                yield b
-                    blocks = _speaker_blocks()
+                            callback=_cb,
+                        ):
+                            while True:
+                                if buf:
+                                    yield buf.popleft()
+                                else:
+                                    time.sleep(0.001)
+                    blocks = _speaker_stream_blocks()
                 else:
+                    stream = StreamAudioSource(sample_rate=args.rate, channels=1, blocksize=step)
                     blocks = stream.blocks()
             else:
                 from .audio import ToneAudioSource
@@ -110,7 +120,8 @@ def main() -> None:
             finally:
                 try:
                     if 'out' in locals() and out is not None:
-                        out.stop(); out.close()
+                        out.stop()
+                        out.close()
                 except Exception:
                     pass
         else:

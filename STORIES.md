@@ -9,3 +9,4 @@
 - 2025-10-29T17:03:08.919Z Modo continuo por defecto salvo que se indique --dur.
 - 2025-10-29T17:05:17.992Z Push: speaker implementado.
 - 2025-10-29T17:07:20.203Z Reproducir también stream por parlante cuando --spkr.
+- 2025-10-29T17:14:05.345Z Push: speaker & tone & stream implementado, waterfall corregido.
