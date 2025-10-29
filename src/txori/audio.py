@@ -233,6 +233,7 @@ class MorseAudioSource:
             self._build_gate()
 
     def record(self, duration_s: float) -> np.ndarray:
+        """Genera CW senoidal keyeado por la duración indicada."""
         if duration_s <= 0:
             raise ValueError("duration_s debe ser > 0")
         self._ensure_gate()
@@ -260,6 +261,7 @@ class MorseAudioSource:
         return (sig * g).astype(np.float32)
 
     def blocks(self) -> Iterator[np.ndarray]:
+        """Itera bloques CW senoidales keyeados en loop hasta Ctrl+C."""
         if self.blocksize <= 0:
             raise ValueError("blocksize debe ser > 0")
         self._ensure_gate()

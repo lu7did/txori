@@ -33,6 +33,7 @@ Argumentos:
 - --rate int: Frecuencia de muestreo (Hz). Por defecto 48000.
 - --nfft int: Tamaño de la FFT. Por defecto 4096; 2048 reduce costo computacional.
 - --overlap float: Traslape entre ventanas en [0,1). Por defecto 0.5.
+- --hop int: Paso entre frames en muestras (si se indica, reemplaza --overlap).
 - --cmap str: Colormap de Matplotlib. Por defecto "viridis".
 - --continuous: Visualización continua hasta interrupción; se ignora si se indica --dur.
 - --max-frames int: Filas visibles en vivo (buffer rodante). Por defecto 400.
@@ -41,6 +42,8 @@ Argumentos:
 - --time: Mostrar timeplot en vivo junto al waterfall.
 - --window [hann|blackman|blackmanharris]: Ventana de análisis. Por defecto blackman.
 - --vol int: Nivel máx. 0-100% de la señal (afecta stream/tone/cw y speaker/timeplot/waterfall). Por defecto 60.
+- --row-median: Resta la mediana por fila del espectrograma para mejorar contraste.
+- --db-range float: Rango dinámico del colormap en dB (ej. 80) para ver energía y silencios.
 
 Ejemplos:
 - txori-waterfall --source stream --time

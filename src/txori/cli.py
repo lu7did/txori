@@ -157,18 +157,21 @@ def main() -> None:
                     )
                     out.start()
                 blocks = (amp * b for b in cw.blocks())
-            live_kwargs = dict(
+            # Construcción compatible hacia atrás: setear atributos opcionales si existen
+            live = WaterfallLive(
                 nfft=args.nfft,
                 overlap=args.overlap,
                 cmap=args.cmap,
                 max_frames=args.max_frames,
                 enable_timeplot=getattr(args, "time", False),
                 window=args.window,
-                hop=getattr(args, "hop", None),
-                row_median=getattr(args, "row_median", False),
-                db_range=getattr(args, "db_range", None),
             )
-            live = WaterfallLive(**_filter_kwargs(WaterfallLive, live_kwargs))
+            if hasattr(live, "hop"):
+                setattr(live, "hop", getattr(args, "hop", None))
+            if hasattr(live, "row_median"):
+                setattr(live, "row_median", getattr(args, "row_median", False))
+            if hasattr(live, "db_range"):
+                setattr(live, "db_range", getattr(args, "db_range", None))
             try:
                 live.run(blocks, sample_rate=args.rate)
             finally:
@@ -179,8 +182,11 @@ def main() -> None:
                 except Exception:
                     pass
         else:
-            comp_kwargs = dict(nfft=args.nfft, overlap=args.overlap, window=args.window, hop=getattr(args, "hop", None), row_median=getattr(args, "row_median", False))
-            comp = WaterfallComputer(**_filter_kwargs(WaterfallComputer, comp_kwargs))
+            comp = WaterfallComputer(nfft=args.nfft, overlap=args.overlap, window=args.window)
+            if hasattr(comp, "hop"):
+                setattr(comp, "hop", getattr(args, "hop", None))
+            if hasattr(comp, "row_median"):
+                setattr(comp, "row_median", getattr(args, "row_median", False))
             if args.source == "stream":
                 source = DefaultAudioSource(sample_rate=args.rate, channels=1)
                 data = source.record(args.dur)

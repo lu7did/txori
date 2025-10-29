@@ -149,7 +149,8 @@ class WaterfallLive:
         """
         if not (0 <= self.overlap < 1):
             raise ValueError("overlap debe estar en [0, 1)")
-        step = int(self.hop) if (self.hop or 0) > 0 else (int(self.nfft * (1 - self.overlap)) or 1)
+        hop = getattr(self, "hop", None)
+        step = int(hop) if (hop or 0) > 0 else (int(self.nfft * (1 - self.overlap)) or 1)
         win = _make_window(self.window, self.nfft)
         eps = 1e-12
         buf = np.empty(0, dtype=np.float32)
@@ -160,8 +161,9 @@ class WaterfallLive:
         img_data = np.zeros((bins, self.max_frames), dtype=np.float32)
         # Ventana de tiempo constante basada en hop=step
         window_s = float((self.max_frames - 1) * step) / float(sample_rate)
+        db_range = getattr(self, "db_range", None)
         vmax0 = 0.0
-        vmin0 = vmax0 - float(self.db_range) if self.db_range else None
+        vmin0 = vmax0 - float(db_range) if db_range else None
         img = ax.imshow(
             img_data,
             aspect="auto",
@@ -169,7 +171,7 @@ class WaterfallLive:
             extent=(window_s, 0.0, 0.0, float(sample_rate) / 2.0),  # ventana de tiempo constante
             cmap=self.cmap,
             vmin=vmin0,
-            vmax=vmax0 if self.db_range else None,
+            vmax=vmax0 if db_range else None,
         )
         plt.colorbar(img, label="dBFS")
         tplot = TimePlotLive() if self.enable_timeplot else None
@@ -191,7 +193,7 @@ class WaterfallLive:
                     frame = buf[: self.nfft] * win
                     mag = np.abs(np.fft.rfft(frame, n=self.nfft))
                     row = (20.0 * np.log10(mag + eps)).astype(np.float32, copy=False)
-                    if self.row_median:
+                    if getattr(self, "row_median", False):
                         row = row - float(np.median(row))
                     # Desplaza a la izquierda y coloca la fila nueva a la derecha
                     img_data[:, :-1] = img_data[:, 1:]
@@ -200,9 +202,10 @@ class WaterfallLive:
                     updated = True
                 if updated:
                     img.set_data(img_data)
-                    if self.db_range:
+                    _rng = getattr(self, "db_range", None)
+                    if _rng:
                         vmax = float(np.max(img_data))
-                        img.set_clim(vmin=vmax - float(self.db_range), vmax=vmax)
+                        img.set_clim(vmin=vmax - float(_rng), vmax=vmax)
                     if self.enable_timeplot and 'tplot' in locals() and tplot is not None:
                         tplot.redraw()
                     plt.pause(0.001)
