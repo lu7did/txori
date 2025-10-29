@@ -190,7 +190,7 @@ class MorseAudioSource:
     sample_rate: int = 48_000
     frequency: float = 600.0
     wpm: float = 20.0
-    message: str = "LU7DZ TEST"
+    message: str = "LU7DZ TEST     "
     blocksize: int = 1024
     _phase: float = field(default=0.0, init=False, repr=False)
     _gate_idx: int = field(default=0, init=False, repr=False)
