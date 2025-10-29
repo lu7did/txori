@@ -1,7 +1,7 @@
 # txori
 Programa en Python 3.12 que captura audio de la entrada predeterminada y lo representa en un gráfico waterfall (espectrograma).
 
-Versión 1.0 build 000
+Versión 1.0 build 001
 
 Características:
 - Paquete instalable con separación de lógica (OOP) y manejo de excepciones.

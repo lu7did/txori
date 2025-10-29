@@ -14,4 +14,4 @@ __all__ = [
 ]
 
 __version__ = "1.0.0"
-__build__ = "000"  # Actualizado automáticamente por CI
+__build__ = "001"  # Actualizado automáticamente por CI
