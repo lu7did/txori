@@ -152,6 +152,9 @@ def main() -> None:
                 max_frames=args.max_frames,
                 enable_timeplot=getattr(args, "time", False),
                 window=args.window,
+                hop=args.hop,
+                row_median=getattr(args, "row_median", False),
+                db_range=getattr(args, "db_range", None),
             )
             try:
                 live.run(blocks, sample_rate=args.rate)
@@ -163,7 +166,7 @@ def main() -> None:
                 except Exception:
                     pass
         else:
-            comp = WaterfallComputer(nfft=args.nfft, overlap=args.overlap, window=args.window)
+            comp = WaterfallComputer(nfft=args.nfft, overlap=args.overlap, window=args.window, hop=args.hop, row_median=getattr(args, "row_median", False))
             if args.source == "stream":
                 source = DefaultAudioSource(sample_rate=args.rate, channels=1)
                 data = source.record(args.dur)
