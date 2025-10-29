@@ -61,6 +61,9 @@ def _parse_args() -> argparse.Namespace:
         action="store_true",
         help="Mostrar timeplot en vivo.",
     )
+    parser.add_argument("--hop", type=int, default=None, help="Paso entre frames en muestras (overrides --overlap si se especifica).")
+    parser.add_argument("--row-median", action="store_true", help="Restar mediana por fila para mejorar contraste.")
+    parser.add_argument("--db-range", type=float, default=None, help="Rango dinámico en dB para el colormap (p.ej. 80).")
     return parser.parse_args()
 
 
