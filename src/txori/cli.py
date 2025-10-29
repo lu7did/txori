@@ -102,6 +102,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--hop", type=int, default=None, help="Paso entre frames en muestras (overrides --overlap si se especifica).")
     parser.add_argument("--row-median", action="store_true", help="Restar mediana por fila para mejorar contraste.")
     parser.add_argument("--db-range", type=float, default=None, help="Rango dinámico en dB para el colormap (p.ej. 80).")
+    parser.add_argument("--bpf", action="store_true", help="Activar filtro pasabanda 600Hz±50Hz antes de visualizar/reproducir.")
     return parser.parse_args()
 
 
@@ -148,12 +149,16 @@ def main() -> None:
                                     yield buf.popleft()
                                 else:
                                     time.sleep(0.001)
-                    bpf_spkr = BiquadBandpass(args.rate, 600.0, 100.0)
+                    if args.bpf:
+                        bpf_spkr = BiquadBandpass(args.rate, 600.0, 100.0)
                     blocks = _speaker_stream_blocks()
                 else:
                     stream = StreamAudioSource(sample_rate=args.rate, channels=1, blocksize=step)
-                    bpf_blocks = BiquadBandpass(args.rate, 600.0, 100.0)
-                    blocks = (bpf_blocks.process_block(amp * b) for b in stream.blocks())
+                    if args.bpf:
+                        bpf_blocks = BiquadBandpass(args.rate, 600.0, 100.0)
+                        blocks = (bpf_blocks.process_block(amp * b) for b in stream.blocks())
+                    else:
+                        blocks = (amp * b for b in stream.blocks())
             elif args.source == "tone":
                 from .audio import ToneAudioSource
                 tone = ToneAudioSource(sample_rate=args.rate, blocksize=step)
@@ -178,8 +183,11 @@ def main() -> None:
                         callback=_cb,
                     )
                     out.start()
-                bpf_blocks = BiquadBandpass(args.rate, 600.0, 100.0)
-                blocks = (bpf_blocks.process_block(amp * b) for b in tone.blocks())
+                if args.bpf:
+                    bpf_blocks = BiquadBandpass(args.rate, 600.0, 100.0)
+                    blocks = (bpf_blocks.process_block(amp * b) for b in tone.blocks())
+                else:
+                    blocks = (amp * b for b in tone.blocks())
             elif args.source == "cw":
                 from .audio import MorseAudioSource
                 cw = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=20.0, message="LU7DZ TEST     ", blocksize=step)
@@ -201,8 +209,11 @@ def main() -> None:
                         callback=_cb,
                     )
                     out.start()
-                bpf_blocks = BiquadBandpass(args.rate, 600.0, 100.0)
-                blocks = (bpf_blocks.process_block(amp * b) for b in cw.blocks())
+                if args.bpf:
+                    bpf_blocks = BiquadBandpass(args.rate, 600.0, 100.0)
+                    blocks = (bpf_blocks.process_block(amp * b) for b in cw.blocks())
+                else:
+                    blocks = (amp * b for b in cw.blocks())
             # Construcción compatible hacia atrás: setear atributos opcionales si existen
             live = WaterfallLive(
                 nfft=args.nfft,
@@ -251,11 +262,12 @@ def main() -> None:
                 from .audio import MorseAudioSource
                 data = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=20.0, message="LU7DZ TEST     ").record(args.dur)
                 if args.spkr:
-                    bpf = BiquadBandpass(args.rate, 600.0, 100.0)
-                    y = bpf.process_block(amp * data)
+                    y = (BiquadBandpass(args.rate, 600.0, 100.0).process_block(amp * data)) if args.bpf else (amp * data)
                     sd.play(y.reshape(-1, 1), samplerate=args.rate, blocking=False)
-            bpf = BiquadBandpass(args.rate, 600.0, 100.0)
-            data = bpf.process_block(amp * data)
+            if args.bpf:
+                data = BiquadBandpass(args.rate, 600.0, 100.0).process_block(amp * data)
+            else:
+                data = (amp * data)
             spec = comp.compute(data)
             WaterfallRenderer(cmap=args.cmap).show(
                 spec, args.rate, args.nfft, args.overlap
