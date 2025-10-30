@@ -173,6 +173,11 @@ class WaterfallLive:
             vmin=vmin0,
             vmax=vmax0 if db_range else None,
         )
+        ema = None
+        alpha = None
+        if getattr(self, "smooth", None):
+            n = max(1, int(self.smooth))
+            alpha = 2.0 / (n + 1.0)
         plt.colorbar(img, label="dBFS")
         tplot = TimePlotLive() if self.enable_timeplot else None
         ax.set_xlabel("Tiempo [s]")
@@ -198,6 +203,13 @@ class WaterfallLive:
                     # Desplaza a la izquierda y coloca la fila nueva a la derecha
                     img_data[:, :-1] = img_data[:, 1:]
                     img_data[:, -1] = row
+                    # Suavizado EMA por columnas si se configur3
+                    if alpha is not None:
+                        if ema is None:
+                            ema = img_data[:, -1].copy()
+                        else:
+                            ema = (1 - alpha) * ema + alpha * img_data[:, -1]
+                        img_data[:, -1] = ema
                     buf = buf[step:]
                     updated = True
                 if updated:

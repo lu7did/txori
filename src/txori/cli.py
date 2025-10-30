@@ -128,6 +128,8 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--cwfilter", action="store_true", help="Con --bpf: aplicar 20 BPF de 10 Hz entre 500–700 Hz (10 por debajo y 10 por encima de 600 Hz) y enviar cada salida al waterfall/speaker/timeplot.")
     parser.add_argument("--dsp", action="store_true", help="Modo DSP: aplica LPF y usa su salida para waterfall; opcionalmente envía a parlante/timeplot.")
     parser.add_argument("--cutoff", type=float, default=3000.0, help="Frecuencia de corte del LPF en Hz (solo con --dsp). Por defecto 3000.")
+    parser.add_argument("--fir-decim", action="store_true", help="En --dsp: usar decimador FIR (129 taps, Fc~0.4*Fs') antes del 8:1 para reducir spikes.")
+    parser.add_argument("--smooth", type=int, default=0, help="Suavizado temporal del waterfall (EMA N columnas, N=1..10) solo en --dsp.")
     return parser.parse_args()
 
 
@@ -211,6 +213,8 @@ def main() -> None:
                     enable_timeplot=getattr(args, "time", False),
                     window=args.window,
                 )
+                if getattr(args, "smooth", 0) > 0 and hasattr(live, "smooth"):
+                    live.smooth = int(args.smooth)
                 if hasattr(live, "hop"):
                     setattr(live, "hop", getattr(args, "hop", None))
                 if hasattr(live, "row_median"):
@@ -237,8 +241,20 @@ def main() -> None:
                     from .audio import MorseAudioSource
                     data = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=20.0, message="LU7DZ TEST     ").record(args.dur)
                 tmp = amp * data
-                for _s in lpf_stages:
-                    tmp = _s.process_block(tmp)
+                # FIR decimator opcional
+                if getattr(args, "fir_decim", False):
+                    # 129 taps lowpass con Fc 0.4 * 3000 (norm al Fs de entrada)
+                    taps = 129
+                    fc = 0.4 * 3000.0
+                    nyq = args.rate / 2.0
+                    m = np.arange(taps, dtype=np.float32) - (taps - 1) / 2.0
+                    h = np.sinc((fc / nyq) * m)
+                    h *= np.hamming(taps).astype(np.float32)
+                    h /= np.sum(h)
+                    tmp = np.convolve(tmp, h, mode="same").astype(np.float32)
+                else:
+                    for _s in lpf_stages:
+                        tmp = _s.process_block(tmp)
                 y = tmp
                 z = y[::8]
                 # cwfilter solo con --dsp (a 6 kHz) y modo fijo
