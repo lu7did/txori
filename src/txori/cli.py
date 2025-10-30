@@ -125,6 +125,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--row-median", action="store_true", help="Restar mediana por fila para mejorar contraste.")
     parser.add_argument("--db-range", type=float, default=None, help="Rango dinámico en dB para el colormap (p.ej. 80).")
     parser.add_argument("--bpf", action="store_true", help="Activar filtro pasabanda 600Hz±50Hz antes de visualizar/reproducir.")
+    parser.add_argument("--cwfilter", action="store_true", help="Con --bpf: aplicar 20 BPF de 10 Hz entre 500–700 Hz (10 por debajo y 10 por encima de 600 Hz) y enviar cada salida al waterfall/speaker/timeplot.")
     parser.add_argument("--dsp", action="store_true", help="Modo DSP: aplica LPF y usa su salida para waterfall; opcionalmente envía a parlante/timeplot.")
     parser.add_argument("--cutoff", type=float, default=3000.0, help="Frecuencia de corte del LPF en Hz (solo con --dsp). Por defecto 3000.")
     return parser.parse_args()
@@ -394,26 +395,23 @@ def main() -> None:
             if args.bpf and getattr(args, "cwfilter", False):
                 base = BiquadBandpass(args.rate, 600.0, 100.0).process_block(data)
                 centers = [505.0 + 10.0 * k for k in range(10)] + [605.0 + 10.0 * k for k in range(10)]
-                outs = []
-                for cf in centers:
-                    outs.append(BiquadBandpass(args.rate, cf, 10.0).process_block(base))
+                outs = [BiquadBandpass(args.rate, cf, 10.0).process_block(base) for cf in centers]
+                # Mezcla promedio para una sola salida común
+                mix = np.sum(np.stack(outs, axis=0), axis=0) / float(len(outs))
                 # Speaker: mezcla normalizada
                 if args.spkr:
-                    mix = np.sum(np.stack(outs, axis=0), axis=0)
                     mx = float(np.max(np.abs(mix))) or 1.0
                     sd.play((mix / mx).reshape(-1, 1), samplerate=args.rate, blocking=False)
-                # Timeplot: uno por filtro
+                # Timeplot: único
                 if getattr(args, "time", False):
                     from matplotlib import pyplot as plt
-                    tplots = [TimePlotLive() for _ in outs]
-                    for tplot, y in zip(tplots, outs):
-                        tplot.update(y)
-                        tplot.redraw()
+                    tplot = TimePlotLive()
+                    tplot.update(mix)
+                    tplot.redraw()
                     plt.ioff(); plt.show()
-                # Waterfall: uno por filtro
-                for y in outs:
-                    spec = comp.compute(y)
-                    WaterfallRenderer(cmap=args.cmap).show(spec, args.rate, args.nfft, args.overlap)
+                # Waterfall: único
+                spec = comp.compute(mix)
+                WaterfallRenderer(cmap=args.cmap).show(spec, args.rate, args.nfft, args.overlap)
             else:
                 if args.spkr:
                     if args.bpf:
