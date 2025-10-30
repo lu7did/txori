@@ -147,7 +147,9 @@ def main() -> None:
     try:
         # Modo DSP: salida LPF al waterfall y opcionalmente a parlante/timeplot
         if getattr(args, "dsp", False):
-            step = int(args.nfft * (1 - args.overlap)) or 1
+            # Ajustes de nfft/hop por defecto en DSP (SR efectivo 6000 Hz)
+            nfft_eff = args.nfft if args.nfft != 4096 else 1024
+            step = int(nfft_eff * (1 - args.overlap)) or 1
             lpf = OnePoleLowpass(args.rate, getattr(args, "cutoff", 3000.0))
             if args.dur is None and args.continuous:
                 # Fuente por bloques
@@ -179,7 +181,7 @@ def main() -> None:
                                 pass
                         yield z
                 live = WaterfallLive(
-                    nfft=args.nfft,
+                    nfft=nfft_eff,
                     overlap=args.overlap,
                     cmap=args.cmap,
                     max_frames=args.max_frames,
@@ -221,7 +223,7 @@ def main() -> None:
                     tplot.update(z)
                     tplot.redraw()
                     plt.ioff(); plt.show()
-                comp = WaterfallComputer(nfft=args.nfft, overlap=args.overlap, window=args.window)
+                comp = WaterfallComputer(nfft=nfft_eff, overlap=args.overlap, window=args.window)
                 if hasattr(comp, "hop"):
                     setattr(comp, "hop", getattr(args, "hop", None))
                 if hasattr(comp, "row_median"):
