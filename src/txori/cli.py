@@ -384,31 +384,47 @@ def main() -> None:
             if args.source == "stream":
                 source = DefaultAudioSource(sample_rate=args.rate, channels=1)
                 data = source.record(args.dur)
-                if args.spkr:
-                    bpf = BiquadBandpass(args.rate, 600.0, 100.0)
-                    y = bpf.process_block(amp * data)
-                    sd.play(y.reshape(-1, 1), samplerate=args.rate, blocking=False)
             elif args.source == "tone":
                 from .audio import ToneAudioSource
                 data = ToneAudioSource(sample_rate=args.rate).record(args.dur)
-                if args.spkr:
-                    bpf = BiquadBandpass(args.rate, 600.0, 100.0)
-                    y = bpf.process_block(amp * data)
-                    sd.play(y.reshape(-1, 1), samplerate=args.rate, blocking=False)
             elif args.source == "cw":
                 from .audio import MorseAudioSource
                 data = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=20.0, message="LU7DZ TEST     ").record(args.dur)
+            data = (amp * data)
+            if args.bpf and getattr(args, "cwfilter", False):
+                base = BiquadBandpass(args.rate, 600.0, 100.0).process_block(data)
+                centers = [505.0 + 10.0 * k for k in range(10)] + [605.0 + 10.0 * k for k in range(10)]
+                outs = []
+                for cf in centers:
+                    outs.append(BiquadBandpass(args.rate, cf, 10.0).process_block(base))
+                # Speaker: mezcla normalizada
                 if args.spkr:
-                    y = (BiquadBandpass(args.rate, 600.0, 100.0).process_block(amp * data)) if args.bpf else (amp * data)
-                    sd.play(y.reshape(-1, 1), samplerate=args.rate, blocking=False)
-            if args.bpf:
-                data = BiquadBandpass(args.rate, 600.0, 100.0).process_block(amp * data)
+                    mix = np.sum(np.stack(outs, axis=0), axis=0)
+                    mx = float(np.max(np.abs(mix))) or 1.0
+                    sd.play((mix / mx).reshape(-1, 1), samplerate=args.rate, blocking=False)
+                # Timeplot: uno por filtro
+                if getattr(args, "time", False):
+                    from matplotlib import pyplot as plt
+                    tplots = [TimePlotLive() for _ in outs]
+                    for tplot, y in zip(tplots, outs):
+                        tplot.update(y)
+                        tplot.redraw()
+                    plt.ioff(); plt.show()
+                # Waterfall: uno por filtro
+                for y in outs:
+                    spec = comp.compute(y)
+                    WaterfallRenderer(cmap=args.cmap).show(spec, args.rate, args.nfft, args.overlap)
             else:
-                data = (amp * data)
-            spec = comp.compute(data)
-            WaterfallRenderer(cmap=args.cmap).show(
-                spec, args.rate, args.nfft, args.overlap
-            )
+                if args.spkr:
+                    if args.bpf:
+                        y = BiquadBandpass(args.rate, 600.0, 100.0).process_block(data)
+                    else:
+                        y = data
+                    sd.play(y.reshape(-1, 1), samplerate=args.rate, blocking=False)
+                if args.bpf:
+                    data = BiquadBandpass(args.rate, 600.0, 100.0).process_block(data)
+                spec = comp.compute(data)
+                WaterfallRenderer(cmap=args.cmap).show(spec, args.rate, args.nfft, args.overlap)
     except (AudioError, ValueError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         sys.exit(1)
