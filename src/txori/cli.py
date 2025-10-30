@@ -200,6 +200,10 @@ def main() -> None:
                             tmp = _s.process_block(tmp)
                         y = tmp
                         z = y[::8]
+                        # cwkill en vivo (Fs'=6000)
+                        if getattr(args, "cwkill", None):
+                            bw = max(1.0, float(args.cwkill))
+                            z = BiquadBandpass(6000, 600.0, bw).process_block(z)
                         if obuf is not None:
                             try:
                                 obuf.append(z.astype(np.float32, copy=False))
