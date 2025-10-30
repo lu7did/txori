@@ -241,12 +241,20 @@ def main() -> None:
                     tmp = _s.process_block(tmp)
                 y = tmp
                 z = y[::8]
+                # cwfilter solo con --dsp (a 6 kHz) y modo fijo
+                mix = z
+                if args.bpf and getattr(args, "cwfilter", False):
+                    base = BiquadBandpass(6000, 600.0, 100.0).process_block(z)
+                    centers = [505.0 + 10.0 * k for k in range(10)] + [605.0 + 10.0 * k for k in range(10)]
+                    outs = [BiquadBandpass(6000, cf, 10.0).process_block(base) for cf in centers]
+                    mix = np.sum(np.stack(outs, axis=0), axis=0) / float(len(outs))
                 if args.spkr:
-                    sd.play(z.reshape(-1, 1), samplerate=6000, blocking=False)
+                    mx = float(np.max(np.abs(mix))) or 1.0
+                    sd.play((mix / mx).reshape(-1, 1), samplerate=6000, blocking=False)
                 if getattr(args, "time", False):
                     from matplotlib import pyplot as plt
                     tplot = TimePlotLive()
-                    tplot.update(z)
+                    tplot.update(mix)
                     tplot.redraw()
                     plt.ioff(); plt.show()
                 comp = WaterfallComputer(nfft=nfft_eff, overlap=args.overlap, window=args.window)
@@ -254,7 +262,7 @@ def main() -> None:
                     setattr(comp, "hop", getattr(args, "hop", None))
                 if hasattr(comp, "row_median"):
                     setattr(comp, "row_median", getattr(args, "row_median", False))
-                spec = comp.compute(z)
+                spec = comp.compute(mix)
                 WaterfallRenderer(cmap=args.cmap).show(
                     spec, 6000, args.nfft, args.overlap
                 )
