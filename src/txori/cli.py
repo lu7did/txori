@@ -7,6 +7,7 @@ import sys
 import numpy as np
 import sounddevice as sd
 import time
+import random
 from collections import deque
 
 
@@ -132,6 +133,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--fir-decim", action="store_true", help="En --dsp: usar decimador FIR (129 taps, Fc~0.4*Fs') antes del 8:1 para reducir spikes.")
     parser.add_argument("--smooth", type=int, default=0, help="Suavizado temporal del waterfall (EMA N columnas, N=1..10) solo en --dsp.")
     parser.add_argument("--cwkill", nargs="?", const=20.0, type=float, help="Suprime tono CW: BPF en 600 Hz con ancho de banda (Hz), por defecto 20 Hz.")
+    parser.add_argument("--qrm", nargs="?", const=5, type=int, help="Con --source cw: agrega N (1-10, por defecto 5) señales CW interferentes con licencias y tonos aleatorios (200–2500 Hz).")
     return parser.parse_args()
 
 
@@ -169,8 +171,28 @@ def main() -> None:
                     blocks = src.blocks()
                 elif args.source == "cw":
                     from .audio import MorseAudioSource
-                    src = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=(getattr(args, "cwspeed", 20.0) or 20.0), message="LU7DZ TEST     ", blocksize=step)
-                    blocks = src.blocks()
+                    main_cw = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=(getattr(args, "cwspeed", 20.0) or 20.0), message="LU7DZ TEST     ", blocksize=step)
+                    qrm_n = int(max(1, min(10, getattr(args, "qrm", 0) or 0))) if getattr(args, "qrm", None) else 0
+                    if qrm_n > 0:
+                        calls_all = ["LS1D","LP1H","CX6V","PT2T","CE2CE","9A9","K1TTT","K3LR","AO3O","EA7A"]
+                        calls = random.sample(calls_all, k=min(qrm_n, len(calls_all)))
+                        qrm_srcs = [
+                            MorseAudioSource(
+                                sample_rate=args.rate,
+                                frequency=float(random.uniform(200.0, 2500.0)),
+                                wpm=(getattr(args, "cwspeed", 20.0) or 20.0),
+                                message=f"{c} TEST    ",
+                                blocksize=step,
+                            ) for c in calls
+                        ]
+                        def _sum_blocks():
+                            iters = [main_cw.blocks()] + [s.blocks() for s in qrm_srcs]
+                            while True:
+                                bs = [next(it) for it in iters]
+                                yield np.sum(bs, axis=0).astype(np.float32)
+                        blocks = _sum_blocks()
+                    else:
+                        blocks = main_cw.blocks()
                 out = None
                 dec_sr = 6000
                 dec_step = max(1, step // 8)
@@ -245,7 +267,15 @@ def main() -> None:
                     data = ToneAudioSource(sample_rate=args.rate).record(args.dur)
                 elif args.source == "cw":
                     from .audio import MorseAudioSource
-                    data = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=(getattr(args, "cwspeed", 20.0) or 20.0), message="LU7DZ TEST     ").record(args.dur)
+                    main_cw = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=(getattr(args, "cwspeed", 20.0) or 20.0), message="LU7DZ TEST     ")
+                    data = main_cw.record(args.dur)
+                    qrm_n = int(max(1, min(10, getattr(args, "qrm", 0) or 0))) if getattr(args, "qrm", None) else 0
+                    if qrm_n > 0:
+                        calls_all = ["LS1D","LP1H","CX6V","PT2T","CE2CE","9A9","K1TTT","K3LR","AO3O","EA7A"]
+                        calls = random.sample(calls_all, k=min(qrm_n, len(calls_all)))
+                        for c in calls:
+                            f = float(random.uniform(200.0, 2500.0))
+                            data = data + MorseAudioSource(sample_rate=args.rate, frequency=f, wpm=(getattr(args, "cwspeed", 20.0) or 20.0), message=f"{c} TEST    ").record(args.dur)
                 tmp = amp * data
                 # FIR decimator opcional
                 if getattr(args, "fir_decim", False):
@@ -363,14 +393,25 @@ def main() -> None:
             elif args.source == "cw":
                 from .audio import MorseAudioSource
                 cw = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=(getattr(args, "cwspeed", 20.0) or 20.0), message="LU7DZ TEST     ", blocksize=step)
+                # QRM fuentes adicionales (solo si se indicó --qrm)
+                qrm_n = int(max(1, min(10, getattr(args, "qrm", 0) or 0))) if getattr(args, "qrm", None) else 0
+                qrm_srcs = []
+                if qrm_n > 0:
+                    calls_all = ["LS1D","LP1H","CX6V","PT2T","CE2CE","9A9","K1TTT","K3LR","AO3O","EA7A"]
+                    calls = random.sample(calls_all, k=min(qrm_n, len(calls_all)))
+                    for c in calls:
+                        qrm_srcs.append(MorseAudioSource(sample_rate=args.rate, frequency=float(random.uniform(200.0, 2500.0)), wpm=(getattr(args, "cwspeed", 20.0) or 20.0), message=f"{c} TEST    ", blocksize=step))
                 out = None
                 if args.spkr:
                     phase = 0.0
                     amp = max(0.0, min(1.0, float(getattr(args, "vol", 60.0)) / 100.0))
                     def _cb(outdata, frames, t, status):  # noqa: ANN001
                         nonlocal phase
-                        # Parlante recibe mismo CW: modular con puerta generada por la fuente
+                        # Parlante recibe CW + QRM sumados
                         raw = cw.record(frames / float(args.rate))[:frames]
+                        if qrm_srcs:
+                            for s in qrm_srcs:
+                                raw = raw + s.record(frames / float(args.rate))[:frames]
                         outdata[:, 0] = amp * bpf_spkr.process_block(raw)
                         phase += frames
                     out = sd.OutputStream(
@@ -381,11 +422,17 @@ def main() -> None:
                         callback=_cb,
                     )
                     out.start()
+                def _cw_blocks_sum():
+                    iters = [cw.blocks()] + [s.blocks() for s in qrm_srcs] if qrm_srcs else [cw.blocks()]
+                    while True:
+                        bs = [next(it) for it in iters]
+                        yield np.sum(bs, axis=0).astype(np.float32)
+                base_blocks = _cw_blocks_sum()
                 if args.bpf:
                     bpf_blocks = BiquadBandpass(args.rate, 600.0, 100.0)
-                    blocks = (bpf_blocks.process_block(amp * b) for b in cw.blocks())
+                    blocks = (bpf_blocks.process_block(amp * b) for b in base_blocks)
                 else:
-                    blocks = (amp * b for b in cw.blocks())
+                    blocks = (amp * b for b in base_blocks)
             # Construcción compatible hacia atrás: setear atributos opcionales si existen
             live = WaterfallLive(
                 nfft=args.nfft,
@@ -424,7 +471,15 @@ def main() -> None:
                 data = ToneAudioSource(sample_rate=args.rate).record(args.dur)
             elif args.source == "cw":
                 from .audio import MorseAudioSource
-                data = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=(getattr(args, "cwspeed", 20.0) or 20.0), message="LU7DZ TEST     ").record(args.dur)
+                main_cw = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=(getattr(args, "cwspeed", 20.0) or 20.0), message="LU7DZ TEST     ")
+                data = main_cw.record(args.dur)
+                qrm_n = int(max(1, min(10, getattr(args, "qrm", 0) or 0))) if getattr(args, "qrm", None) else 0
+                if qrm_n > 0:
+                    calls_all = ["LS1D","LP1H","CX6V","PT2T","CE2CE","9A9","K1TTT","K3LR","AO3O","EA7A"]
+                    calls = random.sample(calls_all, k=min(qrm_n, len(calls_all)))
+                    for c in calls:
+                        f = float(random.uniform(200.0, 2500.0))
+                        data = data + MorseAudioSource(sample_rate=args.rate, frequency=f, wpm=(getattr(args, "cwspeed", 20.0) or 20.0), message=f"{c} TEST    ").record(args.dur)
             data = (amp * data)
             if args.bpf and getattr(args, "cwfilter", False):
                 base = BiquadBandpass(args.rate, 600.0, 100.0).process_block(data)
