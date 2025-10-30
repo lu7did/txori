@@ -1,0 +1,4 @@
+# file: /Users/PCOLLA/Documents/GitHub/txori/src/txori/cli.py
+# hypothesis_version: 6.142.3
+
+[-2.0, 0.0, 1e-06, 0.001, 0.5, 1.0, 2.0, 20.0, 60.0, 100.0, 600.0, 3000.0, 200, 400, 4096, 48000, '--bpf', '--cmap', '--continuous', '--db-range', '--dur', '--hop', '--max-frames', '--nfft', '--overlap', '--rate', '--row-median', '--source', '--spkr', '--time', '--vol', '--window', 'LU7DZ TEST     ', 'blackman', 'blackmanharris', 'cw', 'db_range', 'float32', 'hann', 'hop', 'out', 'row_median', 'store_true', 'stream', 'time', 'tone', 'viridis', 'vol']

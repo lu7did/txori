@@ -201,18 +201,14 @@ class WaterfallLive:
                     buf = buf[step:]
                     updated = True
                 if updated:
-                    # Throttle UI updates para reducir carga en el hilo principal
-                    ui_count = locals().get("_ui_count", 0) + 1
-                    locals()["_ui_count"] = ui_count
-                    if ui_count % 2 == 0:
-                        img.set_data(img_data)
-                        _rng = getattr(self, "db_range", None)
-                        if _rng:
-                            vmax = float(np.max(img_data))
-                            img.set_clim(vmin=vmax - float(_rng), vmax=vmax)
-                        if self.enable_timeplot and 'tplot' in locals() and tplot is not None:
-                            tplot.redraw()
-                        plt.pause(0.001)
+                    img.set_data(img_data)
+                    _rng = getattr(self, "db_range", None)
+                    if _rng:
+                        vmax = float(np.max(img_data))
+                        img.set_clim(vmin=vmax - float(_rng), vmax=vmax)
+                    if self.enable_timeplot and 'tplot' in locals() and tplot is not None:
+                        tplot.redraw()
+                    plt.pause(0.001)
         except KeyboardInterrupt:
             pass
         finally:

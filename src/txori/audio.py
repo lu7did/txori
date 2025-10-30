@@ -226,7 +226,17 @@ class MorseAudioSource:
                     gate.extend([0] * (3 * unit))
             if wi < len(words) - 1:
                 gate.extend([0] * (7 * unit))
-        self._gate = np.array(gate, dtype=np.float32)
+        g = np.array(gate, dtype=np.float32)
+        # Suaviza bordes para reducir splatter (fades ataque/caída ~5 ms)
+        rf = max(1, int(round(self.sample_rate * 0.005)))
+        if rf > 1:
+            win = np.hanning(2 * rf).astype(np.float32)
+            win /= float(win.sum())
+            g = np.convolve(g, win, mode="same").astype(np.float32)
+            # Normaliza a [0,1]
+            if g.max(initial=1.0) > 0:
+                g /= float(g.max())
+        self._gate = g
 
     def _ensure_gate(self) -> None:
         if self._gate is None or self._gate.size == 0:

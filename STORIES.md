@@ -10,3 +10,4 @@
 - 2025-10-29T17:05:17.992Z Push: speaker implementado.
 - 2025-10-29T17:07:20.203Z Reproducir también stream por parlante cuando --spkr.
 - 2025-10-29T17:14:05.345Z Push: speaker & tone & stream implementado, waterfall corregido.
+- 2025-10-30T11:41:40.136Z Agregar modo --dsp con filtro pasabajos 3 kHz (ajustable con --cutoff); enviar señal filtrada a speaker/timeplot en lugar de waterfall.
