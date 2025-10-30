@@ -197,7 +197,7 @@ class MorseAudioSource:
     _gate: np.ndarray | None = field(default=None, init=False, repr=False)
 
     def _build_gate(self) -> None:
-        unit = max(1, int(round(self.sample_rate * 1.2 / float(self.wpm))))
+        unit = max(1, int(round(self.sample_rate * 1.15 / float(self.wpm))))
         m = self.message.upper()
         morse = {
             "L": ".-..",
