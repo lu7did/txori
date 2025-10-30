@@ -163,18 +163,21 @@ def main() -> None:
                     src = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=20.0, message="LU7DZ TEST     ", blocksize=step)
                     blocks = src.blocks()
                 out = None
+                dec_sr = 6000
+                dec_step = max(1, step // 8)
                 if args.spkr:
-                    out = sd.OutputStream(samplerate=args.rate, channels=1, dtype="float32", blocksize=step)
+                    out = sd.OutputStream(samplerate=dec_sr, channels=1, dtype="float32", blocksize=dec_step)
                     out.start()
                 def _blocks_lpf():
                     for b in blocks:
                         y = lpf.process_block(amp * b)
+                        z = y[::8]
                         if out is not None:
                             try:
-                                out.write(y.reshape(-1, 1))
+                                out.write(z.reshape(-1, 1))
                             except Exception:
                                 pass
-                        yield y
+                        yield z
                 live = WaterfallLive(
                     nfft=args.nfft,
                     overlap=args.overlap,
@@ -190,7 +193,7 @@ def main() -> None:
                 if hasattr(live, "db_range"):
                     setattr(live, "db_range", getattr(args, "db_range", None))
                 try:
-                    live.run(_blocks_lpf(), sample_rate=args.rate)
+                    live.run(_blocks_lpf(), sample_rate=6000)
                 finally:
                     try:
                         if out is not None:
@@ -209,12 +212,13 @@ def main() -> None:
                     from .audio import MorseAudioSource
                     data = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=20.0, message="LU7DZ TEST     ").record(args.dur)
                 y = lpf.process_block(amp * data)
+                z = y[::8]
                 if args.spkr:
-                    sd.play(y.reshape(-1, 1), samplerate=args.rate, blocking=False)
+                    sd.play(z.reshape(-1, 1), samplerate=6000, blocking=False)
                 if getattr(args, "time", False):
                     from matplotlib import pyplot as plt
                     tplot = TimePlotLive()
-                    tplot.update(y)
+                    tplot.update(z)
                     tplot.redraw()
                     plt.ioff(); plt.show()
                 comp = WaterfallComputer(nfft=args.nfft, overlap=args.overlap, window=args.window)
@@ -222,9 +226,9 @@ def main() -> None:
                     setattr(comp, "hop", getattr(args, "hop", None))
                 if hasattr(comp, "row_median"):
                     setattr(comp, "row_median", getattr(args, "row_median", False))
-                spec = comp.compute(y)
+                spec = comp.compute(z)
                 WaterfallRenderer(cmap=args.cmap).show(
-                    spec, args.rate, args.nfft, args.overlap
+                    spec, 6000, args.nfft, args.overlap
                 )
             return
         # Modo continuo por defecto salvo que se especifique --dur
