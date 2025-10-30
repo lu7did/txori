@@ -168,7 +168,7 @@ def main() -> None:
                     blocks = src.blocks()
                 elif args.source == "cw":
                     from .audio import MorseAudioSource
-                    src = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=20.0, message="LU7DZ TEST     ", blocksize=step)
+                    src = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=(getattr(args, "cwspeed", 20.0) or 20.0), message="LU7DZ TEST     ", blocksize=step)
                     blocks = src.blocks()
                 out = None
                 dec_sr = 6000
@@ -244,7 +244,7 @@ def main() -> None:
                     data = ToneAudioSource(sample_rate=args.rate).record(args.dur)
                 elif args.source == "cw":
                     from .audio import MorseAudioSource
-                    data = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=20.0, message="LU7DZ TEST     ").record(args.dur)
+                    data = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=(getattr(args, "cwspeed", 20.0) or 20.0), message="LU7DZ TEST     ").record(args.dur)
                 tmp = amp * data
                 # FIR decimator opcional
                 if getattr(args, "fir_decim", False):
@@ -361,7 +361,7 @@ def main() -> None:
                     blocks = (amp * b for b in tone.blocks())
             elif args.source == "cw":
                 from .audio import MorseAudioSource
-                cw = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=20.0, message="LU7DZ TEST     ", blocksize=step)
+                cw = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=(getattr(args, "cwspeed", 20.0) or 20.0), message="LU7DZ TEST     ", blocksize=step)
                 out = None
                 if args.spkr:
                     phase = 0.0
@@ -423,7 +423,7 @@ def main() -> None:
                 data = ToneAudioSource(sample_rate=args.rate).record(args.dur)
             elif args.source == "cw":
                 from .audio import MorseAudioSource
-                data = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=20.0, message="LU7DZ TEST     ").record(args.dur)
+                data = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=(getattr(args, "cwspeed", 20.0) or 20.0), message="LU7DZ TEST     ").record(args.dur)
             data = (amp * data)
             if args.bpf and getattr(args, "cwfilter", False):
                 base = BiquadBandpass(args.rate, 600.0, 100.0).process_block(data)
