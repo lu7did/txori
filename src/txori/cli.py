@@ -150,7 +150,9 @@ def main() -> None:
             # Ajustes de nfft/hop por defecto en DSP (SR efectivo 6000 Hz)
             nfft_eff = args.nfft if args.nfft != 4096 else 1024
             step = int(nfft_eff * (1 - args.overlap)) or 1
-            lpf = OnePoleLowpass(args.rate, getattr(args, "cutoff", 3000.0))
+            dec_sr = 6000
+            cutoff_eff = min(float(getattr(args, "cutoff", 3000.0)), 0.45 * dec_sr)
+            lpf_stages = [OnePoleLowpass(args.rate, cutoff_eff) for _ in range(3)]
             if args.dur is None and args.continuous:
                 # Fuente por bloques
                 if args.source == "stream":
@@ -189,7 +191,10 @@ def main() -> None:
                     out.start()
                 def _blocks_lpf():
                     for b in blocks:
-                        y = lpf.process_block(amp * b)
+                        tmp = amp * b
+                        for _s in lpf_stages:
+                            tmp = _s.process_block(tmp)
+                        y = tmp
                         z = y[::8]
                         if obuf is not None:
                             try:
@@ -230,7 +235,10 @@ def main() -> None:
                 elif args.source == "cw":
                     from .audio import MorseAudioSource
                     data = MorseAudioSource(sample_rate=args.rate, frequency=600.0, wpm=20.0, message="LU7DZ TEST     ").record(args.dur)
-                y = lpf.process_block(amp * data)
+                tmp = amp * data
+                for _s in lpf_stages:
+                    tmp = _s.process_block(tmp)
+                y = tmp
                 z = y[::8]
                 if args.spkr:
                     sd.play(z.reshape(-1, 1), samplerate=6000, blocking=False)
