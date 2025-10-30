@@ -180,7 +180,7 @@ def main() -> None:
                             MorseAudioSource(
                                 sample_rate=args.rate,
                                 frequency=float(random.uniform(200.0, 2500.0)),
-                                wpm=(getattr(args, "cwspeed", 20.0) or 20.0),
+                                wpm=float(random.uniform(10.0, 40.0)),
                                 message=f"{c} TEST    ",
                                 blocksize=step,
                             ) for c in calls
@@ -275,7 +275,8 @@ def main() -> None:
                         calls = random.sample(calls_all, k=min(qrm_n, len(calls_all)))
                         for c in calls:
                             f = float(random.uniform(200.0, 2500.0))
-                            data = data + MorseAudioSource(sample_rate=args.rate, frequency=f, wpm=(getattr(args, "cwspeed", 20.0) or 20.0), message=f"{c} TEST    ").record(args.dur)
+                            w = float(random.uniform(10.0, 40.0))
+                            data = data + MorseAudioSource(sample_rate=args.rate, frequency=f, wpm=w, message=f"{c} TEST    ").record(args.dur)
                 tmp = amp * data
                 # FIR decimator opcional
                 if getattr(args, "fir_decim", False):
@@ -404,7 +405,7 @@ def main() -> None:
                     calls_all = ["LS1D","LP1H","CX6V","PT2T","CE2CE","9A9","K1TTT","K3LR","AO3O","EA7A"]
                     calls = random.sample(calls_all, k=min(qrm_n, len(calls_all)))
                     for c in calls:
-                        qrm_srcs.append(MorseAudioSource(sample_rate=args.rate, frequency=float(random.uniform(200.0, 2500.0)), wpm=(getattr(args, "cwspeed", 20.0) or 20.0), message=f"{c} TEST    ", blocksize=step))
+                        qrm_srcs.append(MorseAudioSource(sample_rate=args.rate, frequency=float(random.uniform(200.0, 2500.0)), wpm=float(random.uniform(10.0, 40.0)), message=f"{c} TEST    ", blocksize=step))
                 out = None
                 if args.spkr:
                     phase = 0.0
