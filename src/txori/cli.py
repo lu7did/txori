@@ -130,6 +130,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--cutoff", type=float, default=3000.0, help="Frecuencia de corte del LPF en Hz (solo con --dsp). Por defecto 3000.")
     parser.add_argument("--fir-decim", action="store_true", help="En --dsp: usar decimador FIR (129 taps, Fc~0.4*Fs') antes del 8:1 para reducir spikes.")
     parser.add_argument("--smooth", type=int, default=0, help="Suavizado temporal del waterfall (EMA N columnas, N=1..10) solo en --dsp.")
+    parser.add_argument("--cwkill", nargs="?", const=20.0, type=float, help="Suprime tono CW: BPF en 600 Hz con ancho de banda (Hz), por defecto 20 Hz.")
     return parser.parse_args()
 
 
@@ -259,8 +260,12 @@ def main() -> None:
                 z = y[::8]
                 # cwfilter solo con --dsp (a 6 kHz) y modo fijo
                 mix = z
+                # cwkill: BPF centrado 600 Hz con BW configurable
+                if getattr(args, "cwkill", None):
+                    bw = max(1.0, float(args.cwkill))
+                    mix = BiquadBandpass(6000, 600.0, bw).process_block(mix)
                 if args.bpf and getattr(args, "cwfilter", False):
-                    base = BiquadBandpass(6000, 600.0, 100.0).process_block(z)
+                    base = BiquadBandpass(6000, 600.0, 100.0).process_block(mix)
                     centers = [505.0 + 10.0 * k for k in range(10)] + [605.0 + 10.0 * k for k in range(10)]
                     outs = [BiquadBandpass(6000, cf, 10.0).process_block(base) for cf in centers]
                     mix = np.sum(np.stack(outs, axis=0), axis=0) / float(len(outs))
