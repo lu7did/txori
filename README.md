@@ -49,3 +49,7 @@ Ejemplos:
 - txori-waterfall --source stream --time
 - txori-waterfall --source tone --spkr
 - txori-waterfall --source cw --time --spkr
+
+Comando de referencia para CW (modo DSP a 6 kHz):
+- txori-waterfall --source cw --dsp --spkr --fir-decim --bpf --cwkill --hop 16 --window blackmanharris --nfft 216 --row-median --db-range 60 --smooth 20
+  Notas: --fir-decim aplica un FIR antes del 8:1 para mitigar transitorios; --smooth realiza un EMA de 20 columnas; --cwkill centra un BPF en 600 Hz con BW por defecto 20 Hz; el waterfall se dibuja a Fs'=6000 Hz.
