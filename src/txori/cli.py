@@ -331,9 +331,12 @@ def main() -> None:
                 if args.spkr:
                     def _speaker_stream_blocks():
                         buf = deque(maxlen=200)
+                        bpf_spkr = BiquadBandpass(args.rate, 600.0, 100.0) if args.bpf else None
                         def _cb(indata, outdata, frames, t, status):  # noqa: ANN001
                             x = indata[:, 0].astype(np.float32, copy=False)
-                            y = bpf_spkr.process_block(amp * x)
+                            y = amp * x
+                            if bpf_spkr is not None:
+                                y = bpf_spkr.process_block(y)
                             outdata[:, 0] = y
                             try:
                                 buf.append(y.copy())
@@ -351,8 +354,6 @@ def main() -> None:
                                     yield buf.popleft()
                                 else:
                                     time.sleep(0.001)
-                    if args.bpf:
-                        bpf_spkr = BiquadBandpass(args.rate, 600.0, 100.0)
                     blocks = _speaker_stream_blocks()
                 else:
                     stream = StreamAudioSource(sample_rate=args.rate, channels=1, blocksize=step)
@@ -368,13 +369,16 @@ def main() -> None:
                 if args.spkr:
                     phase = 0.0
                     amp = max(0.0, min(1.0, float(getattr(args, "vol", 60.0)) / 100.0))
+                    bpf_spkr = BiquadBandpass(args.rate, 600.0, 100.0) if args.bpf else None
 
                     def _cb(outdata, frames, t, status):  # noqa: ANN001
                         nonlocal phase
                         idx = np.arange(frames, dtype=np.float32)
                         tt = (phase + idx) / float(args.rate)
                         raw = np.sin(2 * np.pi * 600.0 * tt).astype(np.float32)
-                        outdata[:, 0] = amp * bpf_spkr.process_block(raw)
+                        if bpf_spkr is not None:
+                            raw = bpf_spkr.process_block(raw)
+                        outdata[:, 0] = amp * raw
                         phase += frames
 
                     out = sd.OutputStream(
@@ -405,6 +409,7 @@ def main() -> None:
                 if args.spkr:
                     phase = 0.0
                     amp = max(0.0, min(1.0, float(getattr(args, "vol", 60.0)) / 100.0))
+                    bpf_spkr = BiquadBandpass(args.rate, 600.0, 100.0) if args.bpf else None
                     def _cb(outdata, frames, t, status):  # noqa: ANN001
                         nonlocal phase
                         # Parlante recibe CW + QRM sumados
@@ -412,7 +417,9 @@ def main() -> None:
                         if qrm_srcs:
                             for s in qrm_srcs:
                                 raw = raw + s.record(frames / float(args.rate))[:frames]
-                        outdata[:, 0] = amp * bpf_spkr.process_block(raw)
+                        if bpf_spkr is not None:
+                            raw = bpf_spkr.process_block(raw)
+                        outdata[:, 0] = amp * raw
                         phase += frames
                     out = sd.OutputStream(
                         samplerate=args.rate,
