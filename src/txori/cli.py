@@ -134,6 +134,8 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--smooth", type=int, default=0, help="Suavizado temporal del waterfall (EMA N columnas, N=1..10) solo en --dsp.")
     parser.add_argument("--cwkill", nargs="?", const=20.0, type=float, help="Suprime tono CW: BPF en 600 Hz con ancho de banda (Hz), por defecto 20 Hz.")
     parser.add_argument("--qrm", nargs="?", const=5, type=int, help="Con --source cw: agrega N (1-10, por defecto 5) señales CW interferentes con licencias y tonos aleatorios (200–2500 Hz).")
+    parser.add_argument("--qrn", action="store_true", help="Con --source cw: agrega ruido blanco con SNR (dB) respecto a la señal CW principal.")
+    parser.add_argument("--snr", type=float, default=None, help="SNR del ruido en dB (negativos). Por defecto -18 dB.")
     return parser.parse_args()
 
 
@@ -186,10 +188,22 @@ def main() -> None:
                             ) for c in calls
                         ]
                         def _sum_blocks():
-                            iters = [main_cw.blocks()] + [s.blocks() for s in qrm_srcs]
+                            cw_it = main_cw.blocks()
+                            qrm_its = [s.blocks() for s in qrm_srcs]
+                            snr_db = float(getattr(args, "snr", -18.0) or -18.0)
+                            pr = 10.0 ** (snr_db / 10.0)
+                            eps = 1e-12
                             while True:
-                                bs = [next(it) for it in iters]
-                                yield np.sum(bs, axis=0).astype(np.float32)
+                                main_b = next(cw_it)
+                                tot = main_b.copy()
+                                for it in qrm_its:
+                                    tot = tot + next(it)
+                                if getattr(args, "qrn", False):
+                                    p = float(np.mean(main_b.astype(np.float32) ** 2)) + eps
+                                    noise_std = np.sqrt(max(0.0, p * pr))
+                                    n = (np.random.randn(tot.size).astype(np.float32) * noise_std)
+                                    tot = (tot + n).astype(np.float32)
+                                yield tot
                         blocks = _sum_blocks()
                     else:
                         blocks = main_cw.blocks()
@@ -277,6 +291,12 @@ def main() -> None:
                             f = float(random.uniform(200.0, 2500.0))
                             w = float(random.uniform(10.0, 40.0))
                             data = data + MorseAudioSource(sample_rate=args.rate, frequency=f, wpm=w, message=f"{c} TEST    ").record(args.dur)
+                    if getattr(args, "qrn", False):
+                        snr_db = float(getattr(args, "snr", -18.0) or -18.0)
+                        pr = 10.0 ** (snr_db / 10.0)
+                        p = float(np.mean(main_cw.record(args.dur).astype(np.float32) ** 2)) + 1e-12
+                        noise_std = np.sqrt(max(0.0, p * pr))
+                        data = data + (np.random.randn(data.size).astype(np.float32) * noise_std)
                 tmp = amp * data
                 # FIR decimator opcional
                 if getattr(args, "fir_decim", False):
@@ -413,11 +433,18 @@ def main() -> None:
                     bpf_spkr = BiquadBandpass(args.rate, 600.0, 100.0) if args.bpf else None
                     def _cb(outdata, frames, t, status):  # noqa: ANN001
                         nonlocal phase
-                        # Parlante recibe CW + QRM sumados
-                        raw = cw.record(frames / float(args.rate))[:frames]
+                        # Parlante recibe CW + QRM sumados (+QRN)
+                        raw_main = cw.record(frames / float(args.rate))[:frames]
+                        raw = raw_main.copy()
                         if qrm_srcs:
                             for s in qrm_srcs:
                                 raw = raw + s.record(frames / float(args.rate))[:frames]
+                        if getattr(args, "qrn", False):
+                            snr_db = float(getattr(args, "snr", -18.0) or -18.0)
+                            pr = 10.0 ** (snr_db / 10.0)
+                            p = float(np.mean(raw_main.astype(np.float32) ** 2)) + 1e-12
+                            noise_std = np.sqrt(max(0.0, p * pr))
+                            raw = raw + (np.random.randn(frames).astype(np.float32) * noise_std)
                         if bpf_spkr is not None:
                             raw = bpf_spkr.process_block(raw)
                         outdata[:, 0] = amp * raw
@@ -431,10 +458,20 @@ def main() -> None:
                     )
                     out.start()
                 def _cw_blocks_sum():
-                    iters = [cw.blocks()] + [s.blocks() for s in qrm_srcs] if qrm_srcs else [cw.blocks()]
+                    cw_it = cw.blocks()
+                    qrm_its = [s.blocks() for s in qrm_srcs] if qrm_srcs else []
+                    snr_db = float(getattr(args, "snr", -18.0) or -18.0)
+                    pr = 10.0 ** (snr_db / 10.0)
                     while True:
-                        bs = [next(it) for it in iters]
-                        yield np.sum(bs, axis=0).astype(np.float32)
+                        main_b = next(cw_it)
+                        tot = main_b.copy()
+                        for it in qrm_its:
+                            tot = tot + next(it)
+                        if getattr(args, "qrn", False):
+                            p = float(np.mean(main_b.astype(np.float32) ** 2)) + 1e-12
+                            noise_std = np.sqrt(max(0.0, p * pr))
+                            tot = tot + (np.random.randn(tot.size).astype(np.float32) * noise_std)
+                        yield tot.astype(np.float32)
                 base_blocks = _cw_blocks_sum()
                 if args.bpf:
                     bpf_blocks = BiquadBandpass(args.rate, 600.0, 100.0)
