@@ -167,16 +167,33 @@ def main() -> None:
                 out = None
                 dec_sr = 6000
                 dec_step = max(1, step // 8)
+                obuf = None
                 if args.spkr:
-                    out = sd.OutputStream(samplerate=dec_sr, channels=1, dtype="float32", blocksize=dec_step)
+                    from collections import deque as _dq
+                    obuf = _dq(maxlen=50)
+                    def _cb(outdata, frames, t, status):  # noqa: ANN001
+                        # Consume desde el buffer; si no hay datos, salida en cero
+                        n = frames
+                        outdata[:, 0] = 0.0
+                        if obuf:
+                            filled = 0
+                            while filled < n and obuf:
+                                v = obuf.popleft()
+                                m = min(n - filled, v.size)
+                                outdata[filled:filled+m, 0] = v[:m]
+                                if m < v.size:
+                                    # sobró: reinyectar remanente
+                                    obuf.appendleft(v[m:])
+                                filled += m
+                    out = sd.OutputStream(samplerate=dec_sr, channels=1, dtype="float32", blocksize=dec_step, callback=_cb)
                     out.start()
                 def _blocks_lpf():
                     for b in blocks:
                         y = lpf.process_block(amp * b)
                         z = y[::8]
-                        if out is not None:
+                        if obuf is not None:
                             try:
-                                out.write(z.reshape(-1, 1))
+                                obuf.append(z.astype(np.float32, copy=False))
                             except Exception:
                                 pass
                         yield z
