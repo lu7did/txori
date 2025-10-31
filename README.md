@@ -1,7 +1,7 @@
 Txori
 Programa para procesamiento de sonidos de señales CW
 
-Versión 1.0 build 017
+Versión 1.0 build 018
 
 
 Novedad (Build 002): Procesador de sonidos en tiempo real
@@ -51,3 +51,5 @@ Novedad (Build 017): Agrega --wide para usar 4096 píxeles horizontales (mantien
 - Si se indica --wide, se ignora --fft-pixels y se usan 4096 px horizontales.
 
 Novedad (Build 017): --wide ajusta el ancho real del lienzo a 4096 px (alto inalterado).
+
+Novedad (Build 018): Escala de frecuencias movida al margen derecho del gráfico.

@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 018: Frecuencia en eje derecho (tick_right y label a la derecha).
+
 - 2025-10-31 - Build 017: Aplica ancho 4096 px cuando se usa --wide (ajuste de figura por DPI).
 
 - 2025-10-31 - Build 017: Implementa flag --wide (4096 px horizontales, altura sin cambios).

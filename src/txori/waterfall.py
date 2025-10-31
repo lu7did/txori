@@ -101,6 +101,13 @@ class SpectrogramAnimator:
     def run(self, source: Source, cpu: Processor) -> None:
         """Inicia la animación en tiempo real consumiendo de la fuente y CPU."""
         fig, ax = plt.subplots()
+        # Ajustar ancho en píxeles manteniendo alto
+        try:
+            dpi = float(fig.get_dpi())
+            w, h = fig.get_size_inches()
+            fig.set_size_inches(self.pixel_width / max(dpi, 1.0), h, forward=True)
+        except Exception:
+            pass
         manager = getattr(fig.canvas, "manager", None)
         if manager is not None and hasattr(manager, "set_window_title"):
             manager.set_window_title("Txori Waterfall")
@@ -124,6 +131,8 @@ class SpectrogramAnimator:
             ax.set_title(f"Sample rate: {self.fs} Hz")
             ax.set_xlabel("Tiempo [s] (derecha→izquierda)")
             ax.set_ylabel("Frecuencia [Hz]")
+            ax.yaxis.tick_right()
+            ax.yaxis.set_label_position("right")
 
         interval_ms = int(1000 * (self.frames_per_update * self.hop) / float(self.fs))
         anim = FuncAnimation(
