@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 028: Evita lentitud cuando --spkr y --time están activos usando escritura asíncrona al dispositivo de audio.
 - 2025-10-31 - Build 027: Ajusta reproducción en altavoz según 8/16 bits y Fs para evitar distorsión con WAV de 8 bits.
 - 2025-10-31 - Build 026: FileSource soporta WAV PCM de 8 y 16 bits respetando su sample rate; resto del flujo (CPU, spkr, time plot) sin cambios.
 - 2025-10-31 - Build 025: Reduce la escala de tiempo del time plot al usar --time; agrega --time-scale (default: 0.5) para ajustar.

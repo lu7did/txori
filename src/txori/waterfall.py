@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib import mlab
 from matplotlib import mlab
+import threading
+import queue
 
 from .sources import Source
 from .cpu import Processor
@@ -142,6 +144,9 @@ class SpectrogramAnimator:
 
         stream = None
         _to_out = None  # función de conversión para salida de altavoz
+        spkr_q = None
+        spkr_run = False
+        spkr_thr = None
         if spkr and sd is not None:
             try:
                 width = int(getattr(source, "sample_width", 0))
@@ -159,6 +164,20 @@ class SpectrogramAnimator:
                         return a.astype(np.float32)
                 stream = sd.OutputStream(samplerate=self.fs, channels=1, dtype=spkr_dtype)
                 stream.start()
+                spkr_q = queue.Queue(maxsize=8)
+                spkr_run = True
+                def _writer():
+                    while spkr_run:
+                        try:
+                            buf = spkr_q.get(timeout=0.1)
+                        except queue.Empty:
+                            continue
+                        try:
+                            stream.write(buf)
+                        except Exception:
+                            pass
+                spkr_thr = threading.Thread(target=_writer, name="txori-spkr-writer", daemon=True)
+                spkr_thr.start()
             except Exception:
                 stream = None
 
@@ -177,7 +196,11 @@ class SpectrogramAnimator:
             if stream is not None and x.size:
                 try:
                     y = _to_out(x) if _to_out is not None else x.astype(np.float32)
-                    stream.write(y.reshape(-1, 1))
+                    if spkr_q is not None:
+                        try:
+                            spkr_q.put_nowait(y.reshape(-1, 1))
+                        except queue.Full:
+                            pass
                 except Exception:
                     pass
             x = cpu.process(x)
