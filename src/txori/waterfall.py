@@ -8,6 +8,7 @@ from matplotlib import mlab
 from matplotlib import mlab
 import threading
 import queue
+import time
 
 from .sources import Source
 from .cpu import Processor
@@ -181,30 +182,45 @@ class SpectrogramAnimator:
             except Exception:
                 stream = None
 
-        def _update(_frame: int):
+        # Productor en hilo separado para desacoplar lectura de la fuente del render
+        prod_run = True
+        def _produce():
             nonlocal last_samples
-            need = self.frames_per_update * self.hop
-            x = source.read(need)
-            if time_plot and last_samples is not None:
-                n = len(last_samples)
-                if x.size < n:
-                    y = np.zeros(n, dtype=np.float32)
-                    y[: x.size] = x
-                else:
-                    y = x[:n]
-                last_samples = y
-            if stream is not None and x.size:
-                try:
-                    y = _to_out(x) if _to_out is not None else x.astype(np.float32)
-                    if spkr_q is not None:
+            chunk = max(1, self.hop)
+            while prod_run:
+                t0 = time.monotonic()
+                x = source.read(chunk)
+                if x.size:
+                    # time plot: últimas muestras de la fuente
+                    if time_plot and last_samples is not None:
+                        n = len(last_samples)
+                        if x.size < n:
+                            y = np.zeros(n, dtype=np.float32); y[: x.size] = x
+                        else:
+                            y = x[-n:]
+                        last_samples = y
+                    # speaker: cola asíncrona
+                    if stream is not None and spkr_q is not None:
                         try:
-                            spkr_q.put_nowait(y.reshape(-1, 1))
-                        except queue.Full:
+                            y_sp = _to_out(x) if _to_out is not None else x.astype(np.float32)
+                            spkr_q.put_nowait(y_sp.reshape(-1, 1))
+                        except Exception:
                             pass
-                except Exception:
-                    pass
-            x = cpu.process(x)
-            self._push(x)
+                    # waterfall: empujar procesado
+                    try:
+                        x_proc = cpu.process(x)
+                        self._push(x_proc)
+                    except Exception:
+                        pass
+                # Ritmo en tiempo real
+                dt = time.monotonic() - t0
+                wait = max(0.0, (x.size / float(self.fs)) - dt) if x.size else (chunk / float(self.fs))
+                time.sleep(min(0.1, wait))
+        prod_thr = threading.Thread(target=_produce, name="txori-producer", daemon=True)
+        prod_thr.start()
+
+        def _update(_frame: int):
+            # Solo render: el productor alimenta buffers
             ax.cla()
             Pxx, freqs, bins = mlab.specgram(
                 x=self._buffer,
