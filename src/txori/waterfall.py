@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib import mlab
+from matplotlib import mlab
 
 from .sources import Source
 from .cpu import Processor
@@ -82,8 +83,8 @@ class SpectrogramAnimator:
         """Calcula el espectrograma actual usando matplotlib.specgram."""
         fig, ax = plt.subplots()
         try:
-            Pxx, freqs, bins, _im = ax.specgram(
-                self._buffer,
+            Pxx, freqs, bins = mlab.specgram(
+                x=self._buffer,
                 NFFT=self.nfft,
                 Fs=self.fs,
                 noverlap=self.nfft - self.hop,

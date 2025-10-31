@@ -18,3 +18,5 @@
 - 2025-10-31T20:21:35Z: Corregir RuntimeWarning divide by zero en log10 del espectrograma aplicando epsilon.
 
 - 2025-10-31T20:23:18.805Z: Al presionar Control+C, terminar sin excepción y mostrar 'Programa terminado por el usuario'.
+
+- 2025-10-31T20:24:58Z: Suprimir RuntimeWarning divide by zero reemplazando ax.specgram por mlab.specgram + epsilon.

@@ -1,7 +1,7 @@
 Txori
 Programa para procesamiento de sonidos de señales CW
 
-Versión 1.0 build 013
+Versión 1.0 build 014
 
 
 Novedad (Build 002): Procesador de sonidos en tiempo real
@@ -35,3 +35,5 @@ Nuevos argumentos:
 Novedad (Build 012): Se evita RuntimeWarning divide by zero aplicando piso numérico antes de log10 del espectro.
 
 Novedad (Build 013): Manejo de Ctrl+C sin excepción; muestra 'Programa terminado por el usuario'.
+
+Novedad (Build 014): Corrige warning de log10 en runtime usando epsilon también en la animación.
