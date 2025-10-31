@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 019: README documenta todos los argumentos y valores por defecto.
+
 - 2025-10-31 - Build 018: Agrega suavizado EMA del espectro y permite fijar rango dB con --vmin/--vmax.
 
 - 2025-10-31 - Build 018: Frecuencia en eje derecho (tick_right y label a la derecha).

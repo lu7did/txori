@@ -26,3 +26,4 @@
 - 2025-10-31T20:43:54Z: Corregir --wide para que fije 4096 px de ancho usando DPI del backend.
 - 2025-10-31T20:44:49.432Z: Mover la escala de frecuencias al margen derecho del gráfico.
 - 2025-10-31T20:47:19Z: Implementar --fft-ema y --vmin/--vmax para control de contraste.
+- 2025-10-31T20:53:04.901Z: Documentar en README todos los argumentos y sus defaults.

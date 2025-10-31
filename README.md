@@ -1,7 +1,7 @@
 Txori
 Programa para procesamiento de sonidos de señales CW
 
-Versión 1.0 build 018
+Versión 1.0 build 019
 
 
 Novedad (Build 002): Procesador de sonidos en tiempo real
@@ -55,3 +55,20 @@ Novedad (Build 017): --wide ajusta el ancho real del lienzo a 4096 px (alto inal
 Novedad (Build 018): Escala de frecuencias movida al margen derecho del gráfico.
 
 Novedad (Build 018): --fft-ema para suavizado temporal (EMA) y --vmin/--vmax para rango dB fijo.
+
+Argumentos y valores por defecto:
+- --source [file] (obligatorio)
+- --in RUTA (obligatorio cuando --source file)
+- --cpu [none] (default: none)
+- --fft-window [Blackman|BlackmanHarris|FlatTop|Hamming|Hanning|Rectangular] (default: Blackman)
+- --fft-nfft INT (default: 256)
+- --fft-overlap INT (default: NFFT-56)
+- --fft-cmap STR (default: ocean)
+- --fft-pixels INT (default: 640)
+- --wide (flag) si se indica, fija 4096 píxeles horizontales e ignora --fft-pixels
+- --fft-ema FLOAT en (0,1) (default: desactivado)
+- --vmin FLOAT (default: auto)
+- --vmax FLOAT (default: auto)
+
+Configuración de referencia:
+  txori-waterfall --source file --in ./sounds/test.wav
