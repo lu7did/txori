@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 023: Implementa --spkr enviando la salida de la fuente al audio predeterminado sin modificar waterfall; README actualizado con todos los argumentos y valores por defecto.
+
 - 2025-10-31 - Build 022: Agrega reproducción por altavoz (--spkr) usando sounddevice.
 
 - 2025-10-31 - Build 021: Implementa ToneSource (seno 600Hz @ fs 4000Hz) y corrige import.
