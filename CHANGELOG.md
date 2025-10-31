@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 011: Añade --fft-nfft y --fft-overlap (por defecto NFFT-56).
+
 - 2025-10-31 - Build 010: Agrega --fft-window con múltiples opciones de ventana (default Blackman).
 
 - 2025-10-31 - Build 009: Soporte para WAV PCM de 8 bits en FileSource.

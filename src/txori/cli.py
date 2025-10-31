@@ -31,6 +31,31 @@ def build_parser() -> argparse.ArgumentParser:
         default="none",
         help="Procesador a aplicar (por defecto: none)",
     )
+    p.add_argument(
+        "--fft-window",
+        type=str,
+        choices=[
+            "Blackman",
+            "BlackmanHarris",
+            "FlatTop",
+            "Hamming",
+            "Hanning",
+            "Rectangular",
+        ],
+        default="Blackman",
+        help="Función de ventana para reducir fuga espectral",
+    )
+    p.add_argument(
+        "--fft-nfft",
+        type=int,
+        default=256,
+        help="Tamaño de la FFT (NFFT)",
+    )
+    p.add_argument(
+        "--fft-overlap",
+        type=int,
+        help="Traslape (noverlap) en muestras; por defecto NFFT-56",
+    )
     return p
 
 
@@ -54,8 +79,17 @@ def main(argv: list[str] | None = None) -> int:
     src = _make_source(args.source, args.infile)
     cpu = _make_cpu(args.cpu)
 
+    nfft = int(args.fft_nfft)
+    overlap = int(args.fft_overlap) if getattr(args, "fft_overlap", None) is not None else max(0, nfft - 56)
+    overlap = min(max(overlap, 0), nfft - 1)
+    hop = max(1, nfft - overlap)
     animator = SpectrogramAnimator(
-        fs=src.sample_rate, nfft=256, hop=56, frames_per_update=4, width_cols=400
+        fs=src.sample_rate,
+        nfft=nfft,
+        hop=hop,
+        frames_per_update=4,
+        width_cols=400,
+        fft_window=args.fft_window,
     )
     try:
         animator.run(src, cpu)

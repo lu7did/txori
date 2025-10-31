@@ -1,7 +1,7 @@
 Txori
 Programa para procesamiento de sonidos de señales CW
 
-Versión 1.0 build 010
+Versión 1.0 build 011
 
 
 Novedad (Build 002): Procesador de sonidos en tiempo real
@@ -27,3 +27,7 @@ Compatibilidad de formatos:
 
 Nuevo argumento:
 - --fft-window [Blackman|BlackmanHarris|FlatTop|Hamming|Hanning|Rectangular] (default: Blackman)
+
+Nuevos argumentos:
+- --fft-nfft INT (default: 256)
+- --fft-overlap INT (default: NFFT-56)

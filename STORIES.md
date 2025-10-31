@@ -14,3 +14,4 @@
 - 2025-10-31T20:01:21.262Z: Colocar como título en el espectrograma el sample rate que se le entrega.
 - 2025-10-31T20:06:53Z: Agregar soporte para archivos .wav de 8 bits (normalización u8→[-1,1]).
 - 2025-10-31T20:12:33.903Z: Agregar argumento --fft-window (Blackman, BlackmanHarris, FlatTop, Hamming, Hanning, Rectangular).
+- 2025-10-31T20:19:27.564Z: Introducir argumentos --fft-nfft y --fft-overlap con defaults (256 y NFFT-56).
