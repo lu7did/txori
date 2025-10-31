@@ -105,6 +105,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Ancho del espectrograma en píxeles (default: 640)",
     )
     p.add_argument(
+        "--fft-fpu",
+        type=int,
+        default=1,
+        help="Frames por actualización del waterfall (default: 1)",
+    )
+    p.add_argument(
         "--wide",
         action="store_true",
         help="Usa 4096 píxeles horizontales (mantiene los píxeles verticales)",
@@ -193,7 +199,7 @@ def main(argv: list[str] | None = None) -> int:
         fs=anim_fs,
         nfft=nfft,
         hop=hop,
-        frames_per_update=1,
+        frames_per_update=int(getattr(args, "fft_fpu", 1)),
         width_cols=400,
         fft_window=args.fft_window,
         cmap=args.fft_cmap,
