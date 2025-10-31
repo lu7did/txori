@@ -141,6 +141,7 @@ class SpectrogramAnimator:
                 stream = None
 
         def _update(_frame: int):
+            nonlocal last_samples
             need = self.frames_per_update * self.hop
             x = source.read(need)
             if time_plot and last_samples is not None:
@@ -213,6 +214,11 @@ class SpectrogramAnimator:
                 blit=True,
                 cache_frame_data=False,
             )
+            # Mantener referencia para evitar GC prematuro
+            try:
+                time_fig._txori_anim = anim_time  # type: ignore[attr-defined]
+            except Exception:
+                pass
         try:
             plt.show()
         finally:
