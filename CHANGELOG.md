@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 017: Implementa flag --wide (4096 px horizontales, altura sin cambios).
+
 - 2025-10-31 - Build 016: Agrega --fft-pixels, fija ~640 px por defecto y escala columnas proporcionalmente; título informativo.
 
 - 2025-10-31 - Build 015: Default colormap ocean y argumento --fft-cmap configurable.

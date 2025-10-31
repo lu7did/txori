@@ -22,3 +22,4 @@
 - 2025-10-31T20:24:58Z: Suprimir RuntimeWarning divide by zero reemplazando ax.specgram por mlab.specgram + epsilon.
 - 2025-10-31T20:26:07.525Z: Usar colormap 'ocean' por defecto e implementar --fft-cmap para personalizarlo.
 - 2025-10-31T20:29:48Z: Implementar argumento --fft-pixels (default 640), escalar width_cols proporcionalmente y reflejar en título.
+- 2025-10-31T20:42:09.103Z: Agregar argumento --wide para fijar 4096 píxeles horizontales manteniendo los verticales.

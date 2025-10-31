@@ -68,6 +68,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=640,
         help="Ancho del espectrograma en píxeles (default: 640)",
     )
+    p.add_argument(
+        "--wide",
+        action="store_true",
+        help="Usa 4096 píxeles horizontales (mantiene los píxeles verticales)",
+    )
     return p
 
 
