@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 033: Con --cpu lpf y --cwfilter aplica BPF CW (f0=600 Hz, BW=200 Hz) antes del waterfall; agrega --cpu-bpf-freq y --cpu-bpf-bw.
 - 2025-10-31 - Build 032: --cpu lpf ahora: bypass si Fs<=4000; si Fs>4000 aplica LPF fc (default 2000 Hz) y remuestrea a 2*fc; agrega --cpu-lpf-freq.
 - 2025-10-31 - Build 031: Nuevo CPU --cpu lpf (LPF 3 kHz + remuestreo a 6 kHz si Fs>6 kHz) y waterfall ajustado a Fs=6 kHz; pacing de productor según Fs de la fuente.
 - 2025-10-31 - Build 030: Salida de speaker siempre en float32 para evitar distorsión en algunos hosts con 8/16 bits.

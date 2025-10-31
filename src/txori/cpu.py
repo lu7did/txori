@@ -72,6 +72,52 @@ class LpfProcessor(Processor):
         return np.asarray(outs, dtype=np.float32)
 
 
+class BandPassProcessor(Processor):
+    """Filtro pasabanda (BPF) con centro f0 y ancho BW."""
+
+    def __init__(self, fs: int, center_hz: float = 600.0, bw_hz: float = 200.0) -> None:
+        self.fs = int(fs)
+        self.f0 = float(center_hz)
+        self.bw = float(bw_hz)
+        num_taps = 63
+        n = np.arange(num_taps) - (num_taps - 1) / 2.0
+        # Diseño por diferencia de low-pass: h_bp = h_lp(fc_high) - h_lp(fc_low)
+        def _lp(fc: float) -> np.ndarray:
+            fc = np.clip(fc, 0.0, 0.49 * (self.fs / 2.0))
+            sinc = np.sinc(2.0 * fc / self.fs * n)
+            win = np.hamming(num_taps)
+            h = sinc * win
+            s = np.sum(h)
+            return (h / s) if s != 0 else h
+        fc_low = max(1.0, self.f0 - self.bw / 2.0)
+        fc_high = min(self.fs / 2.0 - 1.0, self.f0 + self.bw / 2.0)
+        hbp = _lp(fc_high) - _lp(fc_low)
+        self._h = hbp.astype(np.float32)
+        self._xprev = np.zeros(num_taps - 1, dtype=np.float32)
+
+    def process(self, x: np.ndarray) -> np.ndarray:
+        if x.size == 0:
+            return x
+        xi = x.astype(np.float32, copy=False)
+        inp = np.concatenate((self._xprev, xi))
+        y = np.convolve(inp, self._h, mode="valid").astype(np.float32)
+        self._xprev = inp[-(self._h.size - 1) :]
+        return y
+
+
+class ChainProcessor(Processor):
+    """Aplica una secuencia de procesadores en orden."""
+
+    def __init__(self, procs: list[Processor]) -> None:
+        self._procs = list(procs)
+
+    def process(self, x: np.ndarray) -> np.ndarray:
+        y = x
+        for p in self._procs:
+            y = p.process(y)
+        return y
+
+
 class LpfProcessor(Processor):
     """Filtro pasabajos + remuestreo a 6 kHz (si fs_in > 6 kHz)."""
 

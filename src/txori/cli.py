@@ -5,7 +5,7 @@ import argparse
 import sys
 
 from .sources import FileSource, ToneSource, Source
-from .cpu import NoOpProcessor, Processor, LpfProcessor
+from .cpu import NoOpProcessor, Processor, LpfProcessor, BandPassProcessor, ChainProcessor
 from .waterfall import SpectrogramAnimator
 from . import waterfall as waterfall_mod
 
@@ -136,13 +136,19 @@ def _make_source(kind: str, infile: str | None, tone_freq: float, tone_fsr: int)
     raise SystemExit(f"Fuente no soportada: {kind}")
 
 
-def _make_cpu(kind: str, fs: int | None = None, lpf_fc: float | None = None) -> Processor:
+def _make_cpu(kind: str, fs: int | None = None, lpf_fc: float | None = None,
+              cwfilter: bool = False, bpf_f0: float = 600.0, bpf_bw: float = 200.0) -> Processor:
     if kind in ("none", "noop"):
         return NoOpProcessor()
     if kind == "lpf":
         if fs is None:
             raise SystemExit("CPU lpf requiere conocer el sample rate de la fuente")
-        return LpfProcessor(fs_in=int(fs), cutoff_hz=float(lpf_fc or 2000.0))
+        base = LpfProcessor(fs_in=int(fs), cutoff_hz=float(lpf_fc or 2000.0))
+        if cwfilter:
+            fs_bpf = int(2 * float(lpf_fc or 2000.0)) if int(fs) > 4000 else int(fs)
+            bpf = BandPassProcessor(fs=fs_bpf, center_hz=float(bpf_f0), bw_hz=float(bpf_bw))
+            return ChainProcessor([base, bpf])
+        return base
     raise SystemExit(f"CPU no soportada: {kind}")
 
 
@@ -150,7 +156,14 @@ def main(argv: list[str] | None = None) -> int:
     """Punto de entrada principal."""
     args = build_parser().parse_args(argv)
     src = _make_source(args.source, args.infile, args.tone_freq, args.tone_fsr)
-    cpu = _make_cpu(args.cpu, fs=src.sample_rate, lpf_fc=getattr(args, "cpu_lpf_freq", 2000.0))
+    cpu = _make_cpu(
+        args.cpu,
+        fs=src.sample_rate,
+        lpf_fc=getattr(args, "cpu_lpf_freq", 2000.0),
+        cwfilter=bool(getattr(args, "cwfilter", False)),
+        bpf_f0=getattr(args, "cpu_bpf_freq", 600.0),
+        bpf_bw=getattr(args, "cpu_bpf_bw", 200.0),
+    )
 
     nfft = int(args.fft_nfft)
     overlap = int(args.fft_overlap) if getattr(args, "fft_overlap", None) is not None else max(0, nfft - 56)
