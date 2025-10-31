@@ -32,10 +32,9 @@ class FileSource(Source):
         self._sr = int(self._wf.getframerate())
         self._sampwidth = self._wf.getsampwidth()
         self._channels = self._wf.getnchannels()
-        if self._sampwidth != 2:
-            # Mantener simple: solo PCM16
+        if self._sampwidth not in (1, 2):
             self._wf.close()
-            raise ValueError("Solo se soportan WAV PCM de 16 bits")
+            raise ValueError("Solo se soportan WAV PCM de 8 o 16 bits")
 
     @property
     def sample_rate(self) -> int:
@@ -45,12 +44,23 @@ class FileSource(Source):
         frames = self._wf.readframes(max(0, int(n)))
         if not frames:
             return np.array([], dtype=np.float32)
-        data = np.frombuffer(frames, dtype=np.int16)
-        if self._channels > 1:
-            data = data.reshape(-1, self._channels).mean(axis=1).astype(np.int16)
-        # Normaliza a [-1, 1]
-        out = (data.astype(np.float32)) / 32768.0
-        return out
+        if self._sampwidth == 1:
+            # PCM8 unsigned: 0..255 -> [-1, 1)
+            data = np.frombuffer(frames, dtype=np.uint8)
+            if self._channels > 1:
+                data = data.reshape(-1, self._channels).mean(axis=1)
+            out = ((data.astype(np.float32) - 128.0) / 128.0).astype(np.float32)
+            return out
+        elif self._sampwidth == 2:
+            # PCM16 signed: -32768..32767 -> [-1, 1)
+            data = np.frombuffer(frames, dtype=np.int16)
+            if self._channels > 1:
+                data = data.reshape(-1, self._channels).mean(axis=1)
+            out = (data.astype(np.float32)) / 32768.0
+            return out
+        else:
+            # No debería ocurrir por validación en __init__
+            return np.array([], dtype=np.float32)
 
     def close(self) -> None:
         try:

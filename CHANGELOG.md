@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 026: FileSource soporta WAV PCM de 8 y 16 bits respetando su sample rate; resto del flujo (CPU, spkr, time plot) sin cambios.
 - 2025-10-31 - Build 025: Reduce la escala de tiempo del time plot al usar --time; agrega --time-scale (default: 0.5) para ajustar.
 
 - 2025-10-31 - Build 024: Agrega argumento --time para mostrar un gráfico de tiempo separado alimentado por la misma fuente y sample rate; documentación actualizada.
