@@ -150,20 +150,9 @@ class SpectrogramAnimator:
         spkr_thr = None
         if spkr and sd is not None:
             try:
-                width = int(getattr(source, "sample_width", 0))
-                if width == 1:
-                    spkr_dtype = "uint8"
-                    def _to_out(a: np.ndarray) -> np.ndarray:
-                        return np.clip(a * 128.0 + 128.0, 0, 255).astype(np.uint8)
-                elif width == 2:
-                    spkr_dtype = "int16"
-                    def _to_out(a: np.ndarray) -> np.ndarray:
-                        return np.clip(a * 32767.0, -32768, 32767).astype(np.int16)
-                else:
-                    spkr_dtype = "float32"
-                    def _to_out(a: np.ndarray) -> np.ndarray:
-                        return a.astype(np.float32)
-                stream = sd.OutputStream(samplerate=self.fs, channels=1, dtype=spkr_dtype)
+                def _to_out(a: np.ndarray) -> np.ndarray:
+                    return a.astype(np.float32)
+                stream = sd.OutputStream(samplerate=self.fs, channels=1, dtype="float32")
                 stream.start()
                 spkr_q = queue.Queue(maxsize=8)
                 spkr_run = True
