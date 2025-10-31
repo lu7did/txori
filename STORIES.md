@@ -27,3 +27,4 @@
 - 2025-10-31T20:44:49.432Z: Mover la escala de frecuencias al margen derecho del gráfico.
 - 2025-10-31T20:47:19Z: Implementar --fft-ema y --vmin/--vmax para control de contraste.
 - 2025-10-31T20:53:04.901Z: Documentar en README todos los argumentos y sus defaults.
+- 2025-10-31T20:56:12.057Z: Agregar fuente de tono sintetizado (--source tone) con parámetros --tone-freq y --tone-fsr.

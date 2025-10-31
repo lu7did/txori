@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 020: Nueva fuente --source tone (seno 600 Hz por defecto) con --tone-freq y --tone-fsr.
+
 - 2025-10-31 - Build 019: README documenta todos los argumentos y valores por defecto.
 
 - 2025-10-31 - Build 018: Agrega suavizado EMA del espectro y permite fijar rango dB con --vmin/--vmax.

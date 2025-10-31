@@ -4,7 +4,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from .sources import FileSource, Source
+from .sources import FileSource, ToneSource, Source
 from .cpu import NoOpProcessor, Processor
 from .waterfall import SpectrogramAnimator
 
@@ -125,6 +125,9 @@ def main(argv: list[str] | None = None) -> int:
         fft_window=args.fft_window,
         cmap=args.fft_cmap,
         pixels=pixels,
+        fft_ema=args.fft_ema,
+        vmin=args.vmin,
+        vmax=args.vmax,
     )
     try:
         animator.run(src, cpu)

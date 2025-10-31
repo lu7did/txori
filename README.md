@@ -1,7 +1,7 @@
 Txori
 Programa para procesamiento de sonidos de señales CW
 
-Versión 1.0 build 019
+Versión 1.0 build 020
 
 
 Novedad (Build 002): Procesador de sonidos en tiempo real
@@ -72,3 +72,8 @@ Argumentos y valores por defecto:
 
 Configuración de referencia:
   txori-waterfall --source file --in ./sounds/test.wav
+
+Fuente adicional:
+- --source tone: tono senoidal sintetizado
+- --tone-freq FLOAT (default: 600)
+- --tone-fsr INT (default: 4000)
