@@ -176,6 +176,7 @@ class SpectrogramAnimator:
         def _produce():
             nonlocal last_samples
             chunk = max(1, self.hop)
+            sr_in = int(getattr(source, "sample_rate", self.fs))
             while prod_run:
                 t0 = time.monotonic()
                 x = source.read(chunk)
@@ -203,7 +204,7 @@ class SpectrogramAnimator:
                         pass
                 # Ritmo en tiempo real
                 dt = time.monotonic() - t0
-                wait = max(0.0, (x.size / float(self.fs)) - dt) if x.size else (chunk / float(self.fs))
+                wait = max(0.0, (x.size / float(sr_in)) - dt) if x.size else (chunk / float(sr_in))
                 time.sleep(min(0.1, wait))
         prod_thr = threading.Thread(target=_produce, name="txori-producer", daemon=True)
         prod_thr.start()

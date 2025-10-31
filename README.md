@@ -1,7 +1,7 @@
 Txori
 Programa para procesamiento de sonidos de señales CW
 
-Versión 1.0 build 030
+Versión 1.0 build 031
 
 
 Novedad (Build 002): Procesador de sonidos en tiempo real
@@ -61,7 +61,7 @@ Argumentos y valores por defecto:
 - --in RUTA (obligatorio cuando --source file)
 - --tone-freq FLOAT (default: 600) cuando --source tone
 - --tone-fsr INT (default: 4000) cuando --source tone
-- --cpu [none] (default: none)
+- --cpu [none|lpf] (default: none). lpf: aplica LPF 3 kHz y remuestrea a 6 kHz cuando Fs>6 kHz (waterfall ajustado a 6 kHz)
 - --fft-window [Blackman|BlackmanHarris|FlatTop|Hamming|Hanning|Rectangular] (default: Blackman)
 - --fft-nfft INT (default: 256)
 - --fft-overlap INT (default: NFFT-56)

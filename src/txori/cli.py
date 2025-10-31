@@ -5,7 +5,7 @@ import argparse
 import sys
 
 from .sources import FileSource, ToneSource, Source
-from .cpu import NoOpProcessor, Processor
+from .cpu import NoOpProcessor, Processor, LpfProcessor
 from .waterfall import SpectrogramAnimator
 from . import waterfall as waterfall_mod
 
@@ -40,9 +40,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument(
         "--cpu",
-        choices=["none"],
+        choices=["none", "lpf"],
         default="none",
-        help="Procesador a aplicar (por defecto: none)",
+        help="Procesador a aplicar (none|lpf)",
     )
     p.add_argument(
         "--fft-window",
@@ -130,9 +130,13 @@ def _make_source(kind: str, infile: str | None, tone_freq: float, tone_fsr: int)
     raise SystemExit(f"Fuente no soportada: {kind}")
 
 
-def _make_cpu(kind: str) -> Processor:
+def _make_cpu(kind: str, fs: int | None = None) -> Processor:
     if kind in ("none", "noop"):
         return NoOpProcessor()
+    if kind == "lpf":
+        if fs is None:
+            raise SystemExit("CPU lpf requiere conocer el sample rate de la fuente")
+        return LpfProcessor(fs_in=int(fs))
     raise SystemExit(f"CPU no soportada: {kind}")
 
 
@@ -140,15 +144,17 @@ def main(argv: list[str] | None = None) -> int:
     """Punto de entrada principal."""
     args = build_parser().parse_args(argv)
     src = _make_source(args.source, args.infile, args.tone_freq, args.tone_fsr)
-    cpu = _make_cpu(args.cpu)
+    cpu = _make_cpu(args.cpu, fs=src.sample_rate)
 
     nfft = int(args.fft_nfft)
     overlap = int(args.fft_overlap) if getattr(args, "fft_overlap", None) is not None else max(0, nfft - 56)
     overlap = min(max(overlap, 0), nfft - 1)
     hop = max(1, nfft - overlap)
     pixels = 4096 if getattr(args, "wide", False) else int(args.fft_pixels)
+    # Ajustar Fs del waterfall si CPU lpf reduce a 6 kHz
+    anim_fs = 6000 if args.cpu == "lpf" and src.sample_rate > 6000 else src.sample_rate
     animator = SpectrogramAnimator(
-        fs=src.sample_rate,
+        fs=anim_fs,
         nfft=nfft,
         hop=hop,
         frames_per_update=4,

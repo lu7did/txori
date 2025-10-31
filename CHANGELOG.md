@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 031: Nuevo CPU --cpu lpf (LPF 3 kHz + remuestreo a 6 kHz si Fs>6 kHz) y waterfall ajustado a Fs=6 kHz; pacing de productor según Fs de la fuente.
 - 2025-10-31 - Build 030: Salida de speaker siempre en float32 para evitar distorsión en algunos hosts con 8/16 bits.
 - 2025-10-31 - Build 029: Desacopla lectura de la fuente en hilo productor; speaker y time plot en tiempo real e independientes del render del waterfall.
 - 2025-10-31 - Build 028: Evita lentitud cuando --spkr y --time están activos usando escritura asíncrona al dispositivo de audio.
