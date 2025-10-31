@@ -105,7 +105,7 @@ class SpectrogramAnimator:
             plt.close(fig)
         return Pxx, freqs, bins
 
-    def run(self, source: Source, cpu: Processor, *, spkr: bool = False, time_plot: bool = False) -> None:
+    def run(self, source: Source, cpu: Processor, *, spkr: bool = False, time_plot: bool = False, time_scale: float = 1.0) -> None:
         """Inicia la animación en tiempo real consumiendo de la fuente y CPU."""
         fig, ax = plt.subplots()
         # Ajustar ancho en píxeles manteniendo alto
@@ -123,14 +123,22 @@ class SpectrogramAnimator:
         time_fig = None
         time_line = None
         last_samples = None
-        time_len = self.frames_per_update * self.hop
+        # Escala de tiempo: factor (0<time_scale<=1) para reducir ventana temporal del time plot
+        time_len = int(self.frames_per_update * self.hop)
         if time_plot:
+            try:
+                scale = float(time_scale)
+            except Exception:
+                scale = 1.0
+            if not (0.0 < scale <= 1.0):
+                scale = 1.0
+            time_len = max(1, int(time_len * scale))
             time_fig, time_ax = plt.subplots()
             time_ax.set_title("Time plot (fuente)")
             time_ax.set_ylim([-1.0, 1.0])
-            time_ax.set_xlim([0, max(1, time_len)])
-            (time_line,) = time_ax.plot(np.zeros(max(1, time_len), dtype=np.float32))
-            last_samples = np.zeros(max(1, time_len), dtype=np.float32)
+            time_ax.set_xlim([0, time_len])
+            (time_line,) = time_ax.plot(np.zeros(time_len, dtype=np.float32))
+            last_samples = np.zeros(time_len, dtype=np.float32)
 
         stream = None
         if spkr and sd is not None:

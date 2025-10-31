@@ -1,5 +1,10 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 025: Reduce la escala de tiempo del time plot al usar --time; agrega --time-scale (default: 0.5) para ajustar.
+
+- 2025-10-31 - Build 024: Agrega argumento --time para mostrar un gráfico de tiempo separado alimentado por la misma fuente y sample rate; documentación actualizada.
+
+
 - 2025-10-31 - Build 023: Implementa --spkr enviando la salida de la fuente al audio predeterminado sin modificar waterfall; README actualizado con todos los argumentos y valores por defecto.
 
 - 2025-10-31 - Build 022: Agrega reproducción por altavoz (--spkr) usando sounddevice.

@@ -111,6 +111,12 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Mostrar un gráfico de tiempo en ventana separada (misma fuente y Fs)",
     )
+    p.add_argument(
+        "--time-scale",
+        type=float,
+        default=0.5,
+        help="Factor (0<scale<=1) para reducir la ventana temporal del time plot",
+    )
     return p
 
 
@@ -170,6 +176,7 @@ def main(argv: list[str] | None = None) -> int:
             cpu,
             spkr=bool(getattr(args, "spkr", False)),
             time_plot=bool(getattr(args, "time", False)),
+            time_scale=float(getattr(args, "time_scale", 1.0)),
         )
     except KeyboardInterrupt:
         print("Programa terminado por el usuario")
