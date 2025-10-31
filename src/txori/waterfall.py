@@ -152,17 +152,35 @@ class SpectrogramAnimator:
         _spkr_buf = np.zeros(0, dtype=np.float32)
         _spkr_t = 0.0
         if spkr and sd is not None:
-            def _make_out_stream(target_fs: int):
-                s = sd.OutputStream(samplerate=target_fs, channels=1, dtype="float32")
+            def _make_out_stream(target_fs: int, cb):
+                s = sd.OutputStream(samplerate=target_fs, channels=1, dtype="float32", callback=cb, blocksize=0)
                 s.start()
                 return s
+            # callback de audio que consume de la cola
+            spkr_q = queue.Queue(maxsize=16)
+            _cb_buf = np.zeros(0, dtype=np.float32)
+            def _cb(outdata, frames, time_info, status):  # noqa: D401
+                nonlocal _cb_buf
+                if status:
+                    pass
+                if _cb_buf.size < frames:
+                    try:
+                        while _cb_buf.size < frames:
+                            _cb_buf = np.concatenate((_cb_buf, spkr_q.get_nowait()))
+                    except queue.Empty:
+                        pass
+                if _cb_buf.size >= frames:
+                    outdata[:, 0] = _cb_buf[:frames]
+                    _cb_buf = _cb_buf[frames:]
+                else:
+                    outdata.fill(0.0)
             try:
                 # Preferir Fs del procesado; si no es soportado, caer a 48000
-                stream = _make_out_stream(spkr_fs)
+                stream = _make_out_stream(spkr_fs, _cb)
             except Exception:
                 try:
                     spkr_fs = 48000
-                    stream = _make_out_stream(spkr_fs)
+                    stream = _make_out_stream(spkr_fs, _cb)
                 except Exception:
                     stream = None
             if stream is not None:
@@ -187,20 +205,6 @@ class SpectrogramAnimator:
                         t -= drop
                     _spkr_t = t
                     return np.asarray(outs, dtype=np.float32)
-                spkr_q = queue.Queue(maxsize=8)
-                spkr_run = True
-                def _writer():
-                    while spkr_run:
-                        try:
-                            buf = spkr_q.get(timeout=0.1)
-                        except queue.Empty:
-                            continue
-                        try:
-                            stream.write(buf)
-                        except Exception:
-                            pass
-                spkr_thr = threading.Thread(target=_writer, name="txori-spkr-writer")
-                spkr_thr.start()
 
         # Productor en hilo separado para desacoplar lectura de la fuente del render
         prod_run = True

@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 041: Salida de audio con callback (cola + resample) para asegurar reproducción continua.
 - 2025-10-31 - Build 040: --spkr reproduce post-CPU y hace fallback a 48 kHz con resample si el Fs del procesado no es soportado por el dispositivo.
 - 2025-10-31 - Build 039: --spkr ahora reproduce las mismas muestras post-CPU que llegan al waterfall, usando el Fs actual del procesado.
 - 2025-10-31 - Build 038: Nuevo argumento --fft-fpu y el título del waterfall muestra Fs, hop, cols y fpu.
