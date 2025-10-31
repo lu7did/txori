@@ -77,7 +77,7 @@ class SpectrogramAnimator:
                 NFFT=self.nfft,
                 Fs=self.fs,
                 noverlap=self.nfft - self.hop,
-                window=np.blackman,
+                window=self._window_fn,
             )
             ax.set_title("Espectrograma (Blackman, NFFT=256, overlap=NFFT-56)")
             ax.set_xlabel("Tiempo [s] (derecha→izquierda)")

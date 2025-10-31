@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 008: Título del espectrograma ahora indica sample rate (Fs).
+
 - 2025-10-31 - Build 007: README documenta configuración de referencia y argumentos (versión 1.0).
 
 - 2025-10-31 - Build 006: Fix de runtime en animación (window Blackman ahora función compatible).

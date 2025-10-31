@@ -10,3 +10,5 @@
 
 - 2025-10-31T16:34:37Z: Ajustar window Blackman en specgram a callable que acepta vector para evitar ValueError.
 - 2025-10-31T19:53:24.763Z: Documentar en README la configuración de referencia y todos los argumentos con defaults; subir build.
+
+- 2025-10-31T20:01:21.262Z: Colocar como título en el espectrograma el sample rate que se le entrega.

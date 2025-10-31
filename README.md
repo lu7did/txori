@@ -1,6 +1,8 @@
 Txori
 Programa para procesamiento de sonidos de señales CW
 
+Versión 1.0 build 008
+
 
 Novedad (Build 002): Procesador de sonidos en tiempo real
 - Fuente inicial: --source file con ruta --in a un .WAV (se respeta su sample rate).
@@ -18,17 +20,4 @@ Novedad (Build 005): Corrige crash en specgram por uso incorrecto de Blackman; s
 
 Novedad (Build 006): Corrige definitivamente el runtime pasando función Blackman compatible a specgram.
 
-Configuración de referencia:
-  txori-waterfall --source file --in ./sounds/test.wav
-
-Argumentos y valores por defecto:
-- --source [file] (obligatorio)
-- --in RUTA (requerido cuando --source file)
-- --cpu [none] (default: none)
-
-Parámetros internos del espectrograma (por defecto):
-- window: Blackman
-- nfft: 256
-- frames por actualización: 4
-- overlap: NFFT-56 (hop=56)
-- rate: sample rate del archivo de entrada
+Novedad (Build 008): El título del espectrograma muestra el sample rate recibido (Fs en Hz).
