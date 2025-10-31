@@ -51,6 +51,23 @@ def build_parser() -> argparse.ArgumentParser:
         help="Frecuencia de corte (Hz) para --cpu lpf; el diezmado resultante será 2*fc (default: 2000)",
     )
     p.add_argument(
+        "--cwfilter",
+        action="store_true",
+        help="Con --cpu lpf, aplica además un pasabanda CW (f0/BW configurables)",
+    )
+    p.add_argument(
+        "--cpu-bpf-freq",
+        type=float,
+        default=600.0,
+        help="Frecuencia central (Hz) del pasabanda CW (default: 600)",
+    )
+    p.add_argument(
+        "--cpu-bpf-bw",
+        type=float,
+        default=200.0,
+        help="Ancho de banda (Hz) del pasabanda CW (default: 200)",
+    )
+    p.add_argument(
         "--fft-window",
         type=str,
         choices=[

@@ -1,7 +1,7 @@
 Txori
 Programa para procesamiento de sonidos de señales CW
 
-Versión 1.0 build 033
+Versión 1.0 build 034
 
 
 Novedad (Build 002): Procesador de sonidos en tiempo real

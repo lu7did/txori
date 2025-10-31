@@ -39,3 +39,4 @@
 - 2025-10-31T22:21:41.944Z: Agregar CPU --cpu lpf (LPF 3 kHz + remuestreo a 6 kHz si Fs>6 kHz) y ajustar waterfall a 6 kHz.
 - 2025-10-31T22:45:53.447Z: Ajustar --cpu lpf: bypass si Fs<=4000; si Fs>4000 LPF fc (default 2000 Hz) + diezmado a 2*fc; agregar --cpu-lpf-freq.
 - 2025-10-31T22:52:20.367Z: Con --cpu lpf y --cwfilter aplicar BPF CW (f0=600 Hz, BW=200 Hz por default) previo al waterfall; agregar --cpu-bpf-freq y --cpu-bpf-bw.
+- 2025-10-31T22:54:52.623Z: Fix CLI: agregar args --cwfilter/--cpu-bpf-freq/--cpu-bpf-bw al parser.
