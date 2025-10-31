@@ -28,7 +28,7 @@ los siguientes productos:
 * Ejecutar PyRight para los modulos que no sean explicitamente puestos fuera de su alcance, aceptar solo si no hay errores.
 * Implementar test automático con Pytest con hipótesis de test unitario que permitan la cobertura del 80% o mejor.
 * Utilizar bandit para la evaluación básica de seguridad y que no queden observaciones.
-* Utilizar Trufflehog para la evaluación básica de seguridad y que no queden observaciones.
+* No utilizar Trufflehog en los controles de seguridad.
 * Producir una documentación básica del funcionamiento del módulor y actualizarla con cada PR exitoso.
 * Debe generarse y mantenerse actualizado un archivo requirements.txt que se usará para las dependencias de librerías.
 * Si el proyecto tiene dependencias externas mandatorias u opcionales produce el archivo requirements.txt necesario.
