@@ -79,5 +79,11 @@ class SpectrogramAnimator:
             ax.invert_xaxis()
 
         interval_ms = int(1000 * (self.frames_per_update * self.hop) / float(self.fs))
-        FuncAnimation(fig, _update, interval=max(1, interval_ms))
+        anim = FuncAnimation(
+            fig,
+            _update,
+            interval=max(1, interval_ms),
+            cache_frame_data=False,
+        )
         plt.show()
+        del anim  # mantener referencia hasta que show() regrese

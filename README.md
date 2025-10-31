@@ -9,3 +9,5 @@ Novedad (Build 002): Procesador de sonidos en tiempo real
 
 Ejemplo:
   txori-waterfall --source file --in ejemplos/mi_audio.wav --cpu none
+
+Novedad (Build 003): Corrección de warnings Matplotlib en animación (cache_frame_data=False) y retención de la referencia anim.
