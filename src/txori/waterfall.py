@@ -1,0 +1,83 @@
+"""Waterfall: espectrograma en tiempo real con animación derecha a izquierda."""
+from __future__ import annotations
+
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
+from .sources import Source
+from .cpu import Processor
+
+
+class SpectrogramAnimator:
+    """Administra el buffer y el dibujo del espectrograma en tiempo real."""
+
+    def __init__(
+        self,
+        *,
+        fs: int,
+        nfft: int = 256,
+        hop: int = 56,  # overlap = nfft - hop => nfft-56
+        frames_per_update: int = 4,
+        width_cols: int = 400,
+    ) -> None:
+        self.fs = int(fs)
+        self.nfft = int(nfft)
+        self.hop = int(hop)
+        self.frames_per_update = int(frames_per_update)
+        self.width_cols = int(width_cols)
+        # Tamaño de buffer para cubrir width_cols columnas
+        self._buf_len = self.nfft + (self.width_cols - 1) * self.hop
+        self._buffer = np.zeros(self._buf_len, dtype=np.float32)
+
+    def _push(self, x: np.ndarray) -> None:
+        if x.size == 0:
+            return
+        x = x.astype(np.float32, copy=False)
+        if x.size >= self._buf_len:
+            self._buffer = x[-self._buf_len :]
+            return
+        keep = self._buf_len - x.size
+        self._buffer = np.concatenate((self._buffer[-keep:], x))
+
+    def compute_spec(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Calcula el espectrograma actual usando matplotlib.specgram."""
+        fig, ax = plt.subplots()
+        try:
+            Pxx, freqs, bins, _im = ax.specgram(
+                self._buffer,
+                NFFT=self.nfft,
+                Fs=self.fs,
+                noverlap=self.nfft - self.hop,
+                window=np.blackman,
+            )
+        finally:
+            plt.close(fig)
+        return Pxx, freqs, bins
+
+    def run(self, source: Source, cpu: Processor) -> None:
+        """Inicia la animación en tiempo real consumiendo de la fuente y CPU."""
+        fig, ax = plt.subplots()
+        fig.canvas.manager.set_window_title("Txori Waterfall")
+
+        def _update(_frame: int):
+            need = self.frames_per_update * self.hop
+            x = source.read(need)
+            x = cpu.process(x)
+            self._push(x)
+            ax.cla()
+            ax.specgram(
+                self._buffer,
+                NFFT=self.nfft,
+                Fs=self.fs,
+                noverlap=self.nfft - self.hop,
+                window=np.blackman,
+            )
+            ax.set_title("Espectrograma (Blackman, NFFT=256, overlap=NFFT-56)")
+            ax.set_xlabel("Tiempo [s] (derecha→izquierda)")
+            ax.set_ylabel("Frecuencia [Hz]")
+            ax.invert_xaxis()
+
+        interval_ms = int(1000 * (self.frames_per_update * self.hop) / float(self.fs))
+        FuncAnimation(fig, _update, interval=max(1, interval_ms))
+        plt.show()

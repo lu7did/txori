@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "txori"
+version = "1.0.0"
+description = "Procesador de sonidos con espectrograma en tiempo real."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { file = "LICENSE" }
+authors = [{ name = "Txori Maintainers" }]
+dependencies = [
+  "numpy>=1.26",
+  "matplotlib>=3.8",
+]
+
+[project.urls]
+Homepage = "https://github.com/"
+
+[project.scripts]
+txori-waterfall = "txori.cli:main"
+
+[tool.black]
+line-length = 88
+target-version = ["py312"]

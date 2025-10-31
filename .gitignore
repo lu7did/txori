@@ -1,30 +1,28 @@
 # Python
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
-*.so
-
-# Virtual env
-.venv/
-
-# Build
-.build/
-build/
-dist/
 *.egg-info/
-
-# IDE
-.vscode/
-.idea/
-
-# Docs
-/docs/
+.venv/
+.env
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.pyright/
+.pyrightcache/
+.dist/
+dist/
+build/
+site/
+coverage.xml
 
 # OS
 .DS_Store
 
-# Artifacts
-coverage.xml
-.txori_cache/
+# Archives
 *.zip
+
+# Docs
+/site/
+
+# CI tools
+.trufflehogcache/

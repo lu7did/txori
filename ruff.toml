@@ -1,0 +1,12 @@
+line-length = 88
+target-version = "py312"
+select = [
+  "E","F","W",   # pycodestyle/pyflakes
+  "D",              # pydocstyle
+  "I",              # isort
+  "UP",             # pyupgrade
+  "B",              # bugbear
+]
+exclude = ["scripts", "ejemplos"]
+[lint.pydocstyle]
+convention = "google"
