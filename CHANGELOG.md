@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 010: Agrega --fft-window con múltiples opciones de ventana (default Blackman).
+
 - 2025-10-31 - Build 009: Soporte para WAV PCM de 8 bits en FileSource.
 
 - 2025-10-31 - Build 008: Título del espectrograma ahora indica sample rate (Fs).

@@ -82,7 +82,6 @@ class SpectrogramAnimator:
             ax.set_title(f"Sample rate: {self.fs} Hz")
             ax.set_xlabel("Tiempo [s] (derecha→izquierda)")
             ax.set_ylabel("Frecuencia [Hz]")
-            ax.invert_xaxis()
 
         interval_ms = int(1000 * (self.frames_per_update * self.hop) / float(self.fs))
         anim = FuncAnimation(
