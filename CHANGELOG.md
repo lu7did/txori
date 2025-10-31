@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 044: Elimina trufflehog de requirements-dev y del workflow CI.
 - 2025-10-31 - Build 043: Actualiza CONTEXT para no utilizar Trufflehog en controles de seguridad.
 
 - 2025-10-31 - Build 042: Corrige callback de audio (usar buffers 1D en la cola) para evitar ValueError de dimensiones.

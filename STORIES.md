@@ -47,3 +47,4 @@
 - 2025-10-31T23:07:35.160Z: Con --spkr enviar exactamente las mismas muestras post-CPU que van al waterfall y usar su Fs actual.
 - 2025-10-31T23:09:50.882Z: Si el dispositivo no soporta Fs del procesado, hacer fallback a 48 kHz con resample para asegurar audio.
 - 2025-10-31T23:25:27.790Z: Actualizar CONTEXT para no utilizar Trufflehog en los controles de seguridad.
+- 2025-10-31T23:27:24.029Z: Remover trufflehog de requirements-dev y del workflow CI para evitar fallos de prerequisitos.

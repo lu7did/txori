@@ -30,8 +30,6 @@ jobs:
         run: pyright
       - name: Security (bandit)
         run: bandit -r src
-      - name: Secrets (trufflehog)
-        run: trufflehog filesystem --no-update --fail --exclude_paths .trufflehogignore .
       - name: Tests
         env:
           MPLBACKEND: Agg
