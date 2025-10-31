@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 038: Nuevo argumento --fft-fpu y el título del waterfall muestra Fs, hop, cols y fpu.
 - 2025-10-31 - Build 037: Acelera actualización del waterfall (frames_per_update=1) para acercar al ritmo de la fuente.
 - 2025-10-31 - Build 036: Manejo limpio de Ctrl+C: detener productor/escritor y cerrar stream en finally.
 - 2025-10-31 - Build 035: Evita crash en shutdown (threads no daemon y join limpio de productor/escritor).

@@ -1,7 +1,7 @@
 Txori
 Programa para procesamiento de sonidos de señales CW
 
-Versión 1.0 build 037
+Versión 1.0 build 038
 
 
 Novedad (Build 002): Procesador de sonidos en tiempo real
@@ -71,6 +71,7 @@ Argumentos y valores por defecto:
 - --fft-overlap INT (default: NFFT-56)
 - --fft-cmap STR (default: ocean)
 - --fft-pixels INT (default: 640)
+- --fft-fpu INT (default: 1) frames por actualización del waterfall
 - --wide (flag) si se indica, fija 4096 píxeles horizontales e ignora --fft-pixels
 - --fft-ema FLOAT en (0,1) (default: desactivado)
 - --vmin FLOAT (default: auto)
