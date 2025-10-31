@@ -53,3 +53,4 @@ Ejemplos:
 Línea de base para evaluación (CW en modo DSP a 6 kHz):
 - txori-waterfall --source cw --dsp --spkr --fir-decim --smooth 5 --bpf --cwkill --hop 16 --window blackmanharris --nfft 216 --row-median --db-range 70 --cwspeed 40 --qrn --smooth 10 --qrm 2
   Notas: --fir-decim mitiga transitorios; --smooth aplica EMA (usa 10 en este preset); --cwkill BPF 600 Hz; Fs'=6000 Hz; --qrn añade ruido y --qrm añade estaciones interferentes.
+Resync funcional
