@@ -79,7 +79,7 @@ class SpectrogramAnimator:
                 noverlap=self.nfft - self.hop,
                 window=self._window_fn,
             )
-            ax.set_title("Espectrograma (Blackman, NFFT=256, overlap=NFFT-56)")
+            ax.set_title(f"Sample rate: {self.fs} Hz")
             ax.set_xlabel("Tiempo [s] (derecha→izquierda)")
             ax.set_ylabel("Frecuencia [Hz]")
             ax.invert_xaxis()
