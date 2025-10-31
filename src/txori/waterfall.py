@@ -166,7 +166,7 @@ class SpectrogramAnimator:
                             stream.write(buf)
                         except Exception:
                             pass
-                spkr_thr = threading.Thread(target=_writer, name="txori-spkr-writer", daemon=True)
+                spkr_thr = threading.Thread(target=_writer, name="txori-spkr-writer")
                 spkr_thr.start()
             except Exception:
                 stream = None
@@ -206,7 +206,7 @@ class SpectrogramAnimator:
                 dt = time.monotonic() - t0
                 wait = max(0.0, (x.size / float(sr_in)) - dt) if x.size else (chunk / float(sr_in))
                 time.sleep(min(0.1, wait))
-        prod_thr = threading.Thread(target=_produce, name="txori-producer", daemon=True)
+        prod_thr = threading.Thread(target=_produce, name="txori-producer")
         prod_thr.start()
 
         def _update(_frame: int):
