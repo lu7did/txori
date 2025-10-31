@@ -76,7 +76,13 @@ class SpectrogramAnimator:
         if w in ("flattop", "flat-top", "flat_top"):
             # 5-term flattop (Harris)
             n = np.arange(N, dtype=float)
-            a0, a1, a2, a3, a4 = 0.21557895, 0.41663158, 0.277263158, 0.083578947, 0.006947368
+            a0, a1, a2, a3, a4 = (
+                0.21557895,
+                0.41663158,
+                0.277263158,
+                0.083578947,
+                0.006947368,
+            )
             return (
                 a0
                 - a1 * np.cos(2.0 * np.pi * n / (N - 1))
@@ -112,7 +118,15 @@ class SpectrogramAnimator:
             plt.close(fig)
         return Pxx, freqs, bins
 
-    def run(self, source: Source, cpu: Processor, *, spkr: bool = False, time_plot: bool = False, time_scale: float = 1.0) -> None:
+    def run(
+        self,
+        source: Source,
+        cpu: Processor,
+        *,
+        spkr: bool = False,
+        time_plot: bool = False,
+        time_scale: float = 1.0,
+    ) -> None:
         """Inicia la animación en tiempo real consumiendo de la fuente y CPU."""
         fig, ax = plt.subplots()
         # Ajustar ancho en píxeles manteniendo alto
@@ -155,7 +169,13 @@ class SpectrogramAnimator:
         _spkr_t = 0.0
         if spkr and sd is not None:
             def _make_out_stream(target_fs: int, cb):
-                s = sd.OutputStream(samplerate=target_fs, channels=1, dtype="float32", callback=cb, blocksize=0)
+                s = sd.OutputStream(
+                    samplerate=target_fs,
+                    channels=1,
+                    dtype="float32",
+                    callback=cb,
+                    blocksize=0,
+                )
                 s.start()
                 return s
             # callback de audio que consume de la cola
@@ -248,7 +268,9 @@ class SpectrogramAnimator:
                             pass
                 # Ritmo en tiempo real
                 dt = time.monotonic() - t0
-                wait = max(0.0, (x.size / float(sr_in)) - dt) if x.size else (chunk / float(sr_in))
+                wait = (
+                    max(0.0, (x.size / float(sr_in)) - dt) if x.size else (chunk / float(sr_in))
+                )
                 time.sleep(min(0.1, wait))
         prod_thr = threading.Thread(target=_produce, name="txori-producer")
         prod_thr.start()
@@ -275,7 +297,12 @@ class SpectrogramAnimator:
             else:
                 Pxx_plot = Pxx
             Z = 10.0 * np.log10(Pxx_plot + 1e-12)
-            extent = (0.0, float(bins[-1]) if bins.size else 0.0, float(freqs[0]), float(freqs[-1]))
+            extent = (
+                0.0,
+                float(bins[-1]) if bins.size else 0.0,
+                float(freqs[0]),
+                float(freqs[-1]),
+            )
             ax.imshow(
                 Z,
                 origin="lower",

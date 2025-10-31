@@ -4,7 +4,13 @@ from __future__ import annotations
 import argparse
 
 from .sources import FileSource, ToneSource, Source
-from .cpu import NoOpProcessor, Processor, LpfProcessor, BandPassProcessor, ChainProcessor
+from .cpu import (
+    NoOpProcessor,
+    Processor,
+    LpfProcessor,
+    BandPassProcessor,
+    ChainProcessor,
+)
 from .waterfall import SpectrogramAnimator
 from . import waterfall as waterfall_mod
 
@@ -18,7 +24,12 @@ def build_parser() -> argparse.ArgumentParser:
             "muestra un espectrograma en tiempo real."
         ),
     )
-    p.add_argument("--source", choices=["file", "tone"], required=True, help="Tipo de fuente")
+    p.add_argument(
+        "--source",
+        choices=["file", "tone"],
+        required=True,
+        help="Tipo de fuente",
+    )
     p.add_argument(
         "--in",
         dest="infile",
@@ -47,7 +58,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--cpu-lpf-freq",
         type=float,
         default=2000.0,
-        help="Frecuencia de corte (Hz) para --cpu lpf; el diezmado resultante será 2*fc (default: 2000)",
+        help=(
+            "Frecuencia de corte (Hz) para --cpu lpf; "
+            "el diezmado resultante será 2*fc (default: 2000)"
+        ),
     )
     p.add_argument(
         "--cwfilter",
@@ -148,7 +162,9 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
-def _make_source(kind: str, infile: str | None, tone_freq: float, tone_fsr: int) -> Source:
+def _make_source(
+    kind: str, infile: str | None, tone_freq: float, tone_fsr: int
+) -> Source:
     if kind == "file":
         if not infile:
             raise SystemExit("--in es obligatorio cuando --source file")
@@ -158,8 +174,14 @@ def _make_source(kind: str, infile: str | None, tone_freq: float, tone_fsr: int)
     raise SystemExit(f"Fuente no soportada: {kind}")
 
 
-def _make_cpu(kind: str, fs: int | None = None, lpf_fc: float | None = None,
-              cwfilter: bool = False, bpf_f0: float = 600.0, bpf_bw: float = 200.0) -> Processor:
+def _make_cpu(
+    kind: str,
+    fs: int | None = None,
+    lpf_fc: float | None = None,
+    cwfilter: bool = False,
+    bpf_f0: float = 600.0,
+    bpf_bw: float = 200.0,
+) -> Processor:
     if kind in ("none", "noop"):
         return NoOpProcessor()
     if kind == "lpf":
@@ -168,7 +190,9 @@ def _make_cpu(kind: str, fs: int | None = None, lpf_fc: float | None = None,
         base = LpfProcessor(fs_in=int(fs), cutoff_hz=float(lpf_fc or 2000.0))
         if cwfilter:
             fs_bpf = int(2 * float(lpf_fc or 2000.0)) if int(fs) > 4000 else int(fs)
-            bpf = BandPassProcessor(fs=fs_bpf, center_hz=float(bpf_f0), bw_hz=float(bpf_bw))
+            bpf = BandPassProcessor(
+                fs=fs_bpf, center_hz=float(bpf_f0), bw_hz=float(bpf_bw)
+            )
             return ChainProcessor([base, bpf])
         return base
     raise SystemExit(f"CPU no soportada: {kind}")
@@ -188,12 +212,20 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     nfft = int(args.fft_nfft)
-    overlap = int(args.fft_overlap) if getattr(args, "fft_overlap", None) is not None else max(0, nfft - 56)
+    overlap = (
+        int(args.fft_overlap)
+        if getattr(args, "fft_overlap", None) is not None
+        else max(0, nfft - 56)
+    )
     overlap = min(max(overlap, 0), nfft - 1)
     hop = max(1, nfft - overlap)
     pixels = 4096 if getattr(args, "wide", False) else int(args.fft_pixels)
     # Ajustar Fs del waterfall si CPU lpf aplica diezmado a 2*fc cuando Fs>4000
-    anim_fs = int(2 * args.cpu_lpf_freq) if args.cpu == "lpf" and src.sample_rate > 4000 else src.sample_rate
+    anim_fs = (
+        int(2 * args.cpu_lpf_freq)
+        if args.cpu == "lpf" and src.sample_rate > 4000
+        else src.sample_rate
+    )
     animator = SpectrogramAnimator(
         fs=anim_fs,
         nfft=nfft,
