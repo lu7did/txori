@@ -274,7 +274,24 @@ class SpectrogramAnimator:
         try:
             plt.show()
         finally:
+            # Detener hilos y liberar recursos limpiamente en Ctrl+C o cierre de ventana
+            try:
+                prod_run = False
+                try:
+                    prod_thr.join(timeout=0.5)
+                except Exception:
+                    pass
+            except Exception:
+                pass
             if stream is not None:
+                try:
+                    spkr_run = False
+                    try:
+                        spkr_thr.join(timeout=0.5)
+                    except Exception:
+                        pass
+                except Exception:
+                    pass
                 try:
                     stream.stop(); stream.close()
                 except Exception:

@@ -41,3 +41,4 @@
 - 2025-10-31T22:52:20.367Z: Con --cpu lpf y --cwfilter aplicar BPF CW (f0=600 Hz, BW=200 Hz por default) previo al waterfall; agregar --cpu-bpf-freq y --cpu-bpf-bw.
 - 2025-10-31T22:54:52.623Z: Fix CLI: agregar args --cwfilter/--cpu-bpf-freq/--cpu-bpf-bw al parser.
 - 2025-10-31T22:58:38.201Z: Corregir crash de apagado por threads daemon; convertir a no-daemon y hacer join limpio.
+- 2025-10-31T23:00:30.215Z: Manejo de Ctrl+C: detener productor/escritor y cerrar stream dentro de finally para evitar errores al salir.
