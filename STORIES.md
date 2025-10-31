@@ -42,3 +42,4 @@
 - 2025-10-31T22:54:52.623Z: Fix CLI: agregar args --cwfilter/--cpu-bpf-freq/--cpu-bpf-bw al parser.
 - 2025-10-31T22:58:38.201Z: Corregir crash de apagado por threads daemon; convertir a no-daemon y hacer join limpio.
 - 2025-10-31T23:00:30.215Z: Manejo de Ctrl+C: detener productor/escritor y cerrar stream dentro de finally para evitar errores al salir.
+- 2025-10-31T23:02:26.543Z: El waterfall se veía lento; reducir frames_per_update a 1 para actualizar al ritmo de la fuente.
