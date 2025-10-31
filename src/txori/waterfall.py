@@ -240,7 +240,7 @@ class SpectrogramAnimator:
                     if stream is not None and spkr_q is not None and x_proc.size:
                         try:
                             y_sp = _to_out(x_proc) if _to_out is not None else x_proc.astype(np.float32)
-                            spkr_q.put_nowait(y_sp.reshape(-1, 1))
+                            spkr_q.put_nowait(y_sp.ravel())
                         except Exception:
                             pass
                 # Ritmo en tiempo real
