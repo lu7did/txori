@@ -28,3 +28,4 @@
 - 2025-10-31T20:47:19Z: Implementar --fft-ema y --vmin/--vmax para control de contraste.
 - 2025-10-31T20:53:04.901Z: Documentar en README todos los argumentos y sus defaults.
 - 2025-10-31T20:56:12.057Z: Agregar fuente de tono sintetizado (--source tone) con parámetros --tone-freq y --tone-fsr.
+- 2025-10-31T20:58:31Z: Añadir clase ToneSource y corregir error de import al usar --source tone.

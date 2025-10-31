@@ -57,3 +57,30 @@ class FileSource(Source):
             self._wf.close()
         except Exception:
             pass
+
+
+class ToneSource(Source):
+    """Fuente que sintetiza un tono senoidal continuo."""
+
+    def __init__(self, freq_hz: float = 600.0, fs: int = 4000) -> None:
+        self._sr = int(fs)
+        self._freq = float(freq_hz)
+        self._phase = 0.0
+        self._dphi = 2.0 * np.pi * (self._freq / float(self._sr))
+
+    @property
+    def sample_rate(self) -> int:
+        return self._sr
+
+    def read(self, n: int) -> np.ndarray:
+        n = max(0, int(n))
+        if n == 0:
+            return np.array([], dtype=np.float32)
+        idx = np.arange(n, dtype=np.float64)
+        phase = self._phase + idx * self._dphi
+        x = np.sin(phase).astype(np.float32)
+        self._phase = float((self._phase + n * self._dphi) % (2.0 * np.pi))
+        return x
+
+    def close(self) -> None:
+        return
