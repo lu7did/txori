@@ -30,6 +30,10 @@ class SpectrogramAnimator:
         self._buf_len = self.nfft + (self.width_cols - 1) * self.hop
         self._buffer = np.zeros(self._buf_len, dtype=np.float32)
 
+    def _window_fn(self, x: np.ndarray) -> np.ndarray:
+        """Blackman window function compatible con mlab.specgram."""
+        return np.blackman(len(x))
+
     def _push(self, x: np.ndarray) -> None:
         if x.size == 0:
             return

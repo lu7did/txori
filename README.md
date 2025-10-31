@@ -13,3 +13,5 @@ Ejemplo:
 Novedad (Build 003): Corrección de warnings Matplotlib en animación (cache_frame_data=False) y retención de la referencia anim.
 
 Novedad (Build 004): Robustez en backends sin window manager de Matplotlib (evita crash en set_window_title).
+
+Novedad (Build 005): Corrige crash en specgram por uso incorrecto de Blackman; se usa función compatible con mlab.

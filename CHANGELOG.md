@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 005: Arreglo de runtime (window Blackman en specgram) usando función adecuada.
+
 - 2025-10-31 - Build 004: Evita error de runtime cuando el backend no expone window manager en Matplotlib.
 
 - 2025-10-31 - Build 003: Corrige warnings de Matplotlib en animación (cache_frame_data=False) y conserva referencia anim.
