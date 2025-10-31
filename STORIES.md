@@ -12,3 +12,4 @@
 - 2025-10-31T19:53:24.763Z: Documentar en README la configuración de referencia y todos los argumentos con defaults; subir build.
 
 - 2025-10-31T20:01:21.262Z: Colocar como título en el espectrograma el sample rate que se le entrega.
+- 2025-10-31T20:06:53Z: Agregar soporte para archivos .wav de 8 bits (normalización u8→[-1,1]).

@@ -1,7 +1,7 @@
 Txori
 Programa para procesamiento de sonidos de señales CW
 
-Versión 1.0 build 008
+Versión 1.0 build 009
 
 
 Novedad (Build 002): Procesador de sonidos en tiempo real
@@ -21,3 +21,6 @@ Novedad (Build 005): Corrige crash en specgram por uso incorrecto de Blackman; s
 Novedad (Build 006): Corrige definitivamente el runtime pasando función Blackman compatible a specgram.
 
 Novedad (Build 008): El título del espectrograma muestra el sample rate recibido (Fs en Hz).
+
+Compatibilidad de formatos:
+- WAV PCM de 8 o 16 bits, mono o estéreo (se mezcla a mono).
