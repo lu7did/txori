@@ -73,6 +73,21 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Usa 4096 píxeles horizontales (mantiene los píxeles verticales)",
     )
+    p.add_argument(
+        "--fft-ema",
+        type=float,
+        help="Factor EMA (0<ema<1) para suavizar el espectro en tiempo",
+    )
+    p.add_argument(
+        "--vmin",
+        type=float,
+        help="Escala dB mínima para el colormap",
+    )
+    p.add_argument(
+        "--vmax",
+        type=float,
+        help="Escala dB máxima para el colormap",
+    )
     return p
 
 

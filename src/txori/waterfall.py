@@ -25,6 +25,9 @@ class SpectrogramAnimator:
         fft_window: str = "blackman",
         cmap: str = "ocean",
         pixels: int = 640,
+        fft_ema: float | None = None,
+        vmin: float | None = None,
+        vmax: float | None = None,
     ) -> None:
         self.fs = int(fs)
         self.nfft = int(nfft)
@@ -34,6 +37,10 @@ class SpectrogramAnimator:
         self._win = str(fft_window).lower()
         self._cmap = str(cmap) if cmap else "ocean"
         self.pixel_width = max(1, int(pixels))
+        self._ema_alpha = float(fft_ema) if fft_ema is not None else None
+        self._ema_state: np.ndarray | None = None
+        self._vmin = vmin
+        self._vmax = vmax
         # Tamaño de buffer para cubrir width_cols columnas
         self._buf_len = self.nfft + (self.width_cols - 1) * self.hop
         self._buffer = np.zeros(self._buf_len, dtype=np.float32)

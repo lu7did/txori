@@ -53,3 +53,5 @@ Novedad (Build 017): Agrega --wide para usar 4096 píxeles horizontales (mantien
 Novedad (Build 017): --wide ajusta el ancho real del lienzo a 4096 px (alto inalterado).
 
 Novedad (Build 018): Escala de frecuencias movida al margen derecho del gráfico.
+
+Novedad (Build 018): --fft-ema para suavizado temporal (EMA) y --vmin/--vmax para rango dB fijo.
