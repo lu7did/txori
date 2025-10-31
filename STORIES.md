@@ -37,3 +37,4 @@
 - 2025-10-31T21:05:17.132Z: Implementar --spkr para reproducir la salida de la fuente en el dispositivo de audio por defecto.
 - 2025-10-31T21:46:14.564Z: Reducir la escala de tiempo del time plot cuando se use --time; agregar parámetro --time-scale para controlar (default 0.5).
 - 2025-10-31T22:21:41.944Z: Agregar CPU --cpu lpf (LPF 3 kHz + remuestreo a 6 kHz si Fs>6 kHz) y ajustar waterfall a 6 kHz.
+- 2025-10-31T22:45:53.447Z: Ajustar --cpu lpf: bypass si Fs<=4000; si Fs>4000 LPF fc (default 2000 Hz) + diezmado a 2*fc; agregar --cpu-lpf-freq.
