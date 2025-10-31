@@ -1,7 +1,7 @@
 Txori
 Programa para procesamiento de sonidos de señales CW
 
-Versión 1.0 build 011
+Versión 1.0 build 012
 
 
 Novedad (Build 002): Procesador de sonidos en tiempo real
@@ -31,3 +31,5 @@ Nuevo argumento:
 Nuevos argumentos:
 - --fft-nfft INT (default: 256)
 - --fft-overlap INT (default: NFFT-56)
+
+Novedad (Build 012): Se evita RuntimeWarning divide by zero aplicando piso numérico antes de log10 del espectro.

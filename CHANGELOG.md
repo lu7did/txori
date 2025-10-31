@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 012: Evita warning divide-by-zero en specgram usando epsilon antes de log10.
+
 - 2025-10-31 - Build 011: Añade --fft-nfft y --fft-overlap (por defecto NFFT-56).
 
 - 2025-10-31 - Build 010: Agrega --fft-window con múltiples opciones de ventana (default Blackman).

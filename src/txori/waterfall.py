@@ -4,6 +4,7 @@ from __future__ import annotations
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+from matplotlib import mlab
 
 from .sources import Source
 from .cpu import Processor
@@ -20,19 +21,52 @@ class SpectrogramAnimator:
         hop: int = 56,  # overlap = nfft - hop => nfft-56
         frames_per_update: int = 4,
         width_cols: int = 400,
+        fft_window: str = "blackman",
     ) -> None:
         self.fs = int(fs)
         self.nfft = int(nfft)
         self.hop = int(hop)
         self.frames_per_update = int(frames_per_update)
         self.width_cols = int(width_cols)
+        self._win = str(fft_window).lower()
         # Tamaño de buffer para cubrir width_cols columnas
         self._buf_len = self.nfft + (self.width_cols - 1) * self.hop
         self._buffer = np.zeros(self._buf_len, dtype=np.float32)
 
     def _window_fn(self, x: np.ndarray) -> np.ndarray:
-        """Blackman window function compatible con mlab.specgram."""
-        return np.blackman(len(x))
+        """Ventana seleccionable para mlab.specgram."""
+        N = len(x)
+        w = self._win
+        if w in ("blackman", "blackmann"):
+            return np.blackman(N)
+        if w in ("hanning", "hann"):
+            return np.hanning(N)
+        if w == "hamming":
+            return np.hamming(N)
+        if w in ("rect", "rectangular", "boxcar", "none"):
+            return np.ones(N, dtype=float)
+        if w in ("blackmanharris", "blackman-harris", "bh4"):
+            n = np.arange(N, dtype=float)
+            a0, a1, a2, a3 = 0.35875, 0.48829, 0.14128, 0.01168
+            return (
+                a0
+                - a1 * np.cos(2.0 * np.pi * n / (N - 1))
+                + a2 * np.cos(4.0 * np.pi * n / (N - 1))
+                - a3 * np.cos(6.0 * np.pi * n / (N - 1))
+            )
+        if w in ("flattop", "flat-top", "flat_top"):
+            # 5-term flattop (Harris)
+            n = np.arange(N, dtype=float)
+            a0, a1, a2, a3, a4 = 0.21557895, 0.41663158, 0.277263158, 0.083578947, 0.006947368
+            return (
+                a0
+                - a1 * np.cos(2.0 * np.pi * n / (N - 1))
+                + a2 * np.cos(4.0 * np.pi * n / (N - 1))
+                - a3 * np.cos(6.0 * np.pi * n / (N - 1))
+                + a4 * np.cos(8.0 * np.pi * n / (N - 1))
+            )
+        # Fallback a Blackman
+        return np.blackman(N)
 
     def _push(self, x: np.ndarray) -> None:
         if x.size == 0:
