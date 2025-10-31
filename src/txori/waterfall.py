@@ -24,6 +24,7 @@ class SpectrogramAnimator:
         width_cols: int = 400,
         fft_window: str = "blackman",
         cmap: str = "ocean",
+        pixels: int = 640,
     ) -> None:
         self.fs = int(fs)
         self.nfft = int(nfft)
@@ -32,6 +33,7 @@ class SpectrogramAnimator:
         self.width_cols = int(width_cols)
         self._win = str(fft_window).lower()
         self._cmap = str(cmap) if cmap else "ocean"
+        self.pixel_width = max(1, int(pixels))
         # Tamaño de buffer para cubrir width_cols columnas
         self._buf_len = self.nfft + (self.width_cols - 1) * self.hop
         self._buffer = np.zeros(self._buf_len, dtype=np.float32)
@@ -118,7 +120,7 @@ class SpectrogramAnimator:
             )
             Z = 10.0 * np.log10(Pxx + 1e-12)
             extent = (0.0, float(bins[-1]) if bins.size else 0.0, float(freqs[0]), float(freqs[-1]))
-            ax.imshow(Z, origin="lower", aspect="auto", extent=extent, cmap="viridis")
+            ax.imshow(Z, origin="lower", aspect="auto", extent=extent, cmap=self._cmap)
             ax.set_title(f"Sample rate: {self.fs} Hz")
             ax.set_xlabel("Tiempo [s] (derecha→izquierda)")
             ax.set_ylabel("Frecuencia [Hz]")

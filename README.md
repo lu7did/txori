@@ -1,7 +1,7 @@
 Txori
 Programa para procesamiento de sonidos de señales CW
 
-Versión 1.0 build 015
+Versión 1.0 build 016
 
 
 Novedad (Build 002): Procesador de sonidos en tiempo real
@@ -41,3 +41,8 @@ Novedad (Build 014): Corrige warning de log10 en runtime usando epsilon también
 Novedad (Build 015):
 - Colormap por defecto: ocean.
 - Nuevo argumento: --fft-cmap NOMBRE (default: ocean) para elegir el colormap.
+
+Novedad (Build 016):
+- Ancho por defecto ~640 px; ajustar con --fft-pixels INT.
+- Las columnas de tiempo se escalan proporcionalmente (base 400 cols a 640 px).
+- El título muestra Fs, píxeles y columnas actuales.

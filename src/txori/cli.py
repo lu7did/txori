@@ -62,6 +62,12 @@ def build_parser() -> argparse.ArgumentParser:
         default="ocean",
         help="Colormap para el espectrograma (default: ocean)",
     )
+    p.add_argument(
+        "--fft-pixels",
+        type=int,
+        default=640,
+        help="Ancho del espectrograma en píxeles (default: 640)",
+    )
     return p
 
 
@@ -96,6 +102,7 @@ def main(argv: list[str] | None = None) -> int:
         frames_per_update=4,
         width_cols=400,
         fft_window=args.fft_window,
+        cmap=args.fft_cmap,
     )
     try:
         animator.run(src, cpu)
