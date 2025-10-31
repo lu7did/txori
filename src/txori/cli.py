@@ -31,6 +31,12 @@ def build_parser() -> argparse.ArgumentParser:
         default="none",
         help="Procesador a aplicar (por defecto: none)",
     )
+    p.add_argument(
+        "--fft-cols",
+        type=int,
+        default=800,
+        help="Cantidad de columnas (ancho temporal) del espectrograma",
+    )
     return p
 
 

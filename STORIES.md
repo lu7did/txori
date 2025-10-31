@@ -9,3 +9,5 @@
 - 2025-10-31T16:33:46Z: Corregir ValueError en numpy.blackman pasando función window compatible con mlab.specgram.
 
 - 2025-10-31T16:34:37Z: Ajustar window Blackman en specgram a callable que acepta vector para evitar ValueError.
+
+- 2025-10-31T16:37:23Z: Agregar --fft-cols y desplazar RT derecha→izquierda (sin invertir eje X).
