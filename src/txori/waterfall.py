@@ -53,7 +53,7 @@ class SpectrogramAnimator:
                 NFFT=self.nfft,
                 Fs=self.fs,
                 noverlap=self.nfft - self.hop,
-                window=np.blackman,
+                window=self._window_fn,
             )
         finally:
             plt.close(fig)

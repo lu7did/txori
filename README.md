@@ -15,3 +15,5 @@ Novedad (Build 003): Corrección de warnings Matplotlib en animación (cache_fra
 Novedad (Build 004): Robustez en backends sin window manager de Matplotlib (evita crash en set_window_title).
 
 Novedad (Build 005): Corrige crash en specgram por uso incorrecto de Blackman; se usa función compatible con mlab.
+
+Novedad (Build 006): Corrige definitivamente el runtime pasando función Blackman compatible a specgram.
