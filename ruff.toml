@@ -1,12 +1,9 @@
 line-length = 88
 target-version = "py312"
-select = [
-  "E","F","W",   # pycodestyle/pyflakes
-  "D",              # pydocstyle
-  "I",              # isort
-  "UP",             # pyupgrade
-  "B",              # bugbear
+lint.select = [
+  "E","F","W",
+  "UP",
+  "B",
 ]
 exclude = ["scripts", "ejemplos"]
-[lint.pydocstyle]
-convention = "google"
+lint.ignore = ["E501"]

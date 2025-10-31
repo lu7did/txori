@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 046: Ajustes Ruff: config lint.*, ignora E501; corrige imports, F821 y duplicados.
+- 2025-10-31 - Build 045: Remueve trufflehog de requirements-dev y sincroniza CI/docs.
 - 2025-10-31 - Build 044: Elimina trufflehog de requirements-dev y del workflow CI.
 - 2025-10-31 - Build 043: Actualiza CONTEXT para no utilizar Trufflehog en controles de seguridad.
 

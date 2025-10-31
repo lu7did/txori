@@ -5,10 +5,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib import mlab
-from matplotlib import mlab
 import threading
 import queue
 import time
+
+try:
+    import sounddevice as sd  # type: ignore
+except Exception:  # pragma: no cover
+    sd = None  # type: ignore
 
 from .sources import Source
 from .cpu import Processor
@@ -220,7 +224,8 @@ class SpectrogramAnimator:
                     if time_plot and last_samples is not None:
                         n = len(last_samples)
                         if x.size < n:
-                            y = np.zeros(n, dtype=np.float32); y[: x.size] = x
+                            y = np.zeros(n, dtype=np.float32)
+                            y[: x.size] = x
                         else:
                             y = x[-n:]
                         last_samples = y
@@ -334,7 +339,8 @@ class SpectrogramAnimator:
                 except Exception:
                     pass
                 try:
-                    stream.stop(); stream.close()
+                    stream.stop()
+                    stream.close()
                 except Exception:
                     pass
         del anim  # mantener referencia hasta que show() regrese

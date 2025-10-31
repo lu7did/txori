@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import sys
 
 from .sources import FileSource, ToneSource, Source
 from .cpu import NoOpProcessor, Processor, LpfProcessor, BandPassProcessor, ChainProcessor
