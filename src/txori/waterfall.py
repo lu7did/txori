@@ -144,16 +144,49 @@ class SpectrogramAnimator:
             last_samples = np.zeros(time_len, dtype=np.float32)
 
         stream = None
-        _to_out = None  # función de conversión para salida de altavoz
+        _to_out = None  # función de conversión y resampleo para salida de altavoz
         spkr_q = None
         spkr_run = False
         spkr_thr = None
+        spkr_fs = int(self.fs)
+        _spkr_buf = np.zeros(0, dtype=np.float32)
+        _spkr_t = 0.0
         if spkr and sd is not None:
+            def _make_out_stream(target_fs: int):
+                s = sd.OutputStream(samplerate=target_fs, channels=1, dtype="float32")
+                s.start()
+                return s
             try:
+                # Preferir Fs del procesado; si no es soportado, caer a 48000
+                stream = _make_out_stream(spkr_fs)
+            except Exception:
+                try:
+                    spkr_fs = 48000
+                    stream = _make_out_stream(spkr_fs)
+                except Exception:
+                    stream = None
+            if stream is not None:
                 def _to_out(a: np.ndarray) -> np.ndarray:
-                    return a.astype(np.float32)
-                stream = sd.OutputStream(samplerate=self.fs, channels=1, dtype="float32")
-                stream.start()
+                    nonlocal _spkr_buf, _spkr_t
+                    x = a.astype(np.float32)
+                    if spkr_fs == self.fs:
+                        return x
+                    _spkr_buf = np.concatenate((_spkr_buf, x))
+                    step = self.fs / float(spkr_fs)
+                    outs = []
+                    t = _spkr_t
+                    while t + 1.0 < _spkr_buf.size:
+                        i = int(t)
+                        frac = t - i
+                        v = (1.0 - frac) * _spkr_buf[i] + frac * _spkr_buf[i + 1]
+                        outs.append(v)
+                        t += step
+                    drop = int(t)
+                    if drop > 0:
+                        _spkr_buf = _spkr_buf[drop:]
+                        t -= drop
+                    _spkr_t = t
+                    return np.asarray(outs, dtype=np.float32)
                 spkr_q = queue.Queue(maxsize=8)
                 spkr_run = True
                 def _writer():
@@ -168,8 +201,6 @@ class SpectrogramAnimator:
                             pass
                 spkr_thr = threading.Thread(target=_writer, name="txori-spkr-writer")
                 spkr_thr.start()
-            except Exception:
-                stream = None
 
         # Productor en hilo separado para desacoplar lectura de la fuente del render
         prod_run = True

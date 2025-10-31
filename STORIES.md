@@ -45,3 +45,4 @@
 - 2025-10-31T23:02:26.543Z: El waterfall se veía lento; reducir frames_per_update a 1 para actualizar al ritmo de la fuente.
 - 2025-10-31T23:04:12.371Z: Exponer --fft-fpu y mostrar hop/cols/fpu en el título del waterfall.
 - 2025-10-31T23:07:35.160Z: Con --spkr enviar exactamente las mismas muestras post-CPU que van al waterfall y usar su Fs actual.
+- 2025-10-31T23:09:50.882Z: Si el dispositivo no soporta Fs del procesado, hacer fallback a 48 kHz con resample para asegurar audio.
