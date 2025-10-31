@@ -141,9 +141,23 @@ class SpectrogramAnimator:
             last_samples = np.zeros(time_len, dtype=np.float32)
 
         stream = None
+        _to_out = None  # función de conversión para salida de altavoz
         if spkr and sd is not None:
             try:
-                stream = sd.OutputStream(samplerate=self.fs, channels=1, dtype="float32")
+                width = int(getattr(source, "sample_width", 0))
+                if width == 1:
+                    spkr_dtype = "uint8"
+                    def _to_out(a: np.ndarray) -> np.ndarray:
+                        return np.clip(a * 128.0 + 128.0, 0, 255).astype(np.uint8)
+                elif width == 2:
+                    spkr_dtype = "int16"
+                    def _to_out(a: np.ndarray) -> np.ndarray:
+                        return np.clip(a * 32767.0, -32768, 32767).astype(np.int16)
+                else:
+                    spkr_dtype = "float32"
+                    def _to_out(a: np.ndarray) -> np.ndarray:
+                        return a.astype(np.float32)
+                stream = sd.OutputStream(samplerate=self.fs, channels=1, dtype=spkr_dtype)
                 stream.start()
             except Exception:
                 stream = None
@@ -162,7 +176,8 @@ class SpectrogramAnimator:
                 last_samples = y
             if stream is not None and x.size:
                 try:
-                    stream.write(x.reshape(-1, 1))
+                    y = _to_out(x) if _to_out is not None else x.astype(np.float32)
+                    stream.write(y.reshape(-1, 1))
                 except Exception:
                     pass
             x = cpu.process(x)
