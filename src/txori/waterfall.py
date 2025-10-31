@@ -105,7 +105,7 @@ class SpectrogramAnimator:
             plt.close(fig)
         return Pxx, freqs, bins
 
-    def run(self, source: Source, cpu: Processor) -> None:
+    def run(self, source: Source, cpu: Processor, *, spkr: bool = False) -> None:
         """Inicia la animación en tiempo real consumiendo de la fuente y CPU."""
         fig, ax = plt.subplots()
         # Ajustar ancho en píxeles manteniendo alto
@@ -118,6 +118,14 @@ class SpectrogramAnimator:
         manager = getattr(fig.canvas, "manager", None)
         if manager is not None and hasattr(manager, "set_window_title"):
             manager.set_window_title("Txori Waterfall")
+
+        stream = None
+        if spkr and sd is not None:
+            try:
+                stream = sd.OutputStream(samplerate=self.fs, channels=1, dtype="float32")
+                stream.start()
+            except Exception:
+                stream = None
 
         def _update(_frame: int):
             need = self.frames_per_update * self.hop
@@ -132,9 +140,28 @@ class SpectrogramAnimator:
                 noverlap=self.nfft - self.hop,
                 window=self._window_fn,
             )
-            Z = 10.0 * np.log10(Pxx + 1e-12)
+            # Suavizado EMA (en potencia) si está habilitado
+            if self._ema_alpha is not None and 0.0 < self._ema_alpha < 1.0:
+                if self._ema_state is None:
+                    self._ema_state = Pxx
+                else:
+                    self._ema_state = (
+                        self._ema_alpha * self._ema_state + (1.0 - self._ema_alpha) * Pxx
+                    )
+                Pxx_plot = self._ema_state
+            else:
+                Pxx_plot = Pxx
+            Z = 10.0 * np.log10(Pxx_plot + 1e-12)
             extent = (0.0, float(bins[-1]) if bins.size else 0.0, float(freqs[0]), float(freqs[-1]))
-            ax.imshow(Z, origin="lower", aspect="auto", extent=extent, cmap=self._cmap)
+            ax.imshow(
+                Z,
+                origin="lower",
+                aspect="auto",
+                extent=extent,
+                cmap=self._cmap,
+                vmin=self._vmin,
+                vmax=self._vmax,
+            )
             ax.set_title(f"Sample rate: {self.fs} Hz")
             ax.set_xlabel("Tiempo [s] (derecha→izquierda)")
             ax.set_ylabel("Frecuencia [Hz]")

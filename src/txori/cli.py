@@ -18,12 +18,24 @@ def build_parser() -> argparse.ArgumentParser:
             "muestra un espectrograma en tiempo real."
         ),
     )
-    p.add_argument("--source", choices=["file"], required=True, help="Tipo de fuente")
+    p.add_argument("--source", choices=["file", "tone"], required=True, help="Tipo de fuente")
     p.add_argument(
         "--in",
         dest="infile",
         type=str,
         help="Ruta al archivo .WAV cuando --source=file",
+    )
+    p.add_argument(
+        "--tone-freq",
+        type=float,
+        default=600.0,
+        help="Frecuencia del tono (Hz) cuando --source=tone (default: 600)",
+    )
+    p.add_argument(
+        "--tone-fsr",
+        type=int,
+        default=4000,
+        help="Sample rate (Hz) del tono cuando --source=tone (default: 4000)",
     )
     p.add_argument(
         "--cpu",
@@ -91,11 +103,13 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
-def _make_source(kind: str, infile: str | None) -> Source:
+def _make_source(kind: str, infile: str | None, tone_freq: float, tone_fsr: int) -> Source:
     if kind == "file":
         if not infile:
             raise SystemExit("--in es obligatorio cuando --source file")
         return FileSource(infile)
+    if kind == "tone":
+        return ToneSource(freq_hz=tone_freq, fs=tone_fsr)
     raise SystemExit(f"Fuente no soportada: {kind}")
 
 
@@ -108,7 +122,7 @@ def _make_cpu(kind: str) -> Processor:
 def main(argv: list[str] | None = None) -> int:
     """Punto de entrada principal."""
     args = build_parser().parse_args(argv)
-    src = _make_source(args.source, args.infile)
+    src = _make_source(args.source, args.infile, args.tone_freq, args.tone_fsr)
     cpu = _make_cpu(args.cpu)
 
     nfft = int(args.fft_nfft)

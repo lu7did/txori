@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 022: Agrega reproducción por altavoz (--spkr) usando sounddevice.
+
 - 2025-10-31 - Build 021: Implementa ToneSource (seno 600Hz @ fs 4000Hz) y corrige import.
 
 - 2025-10-31 - Build 020: Nueva fuente --source tone (seno 600 Hz por defecto) con --tone-freq y --tone-fsr.

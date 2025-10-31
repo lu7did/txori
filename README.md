@@ -1,7 +1,7 @@
 Txori
 Programa para procesamiento de sonidos de señales CW
 
-Versión 1.0 build 021
+Versión 1.0 build 022
 
 
 Novedad (Build 002): Procesador de sonidos en tiempo real
@@ -82,3 +82,6 @@ Fuente adicional:
 - --source tone: tono senoidal sintetizado
 - --tone-freq FLOAT (default: 600)
 - --tone-fsr INT (default: 4000)
+
+Reproducción en vivo:
+- --spkr: envía las muestras de --source a la salida de audio predeterminada (no altera CPU ni waterfall).
