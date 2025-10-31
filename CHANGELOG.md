@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 017: Aplica ancho 4096 px cuando se usa --wide (ajuste de figura por DPI).
+
 - 2025-10-31 - Build 017: Implementa flag --wide (4096 px horizontales, altura sin cambios).
 
 - 2025-10-31 - Build 016: Agrega --fft-pixels, fija ~640 px por defecto y escala columnas proporcionalmente; título informativo.

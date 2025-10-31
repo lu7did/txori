@@ -49,3 +49,5 @@ Novedad (Build 016):
 
 Novedad (Build 017): Agrega --wide para usar 4096 píxeles horizontales (mantiene píxeles verticales).
 - Si se indica --wide, se ignora --fft-pixels y se usan 4096 px horizontales.
+
+Novedad (Build 017): --wide ajusta el ancho real del lienzo a 4096 px (alto inalterado).

@@ -100,6 +100,7 @@ def main(argv: list[str] | None = None) -> int:
     overlap = int(args.fft_overlap) if getattr(args, "fft_overlap", None) is not None else max(0, nfft - 56)
     overlap = min(max(overlap, 0), nfft - 1)
     hop = max(1, nfft - overlap)
+    pixels = 4096 if getattr(args, "wide", False) else int(args.fft_pixels)
     animator = SpectrogramAnimator(
         fs=src.sample_rate,
         nfft=nfft,
@@ -108,6 +109,7 @@ def main(argv: list[str] | None = None) -> int:
         width_cols=400,
         fft_window=args.fft_window,
         cmap=args.fft_cmap,
+        pixels=pixels,
     )
     try:
         animator.run(src, cpu)
