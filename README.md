@@ -1,7 +1,7 @@
 Txori
 Programa para procesamiento de sonidos de señales CW
 
-Versión 1.0 build 014
+Versión 1.0 build 015
 
 
 Novedad (Build 002): Procesador de sonidos en tiempo real
@@ -37,3 +37,7 @@ Novedad (Build 012): Se evita RuntimeWarning divide by zero aplicando piso numé
 Novedad (Build 013): Manejo de Ctrl+C sin excepción; muestra 'Programa terminado por el usuario'.
 
 Novedad (Build 014): Corrige warning de log10 en runtime usando epsilon también en la animación.
+
+Novedad (Build 015):
+- Colormap por defecto: ocean.
+- Nuevo argumento: --fft-cmap NOMBRE (default: ocean) para elegir el colormap.

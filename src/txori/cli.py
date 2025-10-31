@@ -56,6 +56,12 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         help="Traslape (noverlap) en muestras; por defecto NFFT-56",
     )
+    p.add_argument(
+        "--fft-cmap",
+        type=str,
+        default="ocean",
+        help="Colormap para el espectrograma (default: ocean)",
+    )
     return p
 
 

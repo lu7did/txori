@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 015: Default colormap ocean y argumento --fft-cmap configurable.
+
 - 2025-10-31 - Build 014: Evita divide-by-zero en log10 durante animación (mlab.specgram + epsilon).
 
 - 2025-10-31 - Build 013: Ctrl+C cierra limpiamente sin traceback y muestra mensaje al usuario.
