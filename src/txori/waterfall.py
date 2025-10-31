@@ -58,7 +58,9 @@ class SpectrogramAnimator:
     def run(self, source: Source, cpu: Processor) -> None:
         """Inicia la animación en tiempo real consumiendo de la fuente y CPU."""
         fig, ax = plt.subplots()
-        fig.canvas.manager.set_window_title("Txori Waterfall")
+        manager = getattr(fig.canvas, "manager", None)
+        if manager is not None and hasattr(manager, "set_window_title"):
+            manager.set_window_title("Txori Waterfall")
 
         def _update(_frame: int):
             need = self.frames_per_update * self.hop
