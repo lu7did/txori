@@ -1,7 +1,7 @@
 Txori
 Programa para procesamiento de sonidos de señales CW
 
-Versión 1.0 build 022
+Versión 1.0 build 023
 
 
 Novedad (Build 002): Procesador de sonidos en tiempo real
@@ -57,8 +57,10 @@ Novedad (Build 018): Escala de frecuencias movida al margen derecho del gráfico
 Novedad (Build 018): --fft-ema para suavizado temporal (EMA) y --vmin/--vmax para rango dB fijo.
 
 Argumentos y valores por defecto:
-- --source [file] (obligatorio)
+- --source [file|tone] (obligatorio)
 - --in RUTA (obligatorio cuando --source file)
+- --tone-freq FLOAT (default: 600) cuando --source tone
+- --tone-fsr INT (default: 4000) cuando --source tone
 - --cpu [none] (default: none)
 - --fft-window [Blackman|BlackmanHarris|FlatTop|Hamming|Hanning|Rectangular] (default: Blackman)
 - --fft-nfft INT (default: 256)
@@ -69,6 +71,7 @@ Argumentos y valores por defecto:
 - --fft-ema FLOAT en (0,1) (default: desactivado)
 - --vmin FLOAT (default: auto)
 - --vmax FLOAT (default: auto)
+- --spkr (flag) si se indica, también envía la señal de la fuente a la salida de audio del sistema
 
 Configuración de referencia:
   txori-waterfall --source file --in ./sounds/test.wav
@@ -78,10 +81,5 @@ Fuente adicional:
 - --tone-freq FLOAT (default: 600)
 - --tone-fsr INT (default: 4000)
 
-Fuente adicional:
-- --source tone: tono senoidal sintetizado
-- --tone-freq FLOAT (default: 600)
-- --tone-fsr INT (default: 4000)
-
 Reproducción en vivo:
-- --spkr: envía las muestras de --source a la salida de audio predeterminada (no altera CPU ni waterfall).
+- --spkr: envía la señal de la fuente a la salida de audio predeterminada además del procesador seleccionado.

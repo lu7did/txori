@@ -7,6 +7,7 @@ import sys
 from .sources import FileSource, ToneSource, Source
 from .cpu import NoOpProcessor, Processor
 from .waterfall import SpectrogramAnimator
+from . import waterfall as waterfall_mod
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -100,6 +101,11 @@ def build_parser() -> argparse.ArgumentParser:
         type=float,
         help="Escala dB máxima para el colormap",
     )
+    p.add_argument(
+        "--spkr",
+        action="store_true",
+        help="Reproducir las muestras de la fuente por la salida de audio",
+    )
     return p
 
 
@@ -143,8 +149,18 @@ def main(argv: list[str] | None = None) -> int:
         vmin=args.vmin,
         vmax=args.vmax,
     )
+    # Exponer opcionalmente el backend de audio al módulo waterfall sin modificarlo
     try:
-        animator.run(src, cpu)
+        import sounddevice as _sd  # type: ignore
+    except Exception:
+        _sd = None  # type: ignore
+    try:
+        waterfall_mod.sd = _sd  # type: ignore[attr-defined]
+    except Exception:
+        pass
+
+    try:
+        animator.run(src, cpu, spkr=bool(getattr(args, "spkr", False)))
     except KeyboardInterrupt:
         print("Programa terminado por el usuario")
     finally:
