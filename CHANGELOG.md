@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- 2025-10-31 - Build 013: Ctrl+C cierra limpiamente sin traceback y muestra mensaje al usuario.
+
 - 2025-10-31 - Build 012: Evita warning divide-by-zero en specgram usando epsilon antes de log10.
 
 - 2025-10-31 - Build 011: Añade --fft-nfft y --fft-overlap (por defecto NFFT-56).

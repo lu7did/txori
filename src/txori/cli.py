@@ -93,6 +93,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     try:
         animator.run(src, cpu)
+    except KeyboardInterrupt:
+        print("Programa terminado por el usuario")
     finally:
         src.close()
     return 0

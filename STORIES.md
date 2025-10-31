@@ -16,3 +16,5 @@
 - 2025-10-31T20:12:33.903Z: Agregar argumento --fft-window (Blackman, BlackmanHarris, FlatTop, Hamming, Hanning, Rectangular).
 - 2025-10-31T20:19:27.564Z: Introducir argumentos --fft-nfft y --fft-overlap con defaults (256 y NFFT-56).
 - 2025-10-31T20:21:35Z: Corregir RuntimeWarning divide by zero en log10 del espectrograma aplicando epsilon.
+
+- 2025-10-31T20:23:18.805Z: Al presionar Control+C, terminar sin excepción y mostrar 'Programa terminado por el usuario'.
