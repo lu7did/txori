@@ -1,6 +1,0 @@
-{
-  "pythonVersion": "3.12",
-  "typeCheckingMode": "standard",
-  "include": ["src"],
-  "exclude": ["scripts", "script", "ejemplos", "examples", "tests", "docs", ".git", ".github"]
-}
