@@ -106,6 +106,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Reproducir las muestras de la fuente por la salida de audio",
     )
+    p.add_argument(
+        "--time",
+        action="store_true",
+        help="Mostrar un gráfico de tiempo en ventana separada (misma fuente y Fs)",
+    )
     return p
 
 
@@ -160,7 +165,12 @@ def main(argv: list[str] | None = None) -> int:
         pass
 
     try:
-        animator.run(src, cpu, spkr=bool(getattr(args, "spkr", False)))
+        animator.run(
+            src,
+            cpu,
+            spkr=bool(getattr(args, "spkr", False)),
+            time_plot=bool(getattr(args, "time", False)),
+        )
     except KeyboardInterrupt:
         print("Programa terminado por el usuario")
     finally:

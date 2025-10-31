@@ -105,7 +105,7 @@ class SpectrogramAnimator:
             plt.close(fig)
         return Pxx, freqs, bins
 
-    def run(self, source: Source, cpu: Processor, *, spkr: bool = False) -> None:
+    def run(self, source: Source, cpu: Processor, *, spkr: bool = False, time_plot: bool = False) -> None:
         """Inicia la animación en tiempo real consumiendo de la fuente y CPU."""
         fig, ax = plt.subplots()
         # Ajustar ancho en píxeles manteniendo alto
@@ -119,6 +119,19 @@ class SpectrogramAnimator:
         if manager is not None and hasattr(manager, "set_window_title"):
             manager.set_window_title("Txori Waterfall")
 
+        # Configuración de gráfico de tiempo opcional
+        time_fig = None
+        time_line = None
+        last_samples = None
+        time_len = self.frames_per_update * self.hop
+        if time_plot:
+            time_fig, time_ax = plt.subplots()
+            time_ax.set_title("Time plot (fuente)")
+            time_ax.set_ylim([-1.0, 1.0])
+            time_ax.set_xlim([0, max(1, time_len)])
+            (time_line,) = time_ax.plot(np.zeros(max(1, time_len), dtype=np.float32))
+            last_samples = np.zeros(max(1, time_len), dtype=np.float32)
+
         stream = None
         if spkr and sd is not None:
             try:
@@ -130,6 +143,19 @@ class SpectrogramAnimator:
         def _update(_frame: int):
             need = self.frames_per_update * self.hop
             x = source.read(need)
+            if time_plot and last_samples is not None:
+                n = len(last_samples)
+                if x.size < n:
+                    y = np.zeros(n, dtype=np.float32)
+                    y[: x.size] = x
+                else:
+                    y = x[:n]
+                last_samples = y
+            if stream is not None and x.size:
+                try:
+                    stream.write(x.reshape(-1, 1))
+                except Exception:
+                    pass
             x = cpu.process(x)
             self._push(x)
             ax.cla()
@@ -175,5 +201,24 @@ class SpectrogramAnimator:
             interval=max(1, interval_ms),
             cache_frame_data=False,
         )
-        plt.show()
+        if time_plot and time_fig is not None and time_line is not None:
+            def _update_time(_frame: int):
+                if last_samples is not None:
+                    time_line.set_ydata(last_samples)
+                return (time_line,)
+            anim_time = FuncAnimation(
+                time_fig,
+                _update_time,
+                interval=max(1, interval_ms),
+                blit=True,
+                cache_frame_data=False,
+            )
+        try:
+            plt.show()
+        finally:
+            if stream is not None:
+                try:
+                    stream.stop(); stream.close()
+                except Exception:
+                    pass
         del anim  # mantener referencia hasta que show() regrese

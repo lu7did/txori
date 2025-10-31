@@ -1,7 +1,7 @@
 Txori
 Programa para procesamiento de sonidos de señales CW
 
-Versión 1.0 build 023
+Versión 1.0 build 024
 
 
 Novedad (Build 002): Procesador de sonidos en tiempo real
@@ -72,6 +72,7 @@ Argumentos y valores por defecto:
 - --vmin FLOAT (default: auto)
 - --vmax FLOAT (default: auto)
 - --spkr (flag) si se indica, también envía la señal de la fuente a la salida de audio del sistema
+- --time (flag) si se indica, abre un gráfico de tiempo separado alimentado por la misma fuente y Fs (mismas muestras que el procesador)
 
 Configuración de referencia:
   txori-waterfall --source file --in ./sounds/test.wav
