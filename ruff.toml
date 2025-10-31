@@ -1,9 +1,7 @@
 line-length = 88
 target-version = "py312"
-lint.select = [
-  "E","F","W",
-  "UP",
-  "B",
-]
 exclude = ["scripts", "ejemplos"]
-lint.ignore = ["E501"]
+
+[lint]
+select = ["E", "F", "W", "UP", "B"]
+ignore = ["E501"]

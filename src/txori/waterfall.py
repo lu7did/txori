@@ -150,8 +150,6 @@ class SpectrogramAnimator:
         stream = None
         _to_out = None  # función de conversión y resampleo para salida de altavoz
         spkr_q = None
-        spkr_run = False
-        spkr_thr = None
         spkr_fs = int(self.fs)
         _spkr_buf = np.zeros(0, dtype=np.float32)
         _spkr_t = 0.0
