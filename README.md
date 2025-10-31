@@ -1,7 +1,7 @@
 Txori
 Programa para procesamiento de sonidos de señales CW
 
-Versión 1.0 build 038
+Versión 1.0 build 039
 
 
 Novedad (Build 002): Procesador de sonidos en tiempo real
@@ -76,7 +76,7 @@ Argumentos y valores por defecto:
 - --fft-ema FLOAT en (0,1) (default: desactivado)
 - --vmin FLOAT (default: auto)
 - --vmax FLOAT (default: auto)
-- --spkr (flag) si se indica, también envía la señal de la fuente a la salida de audio del sistema
+- --spkr (flag) si se indica, envía la misma señal que el waterfall (post-CPU) a la salida de audio del sistema, respetando su Fs actual
 - --time (flag) si se indica, abre un gráfico de tiempo separado alimentado por la misma fuente y Fs (mismas muestras que el procesador)
 - --time-scale FLOAT en (0,1] (default: 0.5) reduce la ventana temporal por columna del time plot
 

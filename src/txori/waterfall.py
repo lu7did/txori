@@ -181,7 +181,7 @@ class SpectrogramAnimator:
                 t0 = time.monotonic()
                 x = source.read(chunk)
                 if x.size:
-                    # time plot: últimas muestras de la fuente
+                    # time plot: últimas muestras de la fuente (independiente del waterfall)
                     if time_plot and last_samples is not None:
                         n = len(last_samples)
                         if x.size < n:
@@ -189,19 +189,25 @@ class SpectrogramAnimator:
                         else:
                             y = x[-n:]
                         last_samples = y
-                    # speaker: cola asíncrona
-                    if stream is not None and spkr_q is not None:
+                    # procesar para waterfall y speaker (mismas muestras post-CPU)
+                    x_proc = x
+                    try:
+                        x_proc = cpu.process(x)
+                    except Exception:
+                        x_proc = x
+                    # waterfall: empujar procesado
+                    try:
+                        if x_proc.size:
+                            self._push(x_proc)
+                    except Exception:
+                        pass
+                    # speaker: cola asíncrona con mismas muestras que el waterfall
+                    if stream is not None and spkr_q is not None and x_proc.size:
                         try:
-                            y_sp = _to_out(x) if _to_out is not None else x.astype(np.float32)
+                            y_sp = _to_out(x_proc) if _to_out is not None else x_proc.astype(np.float32)
                             spkr_q.put_nowait(y_sp.reshape(-1, 1))
                         except Exception:
                             pass
-                    # waterfall: empujar procesado
-                    try:
-                        x_proc = cpu.process(x)
-                        self._push(x_proc)
-                    except Exception:
-                        pass
                 # Ritmo en tiempo real
                 dt = time.monotonic() - t0
                 wait = max(0.0, (x.size / float(sr_in)) - dt) if x.size else (chunk / float(sr_in))
