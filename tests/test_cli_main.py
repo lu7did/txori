@@ -4,7 +4,7 @@ from __future__ import annotations
 import os
 import wave
 from tempfile import TemporaryDirectory
-from typing import Any, List
+from typing import Any
 
 import numpy as np
 
@@ -25,7 +25,7 @@ class _FakeAnimator:
         self.time_scale = time_scale
 
 
-_FAKES: List[_FakeAnimator] = []
+_FAKES: list[_FakeAnimator] = []
 
 
 def _write_wav_mono_8bit(path: str, sr: int) -> None:
