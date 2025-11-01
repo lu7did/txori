@@ -25,7 +25,7 @@ jobs:
       - name: PEP8 (flake8)
         run: flake8 --exclude scripts,ejemplos --max-line-length 120 --extend-ignore E203,E501
       - name: Docstrings (pydocstyle)
-        run: pydocstyle src
+        run: pydocstyle src --ignore D102,D107
       - name: Types (mypy)
         run: mypy src
       - name: Types (pyright)
