@@ -41,7 +41,7 @@ def _write_wav_mono_8bit(path: str, sr: int) -> None:
 
 
 def test_cli_main_tone_lpf_chain_invokes_animator(monkeypatch) -> None:
-    monkeypatch.setattr(waterfall_mod, "SpectrogramAnimator", _FakeAnimator, raising=True)
+    monkeypatch.setattr(cli, "SpectrogramAnimator", _FakeAnimator, raising=True)
     _FAKES.clear()
     argv = [
         "--source",
@@ -92,7 +92,7 @@ def test_cli_make_source_and_cpu_error_branches(monkeypatch) -> None:
 
 
 def test_cli_main_file_8bit_builds_animator(monkeypatch) -> None:
-    monkeypatch.setattr(waterfall_mod, "SpectrogramAnimator", _FakeAnimator, raising=True)
+    monkeypatch.setattr(cli, "SpectrogramAnimator", _FakeAnimator, raising=True)
     _FAKES.clear()
     with TemporaryDirectory() as td:
         wav = os.path.join(td, "mono8.wav")
