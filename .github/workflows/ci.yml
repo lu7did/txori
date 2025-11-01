@@ -18,8 +18,10 @@ jobs:
           pip install -r requirements.txt -r requirements-dev.txt
       - name: Lint (ruff)
         run: ruff check .
+      - name: Format (black)
+        run: black . --exclude '(^ejemplos/|^scripts/|^\.github/scripts/)'
       - name: Format check (black)
-        run: black --check .
+        run: black --check . --exclude '(^ejemplos/|^scripts/|^\.github/scripts/)'
       - name: PEP8 (flake8)
         run: flake8 --exclude scripts,ejemplos
       - name: Docstrings (pydocstyle)
