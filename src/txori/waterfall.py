@@ -162,7 +162,7 @@ class SpectrogramAnimator:
             last_samples = np.zeros(time_len, dtype=np.float32)
 
         stream = None
-        _spkr_convert = None  # función de conversión y resampleo para salida de altavoz
+        _spkr_convert_fn = None  # función de conversión y resampleo para salida de altavoz
         spkr_q = None
         spkr_fs = int(self.fs)
         _spkr_buf = np.zeros(0, dtype=np.float32)
@@ -228,6 +228,8 @@ class SpectrogramAnimator:
                     _spkr_t = t
                     return np.asarray(outs, dtype=np.float32)
 
+                _spkr_convert_fn = _spkr_convert
+
         # Productor en hilo separado para desacoplar lectura de la fuente del render
         prod_run = True
         def _produce():
@@ -263,8 +265,8 @@ class SpectrogramAnimator:
                     if stream is not None and spkr_q is not None and x_proc.size:
                         try:
                             y_sp = (
-                                _spkr_convert(x_proc)
-                                if _spkr_convert is not None
+                                _spkr_convert_fn(x_proc)
+                                if _spkr_convert_fn is not None
                                 else x_proc.astype(np.float32)
                             )
                             spkr_q.put_nowait(y_sp.ravel())
