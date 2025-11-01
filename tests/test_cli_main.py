@@ -9,7 +9,6 @@ from typing import Any
 import numpy as np
 
 import txori.cli as cli
-import txori.waterfall as waterfall_mod
 
 
 class _FakeAnimator:
