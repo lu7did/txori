@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- 2025-11-01 - Versión 1.0 ALPHA --BASELINE--: Documentación consolidada (README/BUILD/JOURNAL), lista completa de argumentos y valores por defecto, estructura del programa; CI actualizado (coverage >=80%).
 - 2025-10-31 - Build 046: Ajustes Ruff: config lint.*, ignora E501; corrige imports, F821 y duplicados.
 - 2025-10-31 - Build 045: Remueve trufflehog de requirements-dev y sincroniza CI/docs.
 - 2025-10-31 - Build 044: Elimina trufflehog de requirements-dev y del workflow CI.

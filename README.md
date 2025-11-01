@@ -1,7 +1,7 @@
 Txori
 Programa para procesamiento de sonidos de señales CW
 
-Versión 1.0 build 044
+Versión 1.0 ALPHA --BASELINE--
 
 
 Novedad (Build 002): Procesador de sonidos en tiempo real
@@ -89,4 +89,12 @@ Fuente adicional:
 - --tone-fsr INT (default: 4000)
 
 Reproducción en vivo:
-- --spkr: envía la señal de la fuente a la salida de audio predeterminada además del procesador seleccionado.
+- --spkr: envía la misma señal post-CPU que alimenta el waterfall a la salida de audio del sistema, respetando su Fs actual.
+
+Estructura de programas:
+- Comando: txori-waterfall (entrypoint de consola)
+- Módulos:
+  - src/txori/cli.py (parseo de argumentos y orquestación)
+  - src/txori/sources.py (fuentes: FileSource, ToneSource)
+  - src/txori/cpu.py (procesadores: NoOp, LpfProcessor, BandPassProcessor, ChainProcessor)
+  - src/txori/waterfall.py (animador de espectrograma y reproducción opcional)
