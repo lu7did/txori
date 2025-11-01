@@ -206,7 +206,7 @@ class SpectrogramAnimator:
                 except Exception:
                     stream = None
             if stream is not None:
-                def _spkr_convert(a: np.ndarray) -> np.ndarray:
+                def _spkr_convert_impl(a: np.ndarray) -> np.ndarray:
                     nonlocal _spkr_buf, _spkr_t
                     x = a.astype(np.float32)
                     if spkr_fs == self.fs:
@@ -228,7 +228,7 @@ class SpectrogramAnimator:
                     _spkr_t = t
                     return np.asarray(outs, dtype=np.float32)
 
-                _spkr_convert_fn = _spkr_convert
+                _spkr_convert_fn = _spkr_convert_impl
 
         # Productor en hilo separado para desacoplar lectura de la fuente del render
         prod_run = True
