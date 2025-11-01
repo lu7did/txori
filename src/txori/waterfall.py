@@ -142,7 +142,7 @@ class SpectrogramAnimator:
             dpi = float(fig.get_dpi())
             w, h = fig.get_size_inches()
             fig.set_size_inches(self.pixel_width / max(dpi, 1.0), h, forward=True)
-        except Exception:
+        except Exception:  # nosec B110 - non-critical UI sizing failure
             pass
         manager = getattr(fig.canvas, "manager", None)
         if manager is not None and hasattr(manager, "set_window_title"):
@@ -271,7 +271,7 @@ class SpectrogramAnimator:
                     try:
                         if x_proc.size:
                             self._push(x_proc)
-                    except Exception:
+                    except Exception:  # nosec B110 - drop bad frame, keep running
                         pass
                     # speaker: cola asíncrona con mismas muestras que el waterfall
                     if stream is not None and spkr_q is not None and x_proc.size:
@@ -282,7 +282,7 @@ class SpectrogramAnimator:
                                 else x_proc.astype(np.float32)
                             )
                             spkr_q.put_nowait(y_sp.ravel())
-                        except Exception:
+                        except Exception:  # nosec B110 - audio queue backpressure/drop
                             pass
                 # Ritmo en tiempo real
                 dt = time.monotonic() - t0
@@ -362,7 +362,7 @@ class SpectrogramAnimator:
             # Mantener referencia para evitar GC prematuro
             try:
                 cast(Any, time_fig)._txori_anim = anim_time
-            except Exception:
+            except Exception:  # nosec B110 - best-effort to keep ref
                 pass
         try:
             plt.show()
@@ -372,14 +372,14 @@ class SpectrogramAnimator:
                 prod_run = False
                 try:
                     prod_thr.join(timeout=0.5)
-                except Exception:
+                except Exception:  # nosec B110 - ignore join errors on shutdown
                     pass
-            except Exception:
+            except Exception:  # nosec B110 - ignore shutdown errors
                 pass
             if stream is not None:
                 try:
                     stream.stop()
                     stream.close()
-                except Exception:
+                except Exception:  # nosec B110 - ignore close errors
                     pass
         del anim  # mantener referencia hasta que show() regrese

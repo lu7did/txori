@@ -246,7 +246,7 @@ def main(argv: list[str] | None = None) -> int:
         _sd = None
     try:
         waterfall_mod.sd = _sd
-    except Exception:
+    except Exception:  # nosec B110 - optional audio backend assignment, safe to ignore
         pass
 
     try:

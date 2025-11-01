@@ -72,7 +72,7 @@ class FileSource(Source):
         """Cerrar el archivo WAV si este1 abierto."""
         try:
             self._wf.close()
-        except Exception:
+        except Exception:  # nosec B110 - ignore close errors on teardown
             pass
 
 
