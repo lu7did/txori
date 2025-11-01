@@ -177,7 +177,7 @@ class SpectrogramAnimator:
         _spkr_t = 0.0
         if spkr and sd is not None:
             def _make_out_stream(target_fs: int, cb: Callable[..., Any]) -> Any:
-                s = sd.OutputStream(
+                s = cast(Any, sd).OutputStream(
                     samplerate=target_fs,
                     channels=1,
                     dtype="float32",
