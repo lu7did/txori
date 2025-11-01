@@ -8,6 +8,7 @@ import numpy as np
 
 
 
+
 class Source(ABC):
     """Interfaz de fuente de audio."""
 
@@ -23,6 +24,7 @@ class Source(ABC):
     @abstractmethod
     def close(self) -> None:
         """Libera recursos de la fuente."""
+
 
 
 
@@ -72,6 +74,7 @@ class FileSource(Source):
             self._wf.close()
         except Exception:
             pass
+
 
 
 

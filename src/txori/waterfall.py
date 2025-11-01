@@ -19,6 +19,7 @@ from .cpu import Processor
 
 
 
+
 class SpectrogramAnimator:
     """Administra el buffer y el dibujo del espectrograma en tiempo real."""
 
