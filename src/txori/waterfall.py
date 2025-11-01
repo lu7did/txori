@@ -14,7 +14,8 @@ try:
 except Exception:  # pragma: no cover
     sd = None
 
-from typing import Any, Callable, Optional, cast
+from typing import Any, cast
+from collections.abc import Callable
 from .sources import Source
 from .cpu import Processor
 
