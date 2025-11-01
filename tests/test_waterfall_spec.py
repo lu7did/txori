@@ -12,11 +12,11 @@ def test_compute_spec_runs_and_shapes() -> None:
         width_cols=8,
         nfft=128,
         hop=64,
-        window="Hamming",
-        ema=None,
+        fft_window="Hamming",
+        fft_ema=None,
     )
     # Preload buffer with random samples
     anim._buffer[:] = np.random.randn(anim._buffer.size).astype(np.float32)
-    Pxx, freqs, bins = anim._compute_spec()
+    Pxx, freqs, bins = anim.compute_spec()
     assert Pxx.ndim == 2 and freqs.ndim == 1 and bins.ndim == 1
     assert Pxx.shape[0] == freqs.size
