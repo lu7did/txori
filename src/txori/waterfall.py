@@ -36,7 +36,7 @@ class SpectrogramAnimator:
         vmin: float | None = None,
         vmax: float | None = None,
     ) -> None:
-        """Inicializa buffers, pare1metros FFT y opciones de dibujo."""
+        """Inicializa buffers, parametros FFT y opciones de dibujo."""
         self.fs = int(fs)
         self.nfft = int(nfft)
         self.hop = int(hop)
