@@ -1,0 +1,10 @@
+[run]
+branch = True
+source = src/txori
+omit =
+    src/txori/waterfall.py
+    src/txori/__init__.py
+
+[report]
+show_missing = True
+skip_covered = False
