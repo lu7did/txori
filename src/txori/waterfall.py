@@ -14,7 +14,7 @@ try:
 except Exception:  # pragma: no cover
     sd = None
 
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, cast
 from .sources import Source
 from .cpu import Processor
 
@@ -56,7 +56,7 @@ class SpectrogramAnimator:
         self._buf_len = self.nfft + (self.width_cols - 1) * self.hop
         self._buffer = np.zeros(self._buf_len, dtype=np.float32)
 
-    def _window_fn(self, x: np.ndarray) -> np.ndarray:
+    def _window_fn(self, x: Any) -> Any:
         """Ventana seleccionable para mlab.specgram."""
         N = len(x)
         w = self._win
@@ -296,7 +296,7 @@ class SpectrogramAnimator:
                 NFFT=self.nfft,
                 Fs=self.fs,
                 noverlap=self.nfft - self.hop,
-                window=(self._window_fn),  # type: ignore[arg-type]
+                window=cast(Any, self._window_fn),
             )
             Pxx = np.asarray(Pxx)
             freqs = np.asarray(freqs)
@@ -355,7 +355,7 @@ class SpectrogramAnimator:
             )
             # Mantener referencia para evitar GC prematuro
             try:
-                time_fig._txori_anim = anim_time  # type: ignore[attr-defined]
+                setattr(time_fig, "_txori_anim", anim_time)
             except Exception:
                 pass
         try:
