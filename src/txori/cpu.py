@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 
+
 class Processor(ABC):
     """Interfaz de procesador de muestras."""
 
@@ -14,12 +15,14 @@ class Processor(ABC):
         """Procesa y devuelve las muestras."""
 
 
+
 class NoOpProcessor(Processor):
     """Procesador por defecto: no modifica la señal."""
 
     def process(self, x: np.ndarray) -> np.ndarray:  # noqa: D401
         """Devuelve x sin modificaciones."""
         return x
+
 
 
 class LpfProcessor(Processor):
@@ -74,6 +77,7 @@ class LpfProcessor(Processor):
         return np.asarray(outs, dtype=np.float32)
 
 
+
 class BandPassProcessor(Processor):
     """Filtro pasabanda (BPF) con centro f0 y ancho BW."""
 
@@ -106,6 +110,7 @@ class BandPassProcessor(Processor):
         y = np.convolve(inp, self._h, mode="valid").astype(np.float32)
         self._xprev = inp[-(self._h.size - 1) :]
         return y
+
 
 
 class ChainProcessor(Processor):
