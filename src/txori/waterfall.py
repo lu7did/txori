@@ -342,7 +342,7 @@ class SpectrogramAnimator:
         interval_ms = int(1000 * (self.frames_per_update * self.hop) / float(self.fs))
         anim = FuncAnimation(
             fig,
-            _update,
+            _update,  # type: ignore[arg-type]
             interval=max(1, interval_ms),
             cache_frame_data=False,
         )
