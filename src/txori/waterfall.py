@@ -98,7 +98,7 @@ class SpectrogramAnimator:
             return
         x = x.astype(np.float32, copy=False)
         if x.size >= self._buf_len:
-            self._buffer = x[-self._buf_len :]
+            self._buffer = x[-self._buf_len:]
             return
         keep = self._buf_len - x.size
         self._buffer = np.concatenate((self._buffer[-keep:], x))
