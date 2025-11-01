@@ -162,7 +162,7 @@ class SpectrogramAnimator:
             last_samples = np.zeros(time_len, dtype=np.float32)
 
         stream = None
-        _to_out = None  # función de conversión y resampleo para salida de altavoz
+        _spkr_convert = None  # función de conversión y resampleo para salida de altavoz
         spkr_q = None
         spkr_fs = int(self.fs)
         _spkr_buf = np.zeros(0, dtype=np.float32)
@@ -206,7 +206,7 @@ class SpectrogramAnimator:
                 except Exception:
                     stream = None
             if stream is not None:
-                def _to_out(a: np.ndarray) -> np.ndarray:
+                def _spkr_convert(a: np.ndarray) -> np.ndarray:
                     nonlocal _spkr_buf, _spkr_t
                     x = a.astype(np.float32)
                     if spkr_fs == self.fs:
