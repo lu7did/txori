@@ -262,7 +262,11 @@ class SpectrogramAnimator:
                     # speaker: cola asíncrona con mismas muestras que el waterfall
                     if stream is not None and spkr_q is not None and x_proc.size:
                         try:
-                            y_sp = _to_out(x_proc) if _to_out is not None else x_proc.astype(np.float32)
+                            y_sp = (
+                                _spkr_convert(x_proc)
+                                if _spkr_convert is not None
+                                else x_proc.astype(np.float32)
+                            )
                             spkr_q.put_nowait(y_sp.ravel())
                         except Exception:
                             pass
