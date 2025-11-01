@@ -117,7 +117,7 @@ class SpectrogramAnimator:
                 NFFT=self.nfft,
                 Fs=self.fs,
                 noverlap=self.nfft - self.hop,
-                window=(self._window_fn),  # type: ignore[arg-type]
+                window=cast(Any, self._window_fn),
             )
         finally:
             plt.close(fig)
@@ -190,13 +190,17 @@ class SpectrogramAnimator:
             spkr_q = queue.Queue(maxsize=16)
             _cb_buf = np.zeros(0, dtype=np.float32)
             def _cb(outdata: np.ndarray, frames: int, time_info: Any, status: Any) -> None:  # noqa: D401
-                nonlocal _cb_buf
+                nonlocal _cb_buf, spkr_q
                 if status:
                     pass
+                if spkr_q is None:
+                    outdata.fill(0.0)
+                    return
+                q = spkr_q
                 if _cb_buf.size < frames:
                     try:
                         while _cb_buf.size < frames:
-                            _cb_buf = np.concatenate((_cb_buf, spkr_q.get_nowait()))
+                            _cb_buf = np.concatenate((_cb_buf, q.get_nowait()))
                     except queue.Empty:
                         pass
                 if _cb_buf.size >= frames:
@@ -289,7 +293,7 @@ class SpectrogramAnimator:
         prod_thr = threading.Thread(target=_produce, name="txori-producer")
         prod_thr.start()
 
-        def _update(_frame: int) -> None:
+        def _update(_frame: int) -> tuple[Any, ...]:
             # Solo render: el productor alimenta buffers
             ax.cla()
             Pxx, freqs, bins = mlab.specgram(
