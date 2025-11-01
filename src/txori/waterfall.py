@@ -190,7 +190,7 @@ class SpectrogramAnimator:
             spkr_q = queue.Queue(maxsize=16)
             _cb_buf = np.zeros(0, dtype=np.float32)
             def _cb(outdata: np.ndarray, frames: int, time_info: Any, status: Any) -> None:  # noqa: D401
-                nonlocal _cb_buf, spkr_q
+                nonlocal _cb_buf
                 if status:
                     pass
                 if spkr_q is None:
