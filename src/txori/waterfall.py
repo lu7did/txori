@@ -356,7 +356,7 @@ class SpectrogramAnimator:
             )
             # Mantener referencia para evitar GC prematuro
             try:
-                setattr(time_fig, "_txori_anim", anim_time)
+                cast(Any, time_fig)._txori_anim = anim_time
             except Exception:
                 pass
         try:
