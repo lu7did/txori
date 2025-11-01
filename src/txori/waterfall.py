@@ -338,11 +338,12 @@ class SpectrogramAnimator:
             ax.set_ylabel("Frecuencia [Hz]")
             ax.yaxis.tick_right()
             ax.yaxis.set_label_position("right")
+            return ()
 
         interval_ms = int(1000 * (self.frames_per_update * self.hop) / float(self.fs))
         anim = FuncAnimation(
             fig,
-            _update,  # type: ignore[arg-type]
+            _update,
             interval=max(1, interval_ms),
             cache_frame_data=False,
         )
