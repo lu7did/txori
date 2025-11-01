@@ -241,11 +241,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     # Exponer opcionalmente el backend de audio al módulo waterfall sin modificarlo
     try:
-        import sounddevice as _sd  # type: ignore
+        import sounddevice as _sd
     except Exception:
-        _sd = None  # type: ignore
+        _sd = None
     try:
-        waterfall_mod.sd = _sd  # type: ignore[attr-defined]
+        waterfall_mod.sd = _sd
     except Exception:
         pass
 

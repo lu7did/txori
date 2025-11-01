@@ -10,10 +10,11 @@ import queue
 import time
 
 try:
-    import sounddevice as sd  # type: ignore
+    import sounddevice as sd
 except Exception:  # pragma: no cover
-    sd = None  # type: ignore
+    sd = None
 
+from typing import Any, Callable, Optional
 from .sources import Source
 from .cpu import Processor
 
@@ -115,10 +116,13 @@ class SpectrogramAnimator:
                 NFFT=self.nfft,
                 Fs=self.fs,
                 noverlap=self.nfft - self.hop,
-                window=self._window_fn,
+                window=(self._window_fn),  # type: ignore[arg-type]
             )
         finally:
             plt.close(fig)
+        Pxx = np.asarray(Pxx)
+        freqs = np.asarray(freqs)
+        bins = np.asarray(bins)
         return Pxx, freqs, bins
 
     def run(
@@ -159,8 +163,8 @@ class SpectrogramAnimator:
             time_len = max(1, int(time_len * scale))
             time_fig, time_ax = plt.subplots()
             time_ax.set_title("Time plot (fuente)")
-            time_ax.set_ylim([-1.0, 1.0])
-            time_ax.set_xlim([0, time_len])
+            time_ax.set_ylim((-1.0, 1.0))
+            time_ax.set_xlim((0.0, float(time_len)))
             (time_line,) = time_ax.plot(np.zeros(time_len, dtype=np.float32))
             last_samples = np.zeros(time_len, dtype=np.float32)
 
@@ -171,7 +175,7 @@ class SpectrogramAnimator:
         _spkr_buf = np.zeros(0, dtype=np.float32)
         _spkr_t = 0.0
         if spkr and sd is not None:
-            def _make_out_stream(target_fs: int, cb):
+            def _make_out_stream(target_fs: int, cb: Callable[..., Any]) -> Any:
                 s = sd.OutputStream(
                     samplerate=target_fs,
                     channels=1,
@@ -184,7 +188,7 @@ class SpectrogramAnimator:
             # callback de audio que consume de la cola
             spkr_q = queue.Queue(maxsize=16)
             _cb_buf = np.zeros(0, dtype=np.float32)
-            def _cb(outdata, frames, time_info, status):  # noqa: D401
+            def _cb(outdata: np.ndarray, frames: int, time_info: Any, status: Any) -> None:  # noqa: D401
                 nonlocal _cb_buf
                 if status:
                     pass
@@ -235,7 +239,7 @@ class SpectrogramAnimator:
 
         # Productor en hilo separado para desacoplar lectura de la fuente del render
         prod_run = True
-        def _produce():
+        def _produce() -> None:
             nonlocal last_samples
             chunk = max(1, self.hop)
             sr_in = int(getattr(source, "sample_rate", self.fs))
@@ -284,7 +288,7 @@ class SpectrogramAnimator:
         prod_thr = threading.Thread(target=_produce, name="txori-producer")
         prod_thr.start()
 
-        def _update(_frame: int):
+        def _update(_frame: int) -> None:
             # Solo render: el productor alimenta buffers
             ax.cla()
             Pxx, freqs, bins = mlab.specgram(
@@ -292,8 +296,11 @@ class SpectrogramAnimator:
                 NFFT=self.nfft,
                 Fs=self.fs,
                 noverlap=self.nfft - self.hop,
-                window=self._window_fn,
+                window=(self._window_fn),  # type: ignore[arg-type]
             )
+            Pxx = np.asarray(Pxx)
+            freqs = np.asarray(freqs)
+            bins = np.asarray(bins)
             # Suavizado EMA (en potencia) si está habilitado
             if self._ema_alpha is not None and 0.0 < self._ema_alpha < 1.0:
                 if self._ema_state is None:
@@ -335,7 +342,7 @@ class SpectrogramAnimator:
             cache_frame_data=False,
         )
         if time_plot and time_fig is not None and time_line is not None:
-            def _update_time(_frame: int):
+            def _update_time(_frame: int) -> tuple[Any, ...]:
                 if last_samples is not None:
                     time_line.set_ydata(last_samples)
                 return (time_line,)
