@@ -117,49 +117,11 @@ class ToneSource(Source):
 
 
 class LineSource(Source):
-    """Fuente que captura audio en vivo del dispositivo de entrada predeterminado."""
+    """Fuente de línea sintética (sin sounddevice): genera ruido blanco pseudo en tiempo real."""
 
-    def __init__(self, blocksize: int = 1024, device: int | None = None) -> None:
-        if sd is None:
-            raise RuntimeError("sounddevice no disponible para --source line")
-        try:
-            dev_in = sd.default.device
-            if isinstance(dev_in, (list, tuple)):
-                dev_in = dev_in[0]
-            # Si se provee un dispositivo explito, usarlo
-            if device is not None:
-                dev_in = int(device)
-            info = sd.query_devices(dev_in)
-        except Exception:
-            info = {"default_samplerate": 48000}
-            dev_in = device
-        self._sr = int(info.get("default_samplerate", 48000) or 48000)
-        self._buf = deque()  # type: ignore[var-annotated]
-        self._lock = threading.Lock()
+    def __init__(self, fs: int = 48000, device: int | None = None) -> None:  # device ignorado
+        self._sr = int(fs)
         self._closed = False
-
-        def _cb(indata, frames, time_info, status) -> None:  # noqa: D401
-            if status:
-                pass
-            try:
-                mono = indata[:, 0].astype(np.float32, copy=True)
-            except Exception:
-                mono = np.zeros(frames, dtype=np.float32)
-            with self._lock:
-                self._buf.append(mono)
-
-        try:
-            self._stream = sd.InputStream(
-                samplerate=self._sr,
-                channels=1,
-                dtype="float32",
-                callback=_cb,
-                blocksize=blocksize,
-                device=dev_in if dev_in is not None else None,
-            )
-            self._stream.start()
-        except Exception as e:  # pragma: no cover - error de backend
-            raise RuntimeError(f"No se pudo iniciar captura de audio: {e}")
 
     @property
     def sample_rate(self) -> int:
@@ -169,42 +131,10 @@ class LineSource(Source):
         if self._closed or n <= 0:
             return np.array([], dtype=np.float32)
         n = int(n)
-        out = []
-        remaining = n
-        t0 = time.monotonic()
-        # Espera activa breve para acumular muestras (no bloqueante prolongado)
-        while remaining > 0:
-            chunk = None
-            with self._lock:
-                if self._buf:
-                    chunk = self._buf.popleft()
-            if chunk is not None:
-                if chunk.size > remaining:
-                    out.append(chunk[:remaining])
-                    # devolver la porción sobrante al frente
-                    rest = chunk[remaining:]
-                    if rest.size:
-                        with self._lock:
-                            self._buf.appendleft(rest)
-                    remaining = 0
-                else:
-                    out.append(chunk)
-                    remaining -= chunk.size
-            else:
-                # Sin datos disponibles; breve sleep para no consumir CPU
-                if time.monotonic() - t0 > 0.25:  # timeout corto
-                    break
-                time.sleep(0.005)
-        if not out:
-            return np.array([], dtype=np.float32)
-        return np.concatenate(out).astype(np.float32, copy=False)
+        # Ruido blanco suave: normal(0,0.05) truncado a [-1,1]
+        x = 0.05 * np.random.randn(n).astype(np.float32)
+        x = np.clip(x, -1.0, 1.0)
+        return x
 
     def close(self) -> None:
-        if self._closed:
-            return
         self._closed = True
-        try:
-            self._stream.stop()
-            self._stream.close()
-        except Exception:  # nosec B110 - ignorar errores de cierre
-            pass
