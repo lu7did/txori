@@ -1,13 +1,28 @@
+#*--------------------------------------------------------------------------------------------------------*
+#* txori
+#* procesador de sonidos para ham radio sport contesting
+#*
+#* (c) Dr. Pedro E. Colla (LT7D/LU7DZ) 2009,2025
+#*
+#* Free for radioamateur uses - Commercial use requires licence
+#*
+#*--------------------------------------------------------------------------------------------------------*
 """CLI para el procesador de sonidos y espectrograma en tiempo real."""
 from __future__ import annotations
 
 import argparse
+import queue
+import time
+from typing import Any, cast
+import numpy as np
 
 from .sources import FileSource, ToneSource, Source
 from .cpu import (
     NoOpProcessor,
     Processor,
     LpfProcessor,
+    SkimmerProcessor,
+    SkimmerWithBpf,
     BandPassProcessor,
     ChainProcessor,
 )
@@ -50,9 +65,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument(
         "--cpu",
-        choices=["none", "lpf"],
+        choices=["none", "lpf", "skimmer", "bypass"],
         default="none",
-        help="Procesador a aplicar (none|lpf)",
+        help="Procesador a aplicar (none|lpf|skimmer|bypass)",
     )
     p.add_argument(
         "--cpu-lpf-freq",
@@ -149,6 +164,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Reproducir las muestras de la fuente por la salida de audio",
     )
     p.add_argument(
+        "--spkr-device",
+        type=int,
+        help="Índice del dispositivo de salida (sd.query_devices())",
+    )
+    p.add_argument(
         "--time",
         action="store_true",
         help="Mostrar un gráfico de tiempo en ventana separada (misma fuente y Fs)",
@@ -158,6 +178,12 @@ def build_parser() -> argparse.ArgumentParser:
         type=float,
         default=0.5,
         help="Factor (0<scale<=1) para reducir la ventana temporal del time plot",
+    )
+    # Para --cpu skimmer: habilita BPF 600Hz/200Hz post-diezmado
+    p.add_argument(
+        "--skimmer",
+        action="store_true",
+        help="Con --cpu skimmer agrega BPF centrado en 600 Hz BW=200 Hz tras el diezmado",
     )
     return p
 
@@ -181,6 +207,7 @@ def _make_cpu(
     cwfilter: bool = False,
     bpf_f0: float = 600.0,
     bpf_bw: float = 200.0,
+    skimmer_bpf: bool = False,
 ) -> Processor:
     if kind in ("none", "noop"):
         return NoOpProcessor()
@@ -195,6 +222,12 @@ def _make_cpu(
             )
             return ChainProcessor([base, bpf])
         return base
+    if kind == "skimmer":
+        if fs is None:
+            raise SystemExit("CPU skimmer requiere conocer el sample rate de la fuente")
+        if skimmer_bpf:
+            return SkimmerWithBpf(fs_in=int(fs))
+        return SkimmerProcessor(fs_in=int(fs))
     raise SystemExit(f"CPU no soportada: {kind}")
 
 
@@ -202,6 +235,45 @@ def main(argv: list[str] | None = None) -> int:
     """Punto de entrada principal."""
     args = build_parser().parse_args(argv)
     src = _make_source(args.source, args.infile, args.tone_freq, args.tone_fsr)
+
+    # CPU bypass: enviar fuente a salida predeterminada, sin waterfall ni time plot
+    if args.cpu == "bypass":
+        try:
+            import sounddevice as sd  # type: ignore
+        except Exception:
+            print("Audio backend no disponible para bypass")
+            src.close()
+            return 1
+        # Reproduce toda la fuente directamente al dispositivo usando su Fs
+        sr = int(getattr(src, "sample_rate", 48000)) or 48000
+        try:
+            data_chunks = []
+            chunk = max(2048, sr // 10)
+            while True:
+                x = src.read(chunk)
+                if x.size == 0:
+                    break
+                data_chunks.append(x.astype(np.float32))
+            if not data_chunks:
+                print("Fuente vacía")
+                src.close()
+                return 0
+            data = np.concatenate(data_chunks)
+            # Si se indicó dispositivo, configurarlo como salida por defecto
+            dev = getattr(args, "spkr_device", None)
+            if dev is not None:
+                try:
+                    sd.default.device = (None, int(dev))  # type: ignore[assignment]
+                except Exception:
+                    pass
+            sd.play(data, sr)
+            sd.wait()
+        except KeyboardInterrupt:
+            pass
+        finally:
+            src.close()
+        return 0
+
     cpu = _make_cpu(
         args.cpu,
         fs=src.sample_rate,
@@ -209,6 +281,7 @@ def main(argv: list[str] | None = None) -> int:
         cwfilter=bool(getattr(args, "cwfilter", False)),
         bpf_f0=getattr(args, "cpu_bpf_freq", 600.0),
         bpf_bw=getattr(args, "cpu_bpf_bw", 200.0),
+        skimmer_bpf=bool(getattr(args, "skimmer", False)),
     )
 
     nfft = int(args.fft_nfft)
@@ -220,12 +293,13 @@ def main(argv: list[str] | None = None) -> int:
     overlap = min(max(overlap, 0), nfft - 1)
     hop = max(1, nfft - overlap)
     pixels = 4096 if getattr(args, "wide", False) else int(args.fft_pixels)
-    # Ajustar Fs del waterfall si CPU lpf aplica diezmado a 2*fc cuando Fs>4000
-    anim_fs = (
-        int(2 * args.cpu_lpf_freq)
-        if args.cpu == "lpf" and src.sample_rate > 4000
-        else src.sample_rate
-    )
+    # Ajustar Fs del waterfall según CPU seleccionada
+    if args.cpu == "lpf" and src.sample_rate > 4000:
+        anim_fs = int(2 * args.cpu_lpf_freq)
+    elif args.cpu == "skimmer" and src.sample_rate > 8000:
+        anim_fs = 8000
+    else:
+        anim_fs = src.sample_rate
     animator = SpectrogramAnimator(
         fs=anim_fs,
         nfft=nfft,
@@ -246,6 +320,8 @@ def main(argv: list[str] | None = None) -> int:
         _sd = None
     try:
         waterfall_mod.sd = _sd
+        # Pasar dispositivo de salida elegido al módulo waterfall
+        waterfall_mod._SPKR_DEVICE = getattr(args, "spkr_device", None)
     except Exception:  # nosec B110 - optional audio backend assignment, safe to ignore
         pass
 
