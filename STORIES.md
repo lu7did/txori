@@ -52,3 +52,4 @@
 - 2025-11-08T21:50:25.310Z: Agregar argumento --line para seleccionar el dispositivo de entrada cuando --source line; ignorado en otros casos.
 - 2025-11-08T22:02:06.118Z: Manejo gracioso de falta de sounddevice con --source line (mensaje y exit 1 sin traceback).
 - 2025-11-08T22:14:07.043Z: Reemplazar implementación de --source line para no usar sounddevice (ruido blanco sintético).
+- 2025-11-08T22:15:25.254Z: Implementar --source line con ffmpeg (avfoundation/alsa/dshow) para tomar la entrada de audio predeterminada sin sounddevice.

@@ -88,7 +88,7 @@ Fuente adicional:
 - --source tone: tono senoidal sintetizado
 - --tone-freq FLOAT (default: 600)
 - --tone-fsr INT (default: 4000)
-- --source line: fuente sintética de ruido blanco (no usa sounddevice)
+- --source line: captura desde la entrada de audio predeterminada sin sounddevice (requiere ffmpeg instalado)
 
 Reproducción en vivo:
 - --spkr: envía la misma señal post-CPU que alimenta el waterfall a la salida de audio del sistema, respetando su Fs actual.

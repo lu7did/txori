@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- 2025-11-08 - Build 051: --source line ahora captura con ffmpeg (avfoundation/alsa/dshow) la entrada predeterminada; sin sounddevice.
 - 2025-11-08 - Build 050: --source line ya no usa sounddevice; se reemplaza por fuente sintética de ruido blanco.
 - 2025-11-08 - Build 049: Manejo gracioso cuando sounddevice no está disponible para --source line (mensaje y exit limpio).
 - 2025-11-08 - Build 048: Nuevo argumento --line para seleccionar dispositivo de entrada cuando --source line; ignorado en otras fuentes.
