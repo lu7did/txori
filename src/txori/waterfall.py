@@ -14,6 +14,9 @@ try:
 except Exception:  # pragma: no cover
     sd = None
 
+# Dispositivo de salida opcional, seteado desde la CLI
+_SPKR_DEVICE: int | None = None
+
 from typing import Any, cast
 from collections.abc import Callable
 from .sources import Source
@@ -163,7 +166,7 @@ class SpectrogramAnimator:
                 scale = 1.0
             time_len = max(1, int(time_len * scale))
             time_fig, time_ax = plt.subplots()
-            time_ax.set_title("Time plot (fuente)")
+            time_ax.set_title("Time plot (procesado)")
             time_ax.set_ylim((-1.0, 1.0))
             time_ax.set_xlim((0.0, float(time_len)))
             (time_line,) = time_ax.plot(np.zeros(time_len, dtype=np.float32))
@@ -172,9 +175,13 @@ class SpectrogramAnimator:
         stream = None
         _spkr_convert_fn = None  # función de conversión y resampleo para salida de altavoz
         spkr_q = None
-        spkr_fs = int(self.fs)
+        # Forzar stream a 48000 Hz y remuestrear desde Fs de la fuente
+        spkr_in_fs = int(getattr(source, "sample_rate", self.fs))
+        spkr_fs = spkr_in_fs
         _spkr_buf = np.zeros(0, dtype=np.float32)
         _spkr_t = 0.0
+        _spkr_send_buf = np.zeros(0, dtype=np.float32)
+        _spkr_send_thresh = 512
         if spkr and sd is not None:
             def _make_out_stream(target_fs: int, cb: Callable[..., Any]) -> Any:
                 s = cast(Any, sd).OutputStream(
@@ -183,11 +190,12 @@ class SpectrogramAnimator:
                     dtype="float32",
                     callback=cb,
                     blocksize=0,
+                    device=_SPKR_DEVICE if _SPKR_DEVICE is not None else None,
                 )
                 s.start()
                 return s
             # callback de audio que consume de la cola
-            spkr_q = queue.Queue(maxsize=16)
+            spkr_q = queue.Queue(maxsize=64)
             _cb_buf = np.zeros(0, dtype=np.float32)
             def _cb(outdata: np.ndarray, frames: int, time_info: Any, status: Any) -> None:  # noqa: D401
                 nonlocal _cb_buf
@@ -209,22 +217,27 @@ class SpectrogramAnimator:
                 else:
                     outdata.fill(0.0)
             try:
-                # Preferir Fs del procesado; si no es soportado, caer a 48000
+                # Preferir Fs del procesado; si no es soportado, intentar 48k, 44.1k, 8k
                 stream = _make_out_stream(spkr_fs, _cb)
             except Exception:
-                try:
-                    spkr_fs = 48000
-                    stream = _make_out_stream(spkr_fs, _cb)
-                except Exception:
-                    stream = None
+                stream = None
+                for alt in (48000, 44100, 8000):
+                    if spkr_fs == alt:
+                        continue
+                    try:
+                        spkr_fs = alt
+                        stream = _make_out_stream(spkr_fs, _cb)
+                        break
+                    except Exception:
+                        stream = None
             if stream is not None:
                 def _spkr_convert_impl(a: np.ndarray) -> np.ndarray:
                     nonlocal _spkr_buf, _spkr_t
                     x = a.astype(np.float32)
-                    if spkr_fs == self.fs:
+                    if spkr_fs == spkr_in_fs:
                         return x
                     _spkr_buf = np.concatenate((_spkr_buf, x))
-                    step = self.fs / float(spkr_fs)
+                    step = spkr_in_fs / float(spkr_fs)
                     outs = []
                     t = _spkr_t
                     while t + 1.0 < _spkr_buf.size:
@@ -241,54 +254,73 @@ class SpectrogramAnimator:
                     return np.asarray(outs, dtype=np.float32)
 
                 _spkr_convert_fn = _spkr_convert_impl
+                # Buffer de envío para agrupar muestras hacia el callback y evitar underruns
+                _spkr_send_buf = np.zeros(0, dtype=np.float32)
+                _spkr_send_thresh = max(512, int(spkr_fs // 50))  # ~20ms o 512
 
         # Productor en hilo separado para desacoplar lectura de la fuente del render
         prod_run = True
         def _produce() -> None:
-            nonlocal last_samples
+            nonlocal last_samples, _spkr_send_buf, _spkr_send_thresh
             chunk = max(1, self.hop)
             sr_in = int(getattr(source, "sample_rate", self.fs))
             while prod_run:
                 t0 = time.monotonic()
-                x = source.read(chunk)
+                # Ajustar tamaño de lectura a Fs de la fuente para mantener ~chunk muestras procesadas
+                read_n = chunk if sr_in == self.fs else int(max(1, (chunk * sr_in + self.fs - 1) // self.fs))
+                x = source.read(read_n)
                 if x.size:
-                    # time plot: últimas muestras de la fuente (independiente del waterfall)
-                    if time_plot and last_samples is not None:
-                        n = len(last_samples)
-                        if x.size < n:
-                            y = np.zeros(n, dtype=np.float32)
-                            y[: x.size] = x
-                        else:
-                            y = x[-n:]
-                        last_samples = y
-                    # procesar para waterfall y speaker (mismas muestras post-CPU)
+                    # procesado; si CPU expone pre/post BPF, separar para speaker/time plot
                     x_proc = x
+                    x_pre = None
                     try:
-                        x_proc = cpu.process(x)
+                        if hasattr(cpu, "process_pre_bpf") and hasattr(cpu, "apply_post_bpf"):
+                            x_pre = getattr(cpu, "process_pre_bpf")(x)
+                            x_proc = getattr(cpu, "apply_post_bpf")(x_pre)
+                        else:
+                            x_proc = cpu.process(x)
+                            x_pre = x_proc
                     except Exception:
                         x_proc = x
+                        x_pre = x
+                    # time plot: usar señal pre-BPF si disponible
+                    if time_plot and last_samples is not None:
+                        n = len(last_samples)
+                        buf = x_pre if x_pre is not None else x_proc
+                        if buf.size < n:
+                            y = np.zeros(n, dtype=np.float32)
+                            y[: buf.size] = buf
+                        else:
+                            y = buf[-n:]
+                        last_samples = y
                     # waterfall: empujar procesado
                     try:
                         if x_proc.size:
                             self._push(x_proc)
                     except Exception:  # nosec B110 - drop bad frame, keep running
                         pass
-                    # speaker: cola asíncrona con mismas muestras que el waterfall
-                    if stream is not None and spkr_q is not None and x_proc.size:
+                    # speaker: enviar SIEMPRE muestras directas desde la fuente (bypass CPU)
+                    if stream is not None and spkr_q is not None:
                         try:
+                            sp = x.astype(np.float32)
                             y_sp = (
-                                _spkr_convert_fn(x_proc)
+                                _spkr_convert_fn(sp)
                                 if _spkr_convert_fn is not None
-                                else x_proc.astype(np.float32)
+                                else sp
                             )
-                            spkr_q.put_nowait(y_sp.ravel())
+                            if y_sp.size > 0:
+                                _spkr_send_buf = np.concatenate((_spkr_send_buf, y_sp.ravel()))
+                            while _spkr_send_buf.size >= _spkr_send_thresh:
+                                chunk_out = _spkr_send_buf[:_spkr_send_thresh]
+                                _spkr_send_buf = _spkr_send_buf[_spkr_send_thresh:]
+                                spkr_q.put_nowait(chunk_out)
                         except Exception:  # nosec B110 - audio queue backpressure/drop
                             pass
-                # Ritmo en tiempo real
+                # Ritmo en tiempo real basado en muestras procesadas al Fs del pipeline
                 dt = time.monotonic() - t0
-                wait = (
-                    max(0.0, (x.size / float(sr_in)) - dt) if x.size else (chunk / float(sr_in))
-                )
+                produced = (x_pre if x_pre is not None else x_proc)
+                prod_secs = produced.size / float(self.fs) if produced.size else (chunk / float(self.fs))
+                wait = max(0.0, prod_secs - dt)
                 time.sleep(min(0.1, wait))
         prod_thr = threading.Thread(target=_produce, name="txori-producer")
         prod_thr.start()

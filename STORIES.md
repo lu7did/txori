@@ -49,3 +49,4 @@
 - 2025-10-31T23:25:27.790Z: Actualizar CONTEXT para no utilizar Trufflehog en los controles de seguridad.
 - 2025-10-31T23:27:24.029Z: Remover trufflehog de requirements-dev y del workflow CI para evitar fallos de prerequisitos.
 - 2025-11-08T21:46:53.458Z: Agregar nueva fuente --source line (entrada de audio en vivo desde dispositivo predeterminado).
+- 2025-11-08T21:50:25.310Z: Agregar argumento --line para seleccionar el dispositivo de entrada cuando --source line; ignorado en otros casos.

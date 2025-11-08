@@ -119,16 +119,20 @@ class ToneSource(Source):
 class LineSource(Source):
     """Fuente que captura audio en vivo del dispositivo de entrada predeterminado."""
 
-    def __init__(self, blocksize: int = 1024) -> None:
+    def __init__(self, blocksize: int = 1024, device: int | None = None) -> None:
         if sd is None:
             raise RuntimeError("sounddevice no disponible para --source line")
         try:
             dev_in = sd.default.device
             if isinstance(dev_in, (list, tuple)):
                 dev_in = dev_in[0]
+            # Si se provee un dispositivo explito, usarlo
+            if device is not None:
+                dev_in = int(device)
             info = sd.query_devices(dev_in)
         except Exception:
             info = {"default_samplerate": 48000}
+            dev_in = device
         self._sr = int(info.get("default_samplerate", 48000) or 48000)
         self._buf = deque()  # type: ignore[var-annotated]
         self._lock = threading.Lock()
