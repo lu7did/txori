@@ -50,3 +50,4 @@
 - 2025-10-31T23:27:24.029Z: Remover trufflehog de requirements-dev y del workflow CI para evitar fallos de prerequisitos.
 - 2025-11-08T21:46:53.458Z: Agregar nueva fuente --source line (entrada de audio en vivo desde dispositivo predeterminado).
 - 2025-11-08T21:50:25.310Z: Agregar argumento --line para seleccionar el dispositivo de entrada cuando --source line; ignorado en otros casos.
+- 2025-11-08T22:02:06.118Z: Manejo gracioso de falta de sounddevice con --source line (mensaje y exit 1 sin traceback).

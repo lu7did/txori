@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- 2025-11-08 - Build 049: Manejo gracioso cuando sounddevice no está disponible para --source line (mensaje y exit limpio).
 - 2025-11-08 - Build 048: Nuevo argumento --line para seleccionar dispositivo de entrada cuando --source line; ignorado en otras fuentes.
 - 2025-11-08 - Build 047: Nueva fuente --source line (captura audio en vivo desde dispositivo de entrada predeterminado usando su sample rate) integrada al procesador, waterfall, speaker (--spkr) y time plot (--time).
 - 2025-11-01 - Versión 1.0 ALPHA --BASELINE--: Documentación consolidada (README/BUILD/JOURNAL), lista completa de argumentos y valores por defecto, estructura del programa; CI actualizado (coverage >=80%).

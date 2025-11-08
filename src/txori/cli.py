@@ -204,7 +204,11 @@ def _make_source(
     if kind == "tone":
         return ToneSource(freq_hz=tone_freq, fs=tone_fsr)
     if kind == "line":
-        return LineSource(device=line_dev)
+        try:
+            return LineSource(device=line_dev)
+        except RuntimeError as e:
+            print(str(e))
+            raise SystemExit(1)
     raise SystemExit(f"Fuente no soportada: {kind}")
 
 
