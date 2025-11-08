@@ -57,7 +57,7 @@ Novedad (Build 018): Escala de frecuencias movida al margen derecho del gráfico
 Novedad (Build 018): --fft-ema para suavizado temporal (EMA) y --vmin/--vmax para rango dB fijo.
 
 Argumentos y valores por defecto:
-- --source [file|tone] (obligatorio)
+- --source [file|tone|line] (obligatorio)
 - --in RUTA (obligatorio cuando --source file)
 - --tone-freq FLOAT (default: 600) cuando --source tone
 - --tone-fsr INT (default: 4000) cuando --source tone
@@ -87,6 +87,7 @@ Fuente adicional:
 - --source tone: tono senoidal sintetizado
 - --tone-freq FLOAT (default: 600)
 - --tone-fsr INT (default: 4000)
+- --source line: entrada de audio en vivo (dispositivo predeterminado, usa su sample rate)
 
 Reproducción en vivo:
 - --spkr: envía la misma señal post-CPU que alimenta el waterfall a la salida de audio del sistema, respetando su Fs actual.

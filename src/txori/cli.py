@@ -16,7 +16,7 @@ import time
 from typing import Any, cast
 import numpy as np
 
-from .sources import FileSource, ToneSource, Source
+from .sources import FileSource, ToneSource, LineSource, Source
 from .cpu import (
     NoOpProcessor,
     Processor,
@@ -41,9 +41,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument(
         "--source",
-        choices=["file", "tone"],
+        choices=["file", "tone", "line"],
         required=True,
-        help="Tipo de fuente",
+        help="Tipo de fuente (file|tone|line)",
     )
     p.add_argument(
         "--in",
@@ -197,6 +197,8 @@ def _make_source(
         return FileSource(infile)
     if kind == "tone":
         return ToneSource(freq_hz=tone_freq, fs=tone_fsr)
+    if kind == "line":
+        return LineSource()
     raise SystemExit(f"Fuente no soportada: {kind}")
 
 
